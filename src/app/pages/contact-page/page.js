@@ -281,7 +281,7 @@ export default function ContactPage() {
           <div className="cp-back-wrap">
             <Link href="/" className="cp-back"><ArrowLeft size={16} /> Back to Home</Link>
           </div>
-          <motion.div className="cp-hero-badge" initial={{ opacity: 0, y: -16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
+          <motion.div className="cp-hero-badge main-margin-top" initial={{ opacity: 0, y: -16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
             <span className="cp-badge-dot" /> Get In Touch
           </motion.div>
           <motion.h1 className="cp-hero-title" initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.1 }}>

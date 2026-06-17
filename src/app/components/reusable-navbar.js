@@ -1,7 +1,7 @@
 'use client';
 
 import Image from "next/image";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Menu, X } from "lucide-react";
 import '../css/navbar2.css'
@@ -26,6 +26,18 @@ const dropdownItems = [
 export default function ReusableNavbar() {
   const [mobileOpen,   setMobileOpen]   = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
+
+  // Close mobile menu when screen size changes to desktop
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth >= 1024 && mobileOpen) {
+        setMobileOpen(false);
+      }
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [mobileOpen]);
 
   return (
     <>
@@ -84,24 +96,22 @@ export default function ReusableNavbar() {
       </nav>
 
       {/* Mobile menu */}
-      {mobileOpen && (
-        <div className="fixed inset-0 bg-black/95 backdrop-blur-xl z-40 pt-24 px-8">
-          <ul className="space-y-6 text-center text-white text-xl font-medium">
-            {navLinks.map((link) => (
-              <li key={link.name}>
-                <Link href={link.href} onClick={() => setMobileOpen(false)} className="block py-3 hover:text-purple-400 transition">
-                  {link.name}
-                </Link>
-              </li>
-            ))}
-            <li>
-              <Link href="/pages/contact-page" onClick={() => setMobileOpen(false)} className="inline-block mt-8 bg-gradient-to-r from-purple-600 to-purple-800 text-white px-10 py-4 rounded-full font-bold transition-all">
-                Get Started
+      <div className={`mobile-menu-overlay ${mobileOpen ? 'mobile-menu-open' : ''}`}>
+        <ul className="space-y-6 text-left mt-5 text-white text-xl font-medium">
+          {navLinks.map((link) => (
+            <li key={link.name}>
+              <Link href={link.href} onClick={() => setMobileOpen(false)} className="block py-3 hover:text-purple-400 transition">
+                {link.name}
               </Link>
             </li>
-          </ul>
-        </div>
-      )}
+          ))}
+          <li>
+            <Link href="/pages/contact-page" onClick={() => setMobileOpen(false)} className="inline-block mt-8 bg-gradient-to-r from-purple-600 to-purple-800 text-white px-10 py-4 rounded-full font-bold transition-all">
+              Get Started
+            </Link>
+          </li>
+        </ul>
+      </div>
     </>
   );
 }

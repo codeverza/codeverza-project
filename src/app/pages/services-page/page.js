@@ -275,7 +275,7 @@ export default function ServicesPage() {
         </div>
 
         <div className="sp-hero-content">
-          <motion.div className="sp-hero-badge"
+          <motion.div className="sp-hero-badge main-margin-top"
             initial={{ opacity: 0, y: -16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}
           >
             <span className="sp-badge-dot" /> What We Offer

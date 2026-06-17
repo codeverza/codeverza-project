@@ -92,18 +92,18 @@ export default function AboutPage() {
   return (
     <>
       <ReusableNavbar />
-      <main className="ap-main pb-1">
+      <main className="ap-main pb-1 ">
         <ParticleBg />
         <div className="ap-orb ap-orb-1" />
         <div className="ap-orb ap-orb-2" />
         <div className="ap-orb ap-orb-3" />
 
         {/* ── HERO ── */}
-        <div className="ap-hero">
-          <div className="ap-back-wrap">
+        <div className="ap-hero ">
+          <div className="ap-back-wrap ">
             <Link href="/" className="ap-back"><ArrowLeft size={16} /> Back to Home</Link>
           </div>
-          <motion.div className="ap-hero-badge" initial={{ opacity: 0, y: -16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
+          <motion.div className="ap-hero-badge main-margin-top" initial={{ opacity: 0, y: -16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
             <span className="ap-badge-dot" /> About Us
           </motion.div>
           <motion.h1 className="ap-hero-title" initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.1 }}>

@@ -113,7 +113,7 @@ function Terminal({ inView }) {
   }, []);
 
   return (
-    <div className="terminal-window">
+    <div className="terminal-window ">
       <div className="terminal-bar">
         <span className="t-dot red" /><span className="t-dot yellow" /><span className="t-dot green" />
         <span className="t-title">codecoves — bash</span>
@@ -154,7 +154,7 @@ export default function About() {
   const inView = useInView(ref, { once: true, margin: '-80px' });
 
   return (
-    <section className="about-section" id="about" ref={ref}>
+    <section className="about-section " id="about" ref={ref}>
       {/* BG particle network */}
       <ParticleBg />
 

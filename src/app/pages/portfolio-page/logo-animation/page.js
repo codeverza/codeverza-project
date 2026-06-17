@@ -59,7 +59,7 @@ const videos = [
     tags: ['After Effects', 'Lottie', 'Particle FX'],
     color: '#ff61f6',
     // Replace with your actual video URL or YouTube embed
-    videoUrl: '/animated-logo/airline-logo.MP4',
+    videoUrl: '/animated-logo/airline-logo.mp4',
     thumb: '✨',
   },
   {
@@ -68,7 +68,7 @@ const videos = [
     desc: 'Elegant stroke draw-on animation with smooth easing and glow effect.',
     tags: ['After Effects', 'SVG Animation', 'Stroke FX'],
     color: '#b14cff',
-    videoUrl: '/animated-logo/Fedex-logo.MP4',
+    videoUrl: '/animated-logo/Fedex-logo.mp4',
     thumb: '🎬',
   },
   {
@@ -77,7 +77,7 @@ const videos = [
     desc: 'Dynamic 3D rotation logo intro with light flare and cinematic feel.',
     tags: ['After Effects', '3D', 'Light FX'],
     color: '#ffd43b',
-    videoUrl: '/animated-logo/boomer-logo.MP4',
+    videoUrl: '/animated-logo/boomer-logo.mp4',
     thumb: '🌟',
   },
   {
@@ -86,7 +86,7 @@ const videos = [
     desc: 'Trendy glitch effect logo reveal perfect for gaming and tech brands.',
     tags: ['After Effects', 'Glitch FX', 'Motion'],
     color: '#61dafb',
-    videoUrl: '/animated-logo/game-logo.MP4',
+    videoUrl: '/animated-logo/game-logo.mp4',
     thumb: '⚡',
   },
   {
@@ -95,7 +95,7 @@ const videos = [
     desc: 'Fluid liquid morphing animation that transforms into your brand logo.',
     tags: ['After Effects', 'Liquid FX', 'Morph'],
     color: '#68a063',
-    videoUrl: '/animated-logo/motion-logo.MP4',
+    videoUrl: '/animated-logo/motion-logo.mp4',
     thumb: '💧',
   },
   {
@@ -104,7 +104,7 @@ const videos = [
     desc: 'Vibrant neon glow logo animation ideal for nightlife and entertainment brands.',
     tags: ['After Effects', 'Neon FX', 'Glow'],
     color: '#ff6b35',
-    videoUrl: '/animated-logo/pen-logo.MP4',
+    videoUrl: '/animated-logo/pen-logo.mp4',
     thumb: '🔥',
   },
   {
@@ -113,7 +113,7 @@ const videos = [
     desc: 'Vibrant neon glow logo animation ideal for nightlife and entertainment brands.',
     tags: ['After Effects', 'Neon FX', 'Glow'],
     color: '#ff6b35',
-    videoUrl: '/animated-logo/race-logo.MP4',
+    videoUrl: '/animated-logo/race-logo.mp4',
     thumb: '🔥',
   },
   {
@@ -122,7 +122,7 @@ const videos = [
     desc: 'Vibrant neon glow logo animation ideal for nightlife and entertainment brands.',
     tags: ['After Effects', 'Neon FX', 'Glow'],
     color: '#ff6b35',
-    videoUrl: '/animated-logo/soccer-logo.MP4',
+    videoUrl: '/animated-logo/soccer-logo.mp4',
     thumb: '🔥',
   },
 ];

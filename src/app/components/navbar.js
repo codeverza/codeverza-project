@@ -51,6 +51,18 @@ const Navbar = () => {
 
     const container = { animate: { transition: { staggerChildren: 0.05 } } };
 
+    // Close mobile menu when screen size changes to desktop
+    useEffect(() => {
+        const handleResize = () => {
+            if (window.innerWidth >= 1024 && mobileMenuOpen) {
+                setMobileMenuOpen(false);
+            }
+        };
+
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, [mobileMenuOpen]);
+
     // Auto-change text
     useEffect(() => {
         if (!showText) return;
@@ -114,20 +126,19 @@ const Navbar = () => {
                 </button>
             </nav>
 
-            {mobileMenuOpen && (
-                <div className="fixed inset-0 bg-black/95 backdrop-blur-xl z-40 pt-24 px-8">
-                    <ul className="space-y-6 text-center text-white text-xl font-medium">
-                        {navLinks.map((link) => (
-                            <li key={link.name}>
-                                <a href={link.href} onClick={() => setMobileMenuOpen(false)} className="block py-3 hover:text-purple-400 transition">{link.name}</a>
-                            </li>
-                        ))}
-                        <li>
-                            <a href="/pages/contact-page" onClick={() => setMobileMenuOpen(false)} className="inline-block mt-8 bg-gradient-to-r from-purple-600 to-purple-800 hover:from-purple-700 hover:to-purple-900 text-white px-10 py-4 rounded-full font-bold transition-all">Get Started</a>
+            {/* Mobile menu */}
+            <div className={`mobile-menu-overlay ${mobileMenuOpen ? 'mobile-menu-open' : ''}`}>
+                <ul className="space-y-6 text-left text-white text-xl font-medium">
+                    {navLinks.map((link) => (
+                        <li key={link.name}>
+                            <a href={link.href} onClick={() => setMobileMenuOpen(false)} className="block py-3 hover:text-purple-400 transition">{link.name}</a>
                         </li>
-                    </ul>
-                </div>
-            )}
+                    ))}
+                    <li>
+                        <a href="/pages/contact-page" onClick={() => setMobileMenuOpen(false)} className="inline-block mt-8 bg-gradient-to-r from-purple-600 to-purple-800 hover:from-purple-700 hover:to-purple-900 text-white px-10 py-4 rounded-full font-bold transition-all">Get Started</a>
+                    </li>
+                </ul>
+            </div>
 
             {/* Hero Section */}
             <section className="relative w-full h-screen flex items-center justify-start">
@@ -144,7 +155,7 @@ const Navbar = () => {
                 <div className="relative z-10 ml-6 sm:ml-12 lg:ml-20 max-w-xl sm:max-w-2xl lg:max-w-4xl text-left pr-6 sm:pr-12 w-[calc(100%-48px)] sm:w-auto">
 
                     {/* TEXT WRAPPER — FIXED HEIGHT */}
-                    <div className="min-h-[260px] sm:min-h-[320px] lg:min-h-[420px] mt-10">
+                    <div className="min-h-[260px] sm:min-h-[320px] lg:min-h-[420px] mt-10 nav-slide-text">
 
                         {/* Main Heading */}
                         <AnimatePresence mode="wait">
@@ -213,7 +224,7 @@ const Navbar = () => {
                     </div>
 
                     {/* BUTTONS */}
-                    <div className="flex flex-col sm:flex-row gap-4 sm:gap-6">
+                    <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 nav-slide-btns">
                         <a href="/pages/services-page" className="inline-block bg-gradient-to-r from-purple-600 to-purple-800 hover:from-purple-700 hover:to-purple-900 text-white px-8 sm:px-10 py-4 sm:py-5 rounded-full font-bold text-base sm:text-lg transition-all duration-300 shadow-xl hover:shadow-purple-500/40 text-center">
                             Explore Services
                         </a>

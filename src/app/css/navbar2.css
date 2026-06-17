@@ -1,3 +1,80 @@
 .cc-logo{
     margin-right: -25px !important;
 }
+
+/* Mobile hamburger button fix */
+.lg\:hidden {
+  margin-right: 20px !important;
+  padding: 8px;
+}
+
+/* Remove white shade/outline from hamburger */
+button[aria-label="Toggle menu"] {
+  background: transparent !important;
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+  -webkit-tap-highlight-color: transparent;
+}
+
+button[aria-label="Toggle menu"]:focus {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+button[aria-label="Toggle menu"]:active {
+  background: transparent !important;
+}
+
+/* Mobile menu slide animation */
+.mobile-menu-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.95);
+  backdrop-filter: blur(20px);
+  z-index: 40;
+  padding-top: 6rem;
+  padding-left: 2rem;
+  padding-right: 2rem;
+  transform: translateX(100%);
+  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  pointer-events: none;
+}
+
+.mobile-menu-overlay.mobile-menu-open {
+  transform: translateX(0);
+  pointer-events: auto;
+}
+
+/* Hide mobile menu on desktop screens */
+@media (min-width: 1024px) {
+  .mobile-menu-overlay {
+    display: none !important;
+  }
+}
+
+@media (min-width: 998px) and (max-width: 1400px) {
+  .nav-slide-text{
+    margin-top: 70px !important;
+  }
+
+  .nav-slide-btns{
+    margin-top: -100px !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .nav-slide-text{
+    margin-top: 30px !important;
+  }
+  
+  /* Better mobile spacing */
+  nav {
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
+  }
+  
+  button[aria-label="Toggle menu"] {
+    margin-right: 0;
+  }
+}

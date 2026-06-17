@@ -214,7 +214,7 @@ export default function PortfolioPage() {
           <div className="pp-back-wrap">
             <Link href="/" className="pp-back"><ArrowLeft size={16} /> Back to Home</Link>
           </div>
-          <motion.div className="pp-hero-badge" initial={{ opacity: 0, y: -16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
+          <motion.div className="pp-hero-badge main-margin-top" initial={{ opacity: 0, y: -16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
             <span className="pp-badge-dot" /> Our Work
           </motion.div>
           <motion.h1 className="pp-hero-title" initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.1 }}>
