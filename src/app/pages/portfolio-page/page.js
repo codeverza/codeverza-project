@@ -17,6 +17,23 @@ const CATEGORIES = [
 
 const moreProjects = [
   {
+    id: 3, title: 'Ayaz Ahmad Academy — Education Platform', category: 'Educational Website',
+    tags: ['Next.js', 'Firebase', 'Email.js', 'Framer Motion'],
+    desc: 'A fully animated, responsive 5-page educational website for Ayaz Ahmad Academy. Students and teachers can register, triggering automated confirmation emails to users and instant admin notifications.',
+    fullDesc: 'Ayaz Ahmad Academy is a fully designed and animated 5-page educational website built to handle both student and teacher registrations. The platform includes a Home page, About page, Courses page, Faculty page, and a smart Register page where visitors can sign up as either a student or a teacher.\n\nUpon registration, the system automatically sends a confirmation email to the registrant and a real-time notification email to the admin — alerting them whether a new student or teacher has signed up. The admin can then follow up and get in touch.\n\nThe website is built with Next.js and Firebase, fully animated using Framer Motion, and designed to be completely responsive across all devices. Every section is crafted with a modern, polished aesthetic aligned with an educational brand identity.',
+    features: [
+      'Home, About, Courses, Faculty & Register pages',
+      'Register as Student or Teacher',
+      'Automated confirmation email to registrant',
+      'Instant admin notification email on signup',
+      'Firebase Firestore — registration data storage',
+      'Framer Motion — fully animated UI',
+      'Fully responsive across all devices',
+      'Modern, professional educational design',
+    ],
+    color: '#00c4ff', gradient: 'linear-gradient(135deg, #001428, #002244, #001428)', emoji: '🎓', liveUrl: 'https://ayaz-academy.vercel.app/',
+  },
+  {
     id: 2, title: 'VoltrixStation — EV Charging Platform', category: 'Web App',
     tags: ['Next.js', 'Firebase', 'Admin Panel', 'Real-time'],
     desc: 'A full-featured electric vehicle charging platform. Users buy time-based plans, get a unique code, and charge at any station. Real-time session tracking shows remaining time. Includes a complete admin panel to manage stations, users, and plans.',
@@ -52,6 +69,7 @@ const designProjects = [
     fullDesc: 'A full brand identity package for TechStart — a technology startup. The project included logo design, color system, typography selection, business card design, letterhead, social media kit, and a comprehensive brand guidelines document. Designed in Figma and Adobe Illustrator.',
     features: ['Logo design (primary + variants)', 'Color palette & typography', 'Business card & stationery', 'Social media kit', 'Brand guidelines document', 'Figma design system'],
     color: '#f24e1e', gradient: 'linear-gradient(135deg, #2a0a00, #4a1500)', emoji: '🎨', liveUrl: '#',
+    detailPage: '/pages/portfolio-page/graphic-design/brand-identity',
   },
   {
     id: 'd2', title: 'Social Media Design — E-Commerce',
@@ -60,6 +78,7 @@ const designProjects = [
     fullDesc: 'A complete social media design package for an e-commerce brand. Includes Instagram posts, stories, Facebook banners, promotional sale graphics, product highlight templates, and seasonal campaign designs. Created using Canva Pro and Adobe Photoshop with a consistent brand aesthetic.',
     features: ['Instagram post templates', 'Story & reel covers', 'Facebook banners', 'Promotional graphics', 'Product highlight designs', 'Seasonal campaign assets'],
     color: '#00c4cc', gradient: 'linear-gradient(135deg, #001a1a, #003333)', emoji: '📱', liveUrl: '#',
+    detailPage: '/pages/portfolio-page/graphic-design/social-media',
   },
   {
     id: 'd3', title: 'UI/UX Design — Mobile App',
@@ -68,6 +87,7 @@ const designProjects = [
     fullDesc: 'Complete UI/UX design for a mobile food delivery application. The project covered user research, wireframing, high-fidelity screen design, component library creation, and an interactive clickable prototype. Designed in Figma with a clean, modern aesthetic focused on usability and conversion.',
     features: ['User research & personas', 'Wireframes & user flows', '40+ high-fidelity screens', 'Component library', 'Interactive prototype', 'Design handoff documentation'],
     color: '#ff9a00', gradient: 'linear-gradient(135deg, #2a1500, #4a2800)', emoji: '🖌️', liveUrl: '#',
+    detailPage: '/pages/portfolio-page/graphic-design/ui-ux',
   },
 ];
 
@@ -79,6 +99,7 @@ const animationProjects = [
     fullDesc: 'A dynamic product launch animation created for a tech product reveal. The video features smooth motion graphics, kinetic typography, particle effects, and brand-aligned color transitions. Designed to be used across social media, website hero sections, and presentations.',
     features: ['Kinetic typography animation', 'Particle & visual effects', 'Brand-aligned color grading', 'Social media format exports', 'Website hero video', 'Presentation-ready version'],
     color: '#b14cff', gradient: 'linear-gradient(135deg, #1a0030, #2d0050)', emoji: '🎬', liveUrl: '#',
+    detailPage: '/pages/portfolio-page/motion-graphics',
   },
   {
     id: 'a2', title: 'Logo Animation — SaaS Brand',
@@ -96,6 +117,7 @@ const animationProjects = [
     fullDesc: 'A 60-second 2D explainer animation for a fintech mobile application. The animation walks users through the app\'s key features using character animation, icon animations, and smooth scene transitions. Designed to increase user understanding and boost app downloads from landing pages.',
     features: ['60-second explainer video', '2D character animation', 'Icon & UI animations', 'Voiceover-ready timing', 'Multiple language versions', 'Web & social exports'],
     color: '#ffd43b', gradient: 'linear-gradient(135deg, #2a1f00, #3d2e00)', emoji: '🎥', liveUrl: '#',
+    detailPage: '/pages/portfolio-page/explainer-animation',
   },
 ];
 
@@ -365,7 +387,7 @@ export default function PortfolioPage() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: i * 0.1 }}
                   whileHover={{ y: -6 }}
-                  onClick={() => setActiveProject(p)}
+                  onClick={() => router.push(p.detailPage)}
                 >
                   <div className="pp-more-visual" style={{ background: p.gradient }}>
                     <span className="pp-more-emoji">{p.emoji}</span>

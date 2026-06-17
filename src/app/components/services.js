@@ -117,7 +117,7 @@ export default function Services() {
       </div>
 
       <div className="services-btn-wrap">
-        <Link href="/pages/services-page" className="services-see-more">
+        <Link href="/pages/services-page" className="about-cta">
           See All Services <ArrowRight size={18} />
         </Link>
       </div>

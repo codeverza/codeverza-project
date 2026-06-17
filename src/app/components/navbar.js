@@ -197,10 +197,14 @@ const Navbar = () => {
                                     exit="exit"
                                     className="text-sm sm:text-lg lg:text-2xl text-gray-200 mb-8 max-w-xs sm:max-w-xl lg:max-w-2xl leading-relaxed"
                                 >
-                                    {heroData[currentIndex].para.split("").map((char, i) => (
-                                        <motion.span key={`para-char-${i}`} variants={letterVariants} className="inline-block">
-                                            {char === " " ? "\u00A0" : char}
-                                        </motion.span>
+                                    {heroData[currentIndex].para.split(" ").map((word, wi) => (
+                                        <span key={`para-word-${wi}`} className="inline-block mr-[0.28em]">
+                                            {word.split("").map((char, ci) => (
+                                                <motion.span key={`para-${wi}-${ci}`} variants={letterVariants} className="inline-block">
+                                                    {char}
+                                                </motion.span>
+                                            ))}
+                                        </span>
                                     ))}
                                 </motion.p>
                             )}

@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import {
-  FaGithub, FaLinkedin, FaTwitter, FaInstagram,
+  FaGithub, FaLinkedin, FaInstagram,
 } from 'react-icons/fa';
 import { Mail, Phone, MapPin, ChevronRight, Heart } from 'lucide-react';
 import { db } from '../../../lib/firebase';
@@ -36,16 +36,16 @@ const links = {
 };
 
 const socials = [
-  { icon: <FaGithub size={18} />,   href: '#',                label: 'GitHub'   },
-  { icon: <FaLinkedin size={18} />, href: '#',       label: 'LinkedIn' },
-  { icon: <FaTwitter size={18} />,  href: '#',                label: 'Twitter'  },
-  { icon: <FaInstagram size={18} />,href: '#',              label: 'Instagram'},
+  { icon: <FaGithub size={18} />,   href: 'https://github.com/codecoves02',                label: 'GitHub'   },
+  { icon: <FaLinkedin size={18} />, href: 'https://www.linkedin.com/feed/',       label: 'LinkedIn' },
+  // { icon: <FaTwitter size={18} />,  href: '#',                label: 'Twitter'  },
+  { icon: <FaInstagram size={18} />,href: 'https://www.instagram.com/codecoves?igsh=Z2NkOW84ejE1cXQ3',              label: 'Instagram'},
 ];
 
 const contact = [
   { icon: <Mail size={15} />,    text: 'codecoves02@gmail.com', href: 'mailto:codecoves02@gmail.com'  },
   { icon: <Phone size={15} />,   text: '+92 325 1507557',        href: 'https://wa.me/923251507557'    },
-  { icon: <MapPin size={15} />,  text: 'Pakistan 🇵🇰',            href: null                            },
+  { icon: <MapPin size={15} />,  text: 'Karachi, Pakistan 🇵🇰',            href: null                            },
 ];
 
 const fadeUp = (delay = 0) => ({

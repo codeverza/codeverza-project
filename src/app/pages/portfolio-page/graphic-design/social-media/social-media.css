@@ -1,0 +1,139 @@
+/* ── ORBS ── */
+.sm-orb {
+  position: fixed; border-radius: 50%;
+  filter: blur(120px); pointer-events: none; z-index: 0;
+}
+.sm-orb-1 { width: 550px; height: 550px; background: rgba(0,196,204,0.10); top: -80px; left: -120px; }
+.sm-orb-2 { width: 450px; height: 450px; background: rgba(0,120,140,0.08); bottom: 10%; right: -100px; }
+.sm-orb-3 { width: 320px; height: 320px; background: rgba(177,76,255,0.06); top: 50%; left: 40%; }
+
+/* ── HERO BADGE ── */
+.sm-hero-badge {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: rgba(0,196,204,0.12); border: 1px solid rgba(0,196,204,0.3);
+  border-radius: 50px; padding: 8px 18px;
+  font-size: 12px; color: #00c4cc; letter-spacing: 1.5px;
+  text-transform: uppercase; margin-bottom: 20px;
+}
+.sm-badge-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: #00c4cc; box-shadow: 0 0 8px #00c4cc;
+  animation: sm-pulse 2s ease-in-out infinite;
+}
+@keyframes sm-pulse { 0%,100%{transform:scale(1);}50%{transform:scale(1.5);opacity:.6;} }
+
+.sm-cyan {
+  background: linear-gradient(135deg, #00c4cc, #7ffeff);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+}
+
+.sm-pill {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: rgba(255,255,255,0.05); border: 1px solid rgba(0,196,204,0.2);
+  border-radius: 50px; padding: 7px 14px; font-size: 12px; color: #ccc;
+}
+
+/* ── SECTION HEADER ── */
+.sm-section-label {
+  font-size: 11px; font-weight: 700; letter-spacing: 2px;
+  text-transform: uppercase; color: #00c4cc; margin-bottom: 10px;
+}
+.sm-section-title {
+  font-size: 36px; font-weight: 800; margin-bottom: 40px; line-height: 1.2; color: #fff;
+}
+
+/* ── GRID ── */
+.sm-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+  margin-bottom: 20px;
+}
+@media (max-width: 900px) { .sm-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 540px)  { .sm-grid { grid-template-columns: 1fr; } }
+
+/* ── CARD ── */
+.sm-card {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 20px; overflow: hidden;
+  cursor: default;
+  transition: border-color 0.3s, box-shadow 0.3s;
+}
+.sm-card:hover {
+  border-color: rgba(0,196,204,0.45);
+  box-shadow: 0 0 36px rgba(0,196,204,0.1);
+}
+
+/* visual */
+.sm-card-visual {
+  position: relative;
+  height: 180px;
+  display: flex; align-items: center; justify-content: center;
+  overflow: hidden;
+}
+.sm-card-emoji {
+  font-size: 60px;
+  filter: drop-shadow(0 4px 24px rgba(0,0,0,0.5));
+  transition: transform 0.4s ease;
+  position: relative; z-index: 1;
+}
+.sm-card:hover .sm-card-emoji { transform: scale(1.15) rotate(-4deg); }
+
+.sm-platform-badge {
+  position: absolute; top: 12px; right: 12px;
+  border: 1px solid; border-radius: 50px;
+  padding: 4px 10px; font-size: 10px; font-weight: 700;
+  letter-spacing: 0.8px; z-index: 2;
+}
+
+.sm-card-shine {
+  position: absolute; inset: 0;
+  background: linear-gradient(120deg, transparent 30%, rgba(255,255,255,0.05) 50%, transparent 70%);
+  transform: translateX(-100%);
+  transition: transform 0.6s ease;
+}
+.sm-card:hover .sm-card-shine { transform: translateX(100%); }
+
+/* body */
+.sm-card-body { padding: 18px 18px 20px; }
+.sm-card-label {
+  font-size: 15px; font-weight: 800; color: #fff; margin-bottom: 6px;
+}
+.sm-card-desc {
+  font-size: 13px; color: #888; line-height: 1.65; margin-bottom: 12px;
+}
+.sm-card-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+
+/* ── CTA ── */
+.sm-cta {
+  position: relative; z-index: 2;
+  text-align: center; max-width: 500px;
+  margin: 0 auto 80px; padding: 56px 36px;
+  background: rgba(0,196,204,0.06);
+  border: 1px solid rgba(0,196,204,0.2);
+  border-radius: 28px; overflow: hidden;
+}
+.sm-cta-glow {
+  position: absolute; width: 280px; height: 280px; border-radius: 50%;
+  background: rgba(0,196,204,0.1); filter: blur(70px);
+  top: 50%; left: 50%; transform: translate(-50%,-50%); pointer-events: none;
+}
+.sm-cta h3 { font-size: 26px; font-weight: 800; margin-bottom: 10px; position: relative; }
+.sm-cta p  { font-size: 14px; color: #888; margin-bottom: 24px; position: relative; }
+.sm-cta-btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: linear-gradient(135deg, #00c4cc, #007a80);
+  color: #fff; padding: 14px 30px; border-radius: 50px;
+  font-size: 15px; font-weight: 700; text-decoration: none;
+  box-shadow: 0 0 24px rgba(0,196,204,0.4);
+  transition: box-shadow 0.3s, gap 0.25s; position: relative;
+}
+.sm-cta-btn:hover { box-shadow: 0 0 44px rgba(0,196,204,0.6); gap: 12px; }
+
+@media (max-width: 600px) {
+  .sm-section-title { font-size: 26px; }
+  .sm-card-visual { height: 140px; }
+  .sm-card-emoji { font-size: 46px; }
+  .sm-cta { padding: 36px 20px; margin: 0 5% 60px; }
+}

@@ -249,13 +249,16 @@ export default function LogoAnimationPage() {
         <div className="la-orb la-orb-1" />
         <div className="la-orb la-orb-2" />
 
+         {/* ── BACK ── */}
+                <div style={{ position: 'relative', zIndex: 2, padding: '90px 6% 0' }}>
+                  <Link href="/pages/portfolio-page" className="mg-back mt-[30px]">
+                    <ArrowLeft size={16} /> Back to Portfolio
+                  </Link>
+                </div>
+
         {/* HERO */}
         <div className="la-hero">
-          <div className="la-back-wrap">
-            <Link href="/pages/portfolio-page" className="la-back">
-              <ArrowLeft size={16} /> Back to Portfolio
-            </Link>
-          </div>
+
 
           <motion.div className="la-hero-badge"
             initial={{ opacity: 0, y: -16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}

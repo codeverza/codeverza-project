@@ -245,7 +245,7 @@ function ServiceCard({ service, index }) {
             ))}
           </ul>
 
-          <Link href="#contact" className="sp-cta" style={{ background: `linear-gradient(135deg, ${service.color}, ${service.color}99)` }}>
+          <Link href="/pages/contact-page" className="sp-cta" style={{ background: `linear-gradient(135deg, ${service.color}, ${service.color}99)` }}>
             Get Started <ArrowRight size={16} />
           </Link>
         </div>
@@ -266,7 +266,7 @@ export default function ServicesPage() {
       <div className="sp-page-orb sp-page-orb-3" />
 
       {/* ── HERO BANNER ── */}
-      <div className="sp-hero-banner">
+      <div className="sp-hero-banner mt-3">
         {/* back */}
         <div className="sp-back-wrap">
           <Link href="/" className="sp-back">

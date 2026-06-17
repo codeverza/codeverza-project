@@ -69,9 +69,9 @@ const contactCards = [
 
 const socials = [
   { icon: <FaWhatsapp size={20} />, label: 'WhatsApp', href: 'https://wa.me/923251507557',                    color: '#25d366' },
-  { icon: <FaLinkedin size={20} />, label: 'LinkedIn', href: 'https://linkedin.com/company/codecoves',        color: '#0077b5' },
-  { icon: <FaGithub size={20} />,   label: 'GitHub',   href: 'https://github.com/codecoves',                  color: '#fff'    },
-  { icon: <FaInstagram size={20} />,label: 'Instagram', href: 'https://instagram.com/codecoves',              color: '#e535ab' },
+  { icon: <FaLinkedin size={20} />, label: 'LinkedIn', href: 'https://www.linkedin.com/feed/',        color: '#0077b5' },
+  { icon: <FaGithub size={20} />,   label: 'GitHub',   href: 'https://github.com/codecoves02',                  color: '#fff'    },
+  { icon: <FaInstagram size={20} />,label: 'Instagram', href: 'https://www.instagram.com/codecoves?igsh=Z2NkOW84ejE1cXQ3',              color: '#e535ab' },
 ];
 
 const faqs = [
@@ -363,7 +363,7 @@ export default function ContactPage() {
               <h4 className="cp-sidebar-title">Find Us On</h4>
               <div className="cp-socials">
                 {socials.map((s, i) => (
-                  <motion.a key={i} href={s.href} className="cp-social-btn"
+                  <motion.a key={i} target='_blank' href={s.href} className="cp-social-btn"
                     style={{ '--sc': s.color }}
                     whileHover={{ scale: 1.1, y: -3 }} whileTap={{ scale: 0.95 }}
                   >

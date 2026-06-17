@@ -144,24 +144,21 @@
   margin-top: 60px;
 }
 
-.services-see-more {
+.about-cta {
   display: inline-flex;
   align-items: center;
   gap: 10px;
-  border: 2px solid rgba(177,76,255,0.5);
-  color: #e0aaff;
-  padding: 16px 40px;
+  background: linear-gradient(135deg, #b14cff, #6a00ff);
+  color: #fff;
+  padding: 16px 36px;
   border-radius: 50px;
   font-size: 16px;
   font-weight: 700;
   text-decoration: none;
   transition: all 0.3s ease;
-  background: rgba(177,76,255,0.08);
+  box-shadow: 0 0 30px rgba(177,76,255,0.4);
 }
-.services-see-more:hover {
-  background: linear-gradient(135deg, #b14cff, #6a00ff);
-  border-color: transparent;
-  color: #fff;
-  box-shadow: 0 0 40px rgba(177,76,255,0.5);
-  gap: 14px;
+.about-cta:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 0 50px rgba(177,76,255,0.6);
 }
