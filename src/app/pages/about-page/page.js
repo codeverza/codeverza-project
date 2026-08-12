@@ -269,11 +269,10 @@ export default function AboutPage() {
         >
           <h3>Ready to build something great?</h3>
           <p>Let's turn your idea into a world-class digital product.</p>
-          <Link href="/#contact" className="ap-cta-btn">
+          <Link href="/pages/contact-page" className="ap-cta-btn">
             Start a Project <ArrowRight size={18} />
           </Link>
         </motion.div>
-
       </main>
       <Footer />
     </>

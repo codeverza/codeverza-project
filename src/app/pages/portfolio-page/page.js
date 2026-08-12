@@ -31,7 +31,7 @@ const moreProjects = [
       'Fully responsive across all devices',
       'Modern, professional educational design',
     ],
-    color: '#00c4ff', gradient: 'linear-gradient(135deg, #001428, #002244, #001428)', emoji: '🎓', liveUrl: 'https://ayaz-academy.vercel.app/',
+    color: '#00c4ff', gradient: 'linear-gradient(135deg, #001428, #002244, #001428)', emoji: '🎓', liveUrl: 'https://www.ayazahmadacademy.com',
   },
   {
     id: 2, title: 'VoltrixStation — EV Charging Platform', category: 'Web App',

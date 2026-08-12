@@ -337,7 +337,7 @@ export default function ServicesPage() {
       >
         <h3>Ready to start your project?</h3>
         <p>Let's discuss your requirements and build something amazing together.</p>
-        <Link href="/#contact" className="sp-bottom-btn">
+        <Link href="/pages/contact-page" className="sp-bottom-btn">
           Contact Us <ArrowRight size={18} />
         </Link>
       </motion.div>
