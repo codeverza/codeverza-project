@@ -46,15 +46,15 @@ export default function ReusableNavbar() {
         {/* Logo */}
         <Link href="/" className="flex items-center gap-3">
           <Image
-            src="/img/cc-logo-new.png"
-            alt="CodeCoves"
-            width={100}
-            height={100}
+            src="/img/codeverza-logo.png"
+            alt="Codeverza"
+            width={80}
+            height={80}
             className="cc-logo"
             // style={{ filter: 'brightness(0) invert(1) sepia(1) saturate(3) hue-rotate(240deg)', objectFit: 'contain', width: '52px', height: '52px' }}
           />
           <span className="text-white font-bold text-2xl tracking-tight">
-            Code<span className="bg-gradient-to-r from-purple-400 to-purple-600 bg-clip-text text-transparent">Coves</span>
+            Code<span className="bg-gradient-to-r from-purple-400 to-purple-600 bg-clip-text text-transparent">Verza</span>
           </span>
         </Link>
 

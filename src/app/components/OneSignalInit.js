@@ -21,7 +21,7 @@ export default function OneSignalInit() {
                 type: 'push',
                 autoPrompt: true,
                 text: {
-                  actionMessage: 'Stay updated with the latest news and offers from CodeCoves!',
+                  actionMessage: 'Stay updated with the latest news and offers from Codeverza!',
                   acceptButton: 'Allow',
                   cancelButton: 'No Thanks',
                 },

@@ -223,7 +223,7 @@ export default function AdminDashboard() {
     <div style={{ display: 'flex', ...S.main }}>
       {!authChecked && (
         <div style={{ position: 'fixed', inset: 0, background: '#000', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <div style={{ fontSize: 20, fontWeight: 800, color: '#fff' }}>Code<span style={{ color: '#b14cff' }}>Coves</span></div>
+          <div style={{ fontSize: 20, fontWeight: 800, color: '#fff' }}>Code<span style={{ color: '#b14cff' }}>Verza</span></div>
         </div>
       )}
 
@@ -231,7 +231,7 @@ export default function AdminDashboard() {
       <aside style={S.sidebar}>
         <div style={{ padding: '0 24px 28px', borderBottom: '1px solid rgba(177,76,255,0.1)' }}>
           <div style={{ fontSize: 20, fontWeight: 900, color: '#fff' }}>
-            Code<span style={{ color: '#b14cff' }}>Coves</span>
+            Code<span style={{ color: '#b14cff' }}>Verza</span>
           </div>
           <div style={{ fontSize: 11, color: '#555', letterSpacing: 1, textTransform: 'uppercase', marginTop: 4 }}>Admin Panel</div>
         </div>

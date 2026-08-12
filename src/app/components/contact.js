@@ -56,7 +56,7 @@ function ParticleBg() {
 /* ── Left Visual ── */
 function ContactVisual({ inView }) {
   const contactInfo = [
-    { icon: <Mail size={20} />, label: 'Email Us', value: 'codecoves02@gmail.com' },
+    { icon: <Mail size={20} />, label: 'Email Us', value: 'codeverza02@gmail.com' },
     { icon: <Phone size={20} />, label: 'Call Us', value: '+92 332 0262457' },
     { icon: <MapPin size={20} />, label: 'Location', value: 'Pakistan 🇵🇰' },
   ];

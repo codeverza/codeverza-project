@@ -107,7 +107,7 @@ export default function AboutPage() {
             <span className="ap-badge-dot" /> About Us
           </motion.div>
           <motion.h1 className="ap-hero-title" initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.1 }}>
-            We Are <span className="ap-purple">CodeCoves</span>
+            We Are <span className="ap-purple">Codeverza</span>
           </motion.h1>
           <motion.p className="ap-hero-sub" initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.2 }}>
             A forward-thinking software house from Pakistan, building digital experiences that drive real business growth.
@@ -120,9 +120,9 @@ export default function AboutPage() {
           <div className="ap-who-grid">
             <div className="ap-who-text">
               <h2 className="ap-section-title">Building the Future,<br /><span className="ap-purple">One Line at a Time</span></h2>
-              <p>CodeCoves is a full-service software house dedicated to crafting high-performance digital products. Founded with a passion for technology and a commitment to excellence, we bring together talented developers, creative designers, and strategic thinkers to deliver solutions that matter.</p>
+              <p>Codeverza is a full-service software house dedicated to crafting high-performance digital products. Founded with a passion for technology and a commitment to excellence, we bring together talented developers, creative designers, and strategic thinkers to deliver solutions that matter.</p>
               <p>We don't just build software — we build partnerships. Every project we take on is treated as our own, with the same level of care, attention to detail, and drive for perfection that we'd want for ourselves.</p>
-              <p>From startups launching their first MVP to enterprises scaling their platforms, CodeCoves is the team you want in your corner.</p>
+              <p>From startups launching their first MVP to enterprises scaling their platforms, Codeverza is the team you want in your corner.</p>
             </div>
             <div className="ap-who-visual">
               {/* Animated tech showcase */}
@@ -136,7 +136,7 @@ export default function AboutPage() {
                   animate={{ boxShadow: ['0 0 30px rgba(177,76,255,0.3)', '0 0 60px rgba(177,76,255,0.55)', '0 0 30px rgba(177,76,255,0.3)'] }}
                   transition={{ duration: 3, repeat: Infinity }}
                 >
-                  <span className="ap-ts-logo">Code<span>Coves</span></span>
+                  <span className="ap-ts-logo">Code<span>verza</span></span>
                   <span className="ap-ts-sub">Software House</span>
                   <div className="ap-ts-divider" />
                   <div className="ap-ts-stack">

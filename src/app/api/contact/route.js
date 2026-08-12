@@ -8,7 +8,7 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-const LOGO_CID = 'codecoves-logo@codecoves';
+const LOGO_CID = 'codeverza-logo@codeverza';
 
 /* ── User Thank You Email ── */
 function userEmailHTML({ name, service, message }) {
@@ -18,7 +18,7 @@ function userEmailHTML({ name, service, message }) {
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Thank You – CodeCoves</title>
+  <title>Thank You – Codeverza</title>
 </head>
 <body style="margin:0;padding:0;background:#0a0a0a;font-family:'Segoe UI',Arial,sans-serif;">
   <table width="100%" cellpadding="0" cellspacing="0" style="background:#0a0a0a;padding:40px 0;">
@@ -29,10 +29,10 @@ function userEmailHTML({ name, service, message }) {
           <!-- HEADER -->
           <tr>
             <td style="background:linear-gradient(135deg,#1a0030,#2d0050,#1a0030);padding:40px 40px 30px;text-align:center;border-bottom:1px solid rgba(177,76,255,0.3);">
-              <img src="https://raw.githubusercontent.com/codecoves02/codecoves/main/public/img/cc-logo-new.png" alt="CodeCoves" width="70" height="70"
+              <img src="https://raw.githubusercontent.com/codeverza02/codeverza/main/public/img/cc-logo-new.png" alt="Codeverza" width="70" height="70"
                 style="margin-bottom:16px;display:block;margin-left:auto;margin-right:auto;border-radius:12px;" />
               <h1 style="margin:0;font-size:28px;font-weight:900;color:#fff;letter-spacing:-0.5px;">
-                Code<span style="color:#b14cff;">Coves</span>
+                Code<span style="color:#b14cff;">verza</span>
               </h1>
               <p style="margin:6px 0 0;font-size:13px;color:rgba(255,255,255,0.5);letter-spacing:2px;text-transform:uppercase;">Software House</p>
             </td>
@@ -75,7 +75,7 @@ function userEmailHTML({ name, service, message }) {
               </table>
 
               <p style="margin:0;font-size:14px;color:#888;text-align:center;">
-                Or visit us at <a href="https://codecoves.vercel.app" style="color:#b14cff;text-decoration:none;">codecoves.vercel.app</a>
+                Or visit us at <a href="https://codeverza.vercel.app" style="color:#b14cff;text-decoration:none;">codeverza.vercel.app</a>
               </p>
             </td>
           </tr>
@@ -100,19 +100,19 @@ function userEmailHTML({ name, service, message }) {
                     </a>
                   </td>
                   <td style="padding:0 6px;">
-                    <a href="https://linkedin.com/company/codecoves" title="LinkedIn">
+                    <a href="https://linkedin.com/company/codeverza" title="LinkedIn">
                       <img src="https://cdn.jsdelivr.net/npm/simple-icons@v11/icons/linkedin.svg" width="28" height="28"
                         style="background:#0077b5;border-radius:8px;padding:5px;display:block;" alt="LinkedIn"/>
                     </a>
                   </td>
                   <td style="padding:0 6px;">
-                    <a href="https://github.com/codecoves" title="GitHub">
+                    <a href="https://github.com/codeverza" title="GitHub">
                       <img src="https://cdn.jsdelivr.net/npm/simple-icons@v11/icons/github.svg" width="28" height="28"
                         style="background:#333;border-radius:8px;padding:5px;display:block;" alt="GitHub"/>
                     </a>
                   </td>
                   <td style="padding:0 6px;">
-                    <a href="https://instagram.com/codecoves" title="Instagram">
+                    <a href="https://instagram.com/codeverza" title="Instagram">
                       <img src="https://cdn.jsdelivr.net/npm/simple-icons@v11/icons/instagram.svg" width="28" height="28"
                         style="background:linear-gradient(45deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888);border-radius:8px;padding:5px;display:block;" alt="Instagram"/>
                     </a>
@@ -120,10 +120,10 @@ function userEmailHTML({ name, service, message }) {
                 </tr>
               </table>
               <p style="margin:0 0 6px;font-size:13px;color:#777;">
-                📧 codecoves02@gmail.com &nbsp;|&nbsp; 📞 +92 325 1507557 &nbsp;|&nbsp; 🇵🇰 Pakistan
+                📧 codeverza02@gmail.com &nbsp;|&nbsp; 📞 +92 325 1507557 &nbsp;|&nbsp; 🇵🇰 Pakistan
               </p>
               <p style="margin:0;font-size:12px;color:#555;">
-                © ${new Date().getFullYear()} CodeCoves. All rights reserved.
+                © ${new Date().getFullYear()} Codeverza. All rights reserved.
               </p>
             </td>
           </tr>
@@ -144,7 +144,7 @@ function adminEmailHTML({ name, email, phone, service, message, source }) {
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>New Contact – CodeCoves</title>
+  <title>New Contact – Codeverza</title>
 </head>
 <body style="margin:0;padding:0;background:#0a0a0a;font-family:'Segoe UI',Arial,sans-serif;">
   <table width="100%" cellpadding="0" cellspacing="0" style="background:#0a0a0a;padding:40px 0;">
@@ -158,9 +158,9 @@ function adminEmailHTML({ name, email, phone, service, message, source }) {
               <table width="100%" cellpadding="0" cellspacing="0">
                 <tr>
                   <td>
-                    <img src="https://raw.githubusercontent.com/codecoves02/codecoves/main/public/img/cc-logo-new.png" alt="CodeCoves" width="44" height="44"
+                    <img src="https://raw.githubusercontent.com/codeverza02/codeverza/main/public/img/cc-logo-new.png" alt="Codeverza" width="44" height="44"
                       style="vertical-align:middle;margin-right:12px;border-radius:8px;" />
-                    <span style="font-size:20px;font-weight:900;color:#fff;vertical-align:middle;">CodeCoves</span>
+                    <span style="font-size:20px;font-weight:900;color:#fff;vertical-align:middle;">Codeverza</span>
                   </td>
                   <td align="right">
                     <span style="background:rgba(177,76,255,0.2);border:1px solid rgba(177,76,255,0.4);border-radius:50px;padding:5px 14px;font-size:12px;color:#b14cff;font-weight:700;">🔔 New Lead</span>
@@ -209,7 +209,7 @@ function adminEmailHTML({ name, email, phone, service, message, source }) {
               <table cellpadding="0" cellspacing="0" style="margin:0 auto 12px;">
                 <tr>
                   <td style="border-radius:50px;background:linear-gradient(135deg,#b14cff,#6a00ff);">
-                    <a href="mailto:${email}?subject=Re: Your inquiry at CodeCoves" style="display:inline-block;padding:13px 28px;font-size:14px;font-weight:700;color:#fff;text-decoration:none;border-radius:50px;">
+                    <a href="mailto:${email}?subject=Re: Your inquiry at Codeverza" style="display:inline-block;padding:13px 28px;font-size:14px;font-weight:700;color:#fff;text-decoration:none;border-radius:50px;">
                       📩 Reply to ${name}
                     </a>
                   </td>
@@ -222,7 +222,7 @@ function adminEmailHTML({ name, email, phone, service, message, source }) {
           <!-- FOOTER -->
           <tr>
             <td style="padding:20px 40px;text-align:center;border-top:1px solid rgba(255,255,255,0.05);">
-              <p style="margin:0;font-size:12px;color:#555;">CodeCoves Admin Panel &nbsp;|&nbsp; © ${new Date().getFullYear()}</p>
+              <p style="margin:0;font-size:12px;color:#555;">Codeverza Admin Panel &nbsp;|&nbsp; © ${new Date().getFullYear()}</p>
             </td>
           </tr>
 
@@ -247,14 +247,14 @@ export async function POST(req) {
     await Promise.all([
       // 1. Thank you to user
       transporter.sendMail({
-        from: `"CodeCoves" <${process.env.GMAIL_USER}>`,
+        from: `"Codeverza" <${process.env.GMAIL_USER}>`,
         to: email,
         subject: `Thank you for reaching out, ${name}! 🚀`,
         html: userEmailHTML({ name, service, message }),
       }),
       // 2. Notification to admin
       transporter.sendMail({
-        from: `"CodeCoves Alerts" <${process.env.GMAIL_USER}>`,
+        from: `"Codeverza Alerts" <${process.env.GMAIL_USER}>`,
         to: process.env.NOTIFY_EMAIL,
         subject: `🔔 New Contact: ${name} – ${service || 'General Inquiry'}`,
         html: adminEmailHTML({ name, email, phone, service, message, source }),

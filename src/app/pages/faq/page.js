@@ -54,7 +54,7 @@ const categories = [
   {
     label: 'General',
     faqs: [
-      { q: 'What is CodeCoves?',                        a: 'CodeCoves is a full-service software house based in Pakistan. We build web apps, mobile apps, AI solutions, and stunning UI/UX designs for clients worldwide.' },
+      { q: 'What is Codeverza?',                        a: 'Codeverza is a full-service software house based in Pakistan. We build web apps, mobile apps, AI solutions, and stunning UI/UX designs for clients worldwide.' },
       { q: 'Where are you located?',                    a: 'We are based in Pakistan and work remotely with clients across the globe — UK, UAE, USA, and beyond. Distance is never a barrier.' },
       { q: 'Do you work with international clients?',   a: 'Absolutely. We have experience working with clients from multiple countries. All communication is handled professionally via email, WhatsApp, or video calls.' },
       { q: 'What industries do you serve?',             a: 'We work across all industries — e-commerce, healthcare, education, finance, real estate, food & delivery, and more. If you have a problem, we have a solution.' },
@@ -63,7 +63,7 @@ const categories = [
   {
     label: 'Services',
     faqs: [
-      { q: 'What services does CodeCoves offer?',       a: 'We offer Web Development, Mobile App Development, UI/UX Design, AI Solutions, Cloud & DevOps, and ongoing Support & Maintenance.' },
+      { q: 'What services does Codeverza offer?',       a: 'We offer Web Development, Mobile App Development, UI/UX Design, AI Solutions, Cloud & DevOps, and ongoing Support & Maintenance.' },
       { q: 'Do you build mobile apps?',                 a: 'Yes. We build cross-platform mobile apps using React Native for both iOS and Android, as well as native apps when required.' },
       { q: 'Can you redesign my existing website?',     a: 'Definitely. We offer full redesign services — from UI/UX overhaul to complete rebuilds using modern tech stacks.' },
       { q: 'Do you offer AI integration services?',     a: 'Yes. We integrate AI capabilities like chatbots, recommendation engines, NLP, and OpenAI/LLM-powered features into your products.' },
@@ -189,7 +189,7 @@ export default function FAQPage() {
           <motion.p className="faq-hero-sub"
             initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}
           >
-            Everything you need to know about working with CodeCoves. Can't find your answer? Just reach out.
+            Everything you need to know about working with Codeverza. Can't find your answer? Just reach out.
           </motion.p>
 
           {/* search */}

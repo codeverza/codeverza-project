@@ -99,7 +99,7 @@ const sections = [
       'You have the right to access, correct, or delete any personal information we hold about you.',
       'You may request a copy of your data or ask us to stop processing it at any time.',
       'You can opt out of any marketing communications by contacting us directly.',
-      'To exercise any of these rights, please reach out to us at codecoves02@gmail.com.',
+      'To exercise any of these rights, please reach out to us at codeverza02@gmail.com.',
     ],
   },
   {
@@ -126,7 +126,7 @@ const sections = [
     title: 'Contact Us',
     content: [
       'If you have any questions, concerns, or requests regarding this Privacy Policy, please contact us:',
-      'Email: codecoves02@gmail.com',
+      'Email: codeverza02@gmail.com',
       'WhatsApp: +92 325 1507557',
       'We aim to respond to all privacy-related inquiries within 48 hours.',
     ],
@@ -207,7 +207,7 @@ export default function PrivacyPolicyPage() {
           <motion.p className="prv-hero-sub"
             initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.3 }}
           >
-            Your privacy matters to us. This policy explains how CodeCoves collects, uses, and protects your personal information.
+            Your privacy matters to us. This policy explains how Codeverza collects, uses, and protects your personal information.
           </motion.p>
 
           <motion.div className="prv-meta"

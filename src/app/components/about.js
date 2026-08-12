@@ -18,10 +18,10 @@ const techStack = [
 ];
 
 const codeLines = [
-  { text: 'const codecoves = new SoftwareHouse();', color: '#e0aaff' },
-  { text: 'codecoves.build("web-app");',             color: '#61dafb' },
+  { text: 'const codeverza = new SoftwareHouse();', color: '#e0aaff' },
+  { text: 'codeverza.build("web-app");',             color: '#61dafb' },
   { text: '// Deploying to production... ✓',         color: '#68a063' },
-  { text: 'codecoves.ship({ quality: "100%" });',    color: '#ffd43b' },
+  { text: 'codeverza.ship({ quality: "100%" });',    color: '#ffd43b' },
   { text: 'client.satisfaction = Infinity;',         color: '#e0aaff' },
   { text: '// Dream it. We build it. 🚀',            color: '#68a063' },
 ];
@@ -116,11 +116,11 @@ function Terminal({ inView }) {
     <div className="terminal-window ">
       <div className="terminal-bar">
         <span className="t-dot red" /><span className="t-dot yellow" /><span className="t-dot green" />
-        <span className="t-title">codecoves — bash</span>
+        <span className="t-title">codeverza — bash</span>
       </div>
       <div className="terminal-body">
         <div className="terminal-prompt">
-          <span className="prompt-user">codecoves</span>
+          <span className="prompt-user">codeverza</span>
           <span className="prompt-at">@</span>
           <span className="prompt-host">studio</span>
           <span className="prompt-sym"> ~ $&nbsp;</span>
@@ -213,7 +213,7 @@ export default function About() {
           </motion.h2>
 
           <motion.p className="about-desc" variants={fadeUp} custom={2} initial="hidden" animate={inView ? 'visible' : 'hidden'}>
-            CodeCoves is a forward-thinking software house crafting high-performance web apps,
+            Codeverza is a forward-thinking software house crafting high-performance web apps,
             mobile solutions, and AI-powered platforms. We don't just write code — we engineer
             experiences that help businesses grow, scale, and stand out in the digital world.
           </motion.p>

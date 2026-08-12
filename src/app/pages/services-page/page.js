@@ -290,7 +290,7 @@ export default function ServicesPage() {
           <motion.p className="sp-hero-sub"
             initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.2 }}
           >
-            From idea to deployment — CodeCoves delivers end-to-end digital solutions tailored to your goals.
+            From idea to deployment — Codeverza delivers end-to-end digital solutions tailored to your goals.
           </motion.p>
 
           {/* stat pills */}

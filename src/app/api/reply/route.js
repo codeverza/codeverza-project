@@ -15,7 +15,7 @@ function replyEmailHTML({ userName, userMessage, replyMessage }) {
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Reply from CodeCoves</title>
+  <title>Reply from Codeverza</title>
 </head>
 <body style="margin:0;padding:0;background:#0a0a0a;font-family:'Segoe UI',Arial,sans-serif;">
   <table width="100%" cellpadding="0" cellspacing="0" style="background:#0a0a0a;padding:40px 0;">
@@ -26,11 +26,11 @@ function replyEmailHTML({ userName, userMessage, replyMessage }) {
           <!-- HEADER -->
           <tr>
             <td style="background:linear-gradient(135deg,#1a0030,#2d0050,#1a0030);padding:36px 40px;text-align:center;border-bottom:1px solid rgba(177,76,255,0.3);">
-              <img src="https://raw.githubusercontent.com/codecoves02/codecoves/main/public/img/cc-logo-new.png"
-                alt="CodeCoves" width="64" height="64"
+              <img src="https://raw.githubusercontent.com/codeverza02/codeverza/main/public/img/cc-logo-new.png"
+                alt="Codeverza" width="64" height="64"
                 style="display:block;margin:0 auto 14px;border-radius:12px;" />
               <h1 style="margin:0;font-size:26px;font-weight:900;color:#fff;">
-                Code<span style="color:#b14cff;">Coves</span>
+                Code<span style="color:#b14cff;">verza</span>
               </h1>
               <p style="margin:6px 0 0;font-size:12px;color:rgba(255,255,255,0.4);letter-spacing:2px;text-transform:uppercase;">Software House</p>
             </td>
@@ -86,12 +86,12 @@ function replyEmailHTML({ userName, userMessage, replyMessage }) {
               <table cellpadding="0" cellspacing="0" style="margin:0 auto 14px;">
                 <tr>
                   <td style="padding:0 6px;"><a href="https://wa.me/923251507557"><img src="https://cdn.jsdelivr.net/npm/simple-icons@v11/icons/whatsapp.svg" width="24" height="24" style="background:#25d366;border-radius:6px;padding:4px;display:block;" alt="WhatsApp"/></a></td>
-                  <td style="padding:0 6px;"><a href="https://linkedin.com/company/codecoves"><img src="https://cdn.jsdelivr.net/npm/simple-icons@v11/icons/linkedin.svg" width="24" height="24" style="background:#0077b5;border-radius:6px;padding:4px;display:block;" alt="LinkedIn"/></a></td>
-                  <td style="padding:0 6px;"><a href="https://instagram.com/codecoves"><img src="https://cdn.jsdelivr.net/npm/simple-icons@v11/icons/instagram.svg" width="24" height="24" style="background:#e535ab;border-radius:6px;padding:4px;display:block;" alt="Instagram"/></a></td>
+                  <td style="padding:0 6px;"><a href="https://linkedin.com/company/codeverza"><img src="https://cdn.jsdelivr.net/npm/simple-icons@v11/icons/linkedin.svg" width="24" height="24" style="background:#0077b5;border-radius:6px;padding:4px;display:block;" alt="LinkedIn"/></a></td>
+                  <td style="padding:0 6px;"><a href="https://instagram.com/codeverza"><img src="https://cdn.jsdelivr.net/npm/simple-icons@v11/icons/instagram.svg" width="24" height="24" style="background:#e535ab;border-radius:6px;padding:4px;display:block;" alt="Instagram"/></a></td>
                 </tr>
               </table>
-              <p style="margin:0 0 4px;font-size:12px;color:#555;">📧 codecoves02@gmail.com &nbsp;|&nbsp; 📞 +92 325 1507557</p>
-              <p style="margin:0;font-size:11px;color:#444;">© ${new Date().getFullYear()} CodeCoves. All rights reserved.</p>
+              <p style="margin:0 0 4px;font-size:12px;color:#555;">📧 codeverza02@gmail.com &nbsp;|&nbsp; 📞 +92 325 1507557</p>
+              <p style="margin:0;font-size:11px;color:#444;">© ${new Date().getFullYear()} Codeverza. All rights reserved.</p>
             </td>
           </tr>
 
@@ -112,10 +112,10 @@ export async function POST(req) {
     }
 
     await transporter.sendMail({
-      from: `"CodeCoves" <${process.env.GMAIL_USER}>`,
+      from: `"Codeverza" <${process.env.GMAIL_USER}>`,
       to: userEmail,
       replyTo: process.env.GMAIL_USER,
-      subject: `Re: Your inquiry at CodeCoves`,
+      subject: `Re: Your inquiry at Codeverza`,
       html: replyEmailHTML({ userName, userMessage, replyMessage }),
     });
 

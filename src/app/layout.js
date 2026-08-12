@@ -9,7 +9,7 @@ const poppins = Poppins({
 });
 
 export const metadata = {
-  title: "Codecoves",
+  title: "Codeverza",
   description: "Professional Software House Website",
 };
 

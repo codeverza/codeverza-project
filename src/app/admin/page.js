@@ -60,7 +60,7 @@ export default function AdminLogin() {
             <Lock size={26} color="#b14cff" />
           </div>
           <h1 style={{ margin: 0, fontSize: 24, fontWeight: 800, color: '#fff' }}>
-            Code<span style={{ color: '#b14cff' }}>Coves</span>
+            Code<span style={{ color: '#b14cff' }}>verza</span>
           </h1>
           <p style={{ margin: '6px 0 0', fontSize: 13, color: '#666', letterSpacing: 1, textTransform: 'uppercase' }}>Admin Panel</p>
         </div>
@@ -73,7 +73,7 @@ export default function AdminLogin() {
               <Mail size={15} color="rgba(177,76,255,0.7)" />
               <input
                 type="email" value={email} onChange={e => setEmail(e.target.value)}
-                placeholder="admin@codecoves.com" required
+                placeholder="admin only" required
                 style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', color: '#fff', fontSize: 14, padding: '14px 0', fontFamily: 'inherit' }}
               />
             </div>
