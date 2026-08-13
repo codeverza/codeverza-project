@@ -15,13 +15,13 @@ const Navbar = () => {
 
     const navLinks = [
         { name: "Home", href: "#" },
-        { name: "About", href: "/pages/about-page" },
+        { name: "About", href: "/about-page" },
         {
-            name: "Services", href: "/pages/services-page",
+            name: "Services", href: "/services-page",
             // hasDropdown: true
         },
-        { name: "Portfolio", href: "/pages/portfolio-page" },
-        { name: "Contact", href: "/pages/contact-page" },
+        { name: "Portfolio", href: "/portfolio-page" },
+        { name: "Contact", href: "/contact-page" },
     ];
 
     const heroData = [
@@ -120,7 +120,7 @@ const Navbar = () => {
                         </li>
                     ))}
                 </ul>
-                <a href="/pages/contact-page" className="hidden lg:block bg-gradient-to-r from-purple-600 to-purple-800 hover:from-purple-700 hover:to-purple-900 text-white px-8 py-3 rounded-full font-semibold transition-all duration-300 shadow-lg hover:shadow-purple-500/25">Get Started</a>
+                <a href="/contact-page" className="hidden lg:block bg-gradient-to-r from-purple-600 to-purple-800 hover:from-purple-700 hover:to-purple-900 text-white px-8 py-3 rounded-full font-semibold transition-all duration-300 shadow-lg hover:shadow-purple-500/25">Get Started</a>
                 <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="lg:hidden text-white z-50">
                     {mobileMenuOpen ? <X size={28} /> : <Menu size={28} />}
                 </button>
@@ -135,7 +135,7 @@ const Navbar = () => {
                         </li>
                     ))}
                     <li>
-                        <a href="/pages/contact-page" onClick={() => setMobileMenuOpen(false)} className="inline-block mt-8 bg-gradient-to-r from-purple-600 to-purple-800 hover:from-purple-700 hover:to-purple-900 text-white px-10 py-4 rounded-full font-bold transition-all">Get Started</a>
+                        <a href="/contact-page" onClick={() => setMobileMenuOpen(false)} className="inline-block mt-8 bg-gradient-to-r from-purple-600 to-purple-800 hover:from-purple-700 hover:to-purple-900 text-white px-10 py-4 rounded-full font-bold transition-all">Get Started</a>
                     </li>
                 </ul>
             </div>
@@ -225,10 +225,10 @@ const Navbar = () => {
 
                     {/* BUTTONS */}
                     <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 nav-slide-btns">
-                        <a href="/pages/services-page" className="inline-block bg-gradient-to-r from-purple-600 to-purple-800 hover:from-purple-700 hover:to-purple-900 text-white px-8 sm:px-10 py-4 sm:py-5 rounded-full font-bold text-base sm:text-lg transition-all duration-300 shadow-xl hover:shadow-purple-500/40 text-center">
+                        <a href="/services-page" className="inline-block bg-gradient-to-r from-purple-600 to-purple-800 hover:from-purple-700 hover:to-purple-900 text-white px-8 sm:px-10 py-4 sm:py-5 rounded-full font-bold text-base sm:text-lg transition-all duration-300 shadow-xl hover:shadow-purple-500/40 text-center">
                             Explore Services
                         </a>
-                        <a href="/pages/contact-page" className="inline-block border-2 border-purple-500 text-white px-8 sm:px-10 py-4 sm:py-5 rounded-full font-bold text-base sm:text-lg hover:bg-purple-600/20 transition-all duration-300 text-center">
+                        <a href="/contact-page" className="inline-block border-2 border-purple-500 text-white px-8 sm:px-10 py-4 sm:py-5 rounded-full font-bold text-base sm:text-lg hover:bg-purple-600/20 transition-all duration-300 text-center">
                             Contact Us
                         </a>
                     </div>

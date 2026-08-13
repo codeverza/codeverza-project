@@ -4,8 +4,8 @@ import { useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
 import { ArrowLeft, Play, Sparkles, CheckCircle, ArrowRight, X, Volume2, VolumeX } from 'lucide-react';
-import ReusableNavbar from '../../../components/reusable-navbar';
-import Footer from '../../../components/footer';
+import ReusableNavbar from '@/app/components/reusable-navbar';
+import Footer from '@/app/components/footer';
 import './explainer-animation.css';
 
 function ParticleBg() {
@@ -196,7 +196,7 @@ export default function ExplainerAnimationPage() {
 
         {/* ── BACK ── */}
         <div style={{ position: 'relative', zIndex: 2, padding: '90px 6% 0' }}>
-          <Link href="/pages/portfolio-page" className="ex-back mt-[30px]">
+          <Link href="/portfolio-page" className="ex-back mt-[30px]">
             <ArrowLeft size={16} /> Back to Portfolio
           </Link>
         </div>
@@ -276,7 +276,7 @@ export default function ExplainerAnimationPage() {
           <div className="ex-cta-glow" />
           <h3>Need an explainer animation?</h3>
           <p>We turn your complex idea into a simple, beautiful animated story.</p>
-          <Link href="/pages/contact-page" className="ex-cta-btn">
+          <Link href="/contact-page" className="ex-cta-btn">
             Get a Quote <ArrowRight size={16} />
           </Link>
         </motion.div>

@@ -4,8 +4,8 @@ import { useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
 import { ArrowLeft, Play, Sparkles, CheckCircle, ArrowRight, X, Volume2, VolumeX } from 'lucide-react';
-import ReusableNavbar from '../../../components/reusable-navbar';
-import Footer from '../../../components/footer';
+import ReusableNavbar from '@/app/components/reusable-navbar';
+import Footer from '@/app/components/footer';
 import './motion-graphics.css';
 
 function ParticleBg() {
@@ -196,7 +196,7 @@ export default function MotionGraphicsPage() {
 
         {/* ── BACK ── */}
         <div style={{ position: 'relative', zIndex: 2, padding: '90px 6% 0' }}>
-          <Link href="/pages/portfolio-page" className="mg-back mt-[30px]">
+          <Link href="/portfolio-page" className="mg-back mt-[30px]">
             <ArrowLeft size={16} /> Back to Portfolio
           </Link>
         </div>
@@ -276,7 +276,7 @@ export default function MotionGraphicsPage() {
           <div className="mg-cta-glow" />
           <h3>Want a custom motion graphic?</h3>
           <p>Tell us your vision and we'll bring it to life with stunning animation.</p>
-          <Link href="/pages/contact-page" className="mg-cta-btn">
+          <Link href="/contact-page" className="mg-cta-btn">
             Get a Quote <ArrowRight size={16} />
           </Link>
         </motion.div>

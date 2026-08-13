@@ -5,8 +5,8 @@ import { motion, useInView, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, ExternalLink, ArrowRight, Star, Eye, ShoppingBag, Globe, Smartphone, Palette, Package, Heart, Tag, Truck, Code2, Brush, Sparkles } from 'lucide-react';
-import ReusableNavbar from '../../components/reusable-navbar';
-import Footer from '../../components/footer';
+import ReusableNavbar from '../components/reusable-navbar';
+import Footer from '../components/footer';
 import './portfolio-page.css';
 
 const CATEGORIES = [
@@ -69,7 +69,7 @@ const designProjects = [
     fullDesc: 'A full brand identity package for TechStart — a technology startup. The project included logo design, color system, typography selection, business card design, letterhead, social media kit, and a comprehensive brand guidelines document. Designed in Figma and Adobe Illustrator.',
     features: ['Logo design (primary + variants)', 'Color palette & typography', 'Business card & stationery', 'Social media kit', 'Brand guidelines document', 'Figma design system'],
     color: '#f24e1e', gradient: 'linear-gradient(135deg, #2a0a00, #4a1500)', emoji: '🎨', liveUrl: '#',
-    detailPage: '/pages/portfolio-page/graphic-design/brand-identity',
+    detailPage: '/portfolio-page/graphic-design/brand-identity',
   },
   {
     id: 'd2', title: 'Social Media Design — E-Commerce',
@@ -78,7 +78,7 @@ const designProjects = [
     fullDesc: 'A complete social media design package for an e-commerce brand. Includes Instagram posts, stories, Facebook banners, promotional sale graphics, product highlight templates, and seasonal campaign designs. Created using Canva Pro and Adobe Photoshop with a consistent brand aesthetic.',
     features: ['Instagram post templates', 'Story & reel covers', 'Facebook banners', 'Promotional graphics', 'Product highlight designs', 'Seasonal campaign assets'],
     color: '#00c4cc', gradient: 'linear-gradient(135deg, #001a1a, #003333)', emoji: '📱', liveUrl: '#',
-    detailPage: '/pages/portfolio-page/graphic-design/social-media',
+    detailPage: '/portfolio-page/graphic-design/social-media',
   },
   {
     id: 'd3', title: 'UI/UX Design — Mobile App',
@@ -87,7 +87,7 @@ const designProjects = [
     fullDesc: 'Complete UI/UX design for a mobile food delivery application. The project covered user research, wireframing, high-fidelity screen design, component library creation, and an interactive clickable prototype. Designed in Figma with a clean, modern aesthetic focused on usability and conversion.',
     features: ['User research & personas', 'Wireframes & user flows', '40+ high-fidelity screens', 'Component library', 'Interactive prototype', 'Design handoff documentation'],
     color: '#ff9a00', gradient: 'linear-gradient(135deg, #2a1500, #4a2800)', emoji: '🖌️', liveUrl: '#',
-    detailPage: '/pages/portfolio-page/graphic-design/ui-ux',
+    detailPage: '/portfolio-page/graphic-design/ui-ux',
   },
 ];
 
@@ -99,7 +99,7 @@ const animationProjects = [
     fullDesc: 'A dynamic product launch animation created for a tech product reveal. The video features smooth motion graphics, kinetic typography, particle effects, and brand-aligned color transitions. Designed to be used across social media, website hero sections, and presentations.',
     features: ['Kinetic typography animation', 'Particle & visual effects', 'Brand-aligned color grading', 'Social media format exports', 'Website hero video', 'Presentation-ready version'],
     color: '#b14cff', gradient: 'linear-gradient(135deg, #1a0030, #2d0050)', emoji: '🎬', liveUrl: '#',
-    detailPage: '/pages/portfolio-page/motion-graphics',
+    detailPage: '/portfolio-page/motion-graphics',
   },
   {
     id: 'a2', title: 'Logo Animation — SaaS Brand',
@@ -108,7 +108,7 @@ const animationProjects = [
     fullDesc: 'A professional logo animation for a SaaS brand, designed to be used as a loading screen, splash screen, and website intro. The animation was created in Adobe After Effects and exported as a Lottie JSON file for lightweight, scalable web and mobile integration. Multiple variants were created for different use cases.',
     features: ['After Effects animation', 'Lottie JSON export', 'SVG-based (scalable)', 'Loading screen variant', 'Splash screen variant', 'Multiple speed versions'],
     color: '#ff61f6', gradient: 'linear-gradient(135deg, #2a0028, #4a0045)', emoji: '✨', liveUrl: '#',
-    detailPage: '/pages/portfolio-page/logo-animation',
+    detailPage: '/portfolio-page/logo-animation',
   },
   {
     id: 'a3', title: 'Explainer Animation — FinTech App',
@@ -117,7 +117,7 @@ const animationProjects = [
     fullDesc: 'A 60-second 2D explainer animation for a fintech mobile application. The animation walks users through the app\'s key features using character animation, icon animations, and smooth scene transitions. Designed to increase user understanding and boost app downloads from landing pages.',
     features: ['60-second explainer video', '2D character animation', 'Icon & UI animations', 'Voiceover-ready timing', 'Multiple language versions', 'Web & social exports'],
     color: '#ffd43b', gradient: 'linear-gradient(135deg, #2a1f00, #3d2e00)', emoji: '🎥', liveUrl: '#',
-    detailPage: '/pages/portfolio-page/explainer-animation',
+    detailPage: '/portfolio-page/explainer-animation',
   },
 ];
 
@@ -450,7 +450,7 @@ export default function PortfolioPage() {
           <div className="pp-cta-glow" />
           <h3>Want something like this?</h3>
           <p>Let's build your next big project together.</p>
-          <Link href="/pages/contact-page" className="pp-cta-btn">
+          <Link href="/contact-page" className="pp-cta-btn">
             Start a Project <ArrowRight size={18} />
           </Link>
         </motion.div>

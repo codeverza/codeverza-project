@@ -4,8 +4,8 @@ import { useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { ArrowLeft, CheckCircle, ArrowRight, Sparkles } from 'lucide-react';
-import ReusableNavbar from '../../../../components/reusable-navbar';
-import Footer from '../../../../components/footer';
+import ReusableNavbar from '@/app/components/reusable-navbar';
+import Footer from '@/app/components/footer';
 import '../graphic-design.css';
 import './ui-ux.css';
 
@@ -137,7 +137,7 @@ export default function UiUxPage() {
 
         {/* ── BACK BUTTON ── */}
         <div style={{ position: 'relative', zIndex: 2, padding: '90px 6% 0' }}>
-          <Link href="/pages/portfolio-page" className="gd-back mt-[30px]">
+          <Link href="/portfolio-page" className="gd-back mt-[30px]">
             <ArrowLeft size={16} /> Back to Portfolio
           </Link>
         </div>
@@ -247,7 +247,7 @@ export default function UiUxPage() {
           <div className="ux-cta-glow" />
           <h3>Need a UI/UX design?</h3>
           <p>We design experiences that convert visitors into loyal users.</p>
-          <Link href="/pages/contact-page" className="ux-cta-btn">
+          <Link href="/contact-page" className="ux-cta-btn">
             Get Started <ArrowRight size={16} />
           </Link>
         </motion.div>

@@ -3,8 +3,8 @@
 import { useEffect, useRef } from 'react';
 import { motion, useInView } from 'framer-motion';
 import Link from 'next/link';
-import ReusableNavbar from '../../components/reusable-navbar';
-import Footer from '../../components/footer';
+import ReusableNavbar from '../components/reusable-navbar';
+import Footer from '../components/footer';
 import {
   Code, Smartphone, Palette, Brain, Cloud, Headphones,
   ArrowLeft, CheckCircle, ArrowRight, Brush, Sparkles
@@ -245,7 +245,7 @@ function ServiceCard({ service, index }) {
             ))}
           </ul>
 
-          <Link href="/pages/contact-page" className="sp-cta" style={{ background: `linear-gradient(135deg, ${service.color}, ${service.color}99)` }}>
+          <Link href="/contact-page" className="sp-cta" style={{ background: `linear-gradient(135deg, ${service.color}, ${service.color}99)` }}>
             Get Started <ArrowRight size={16} />
           </Link>
         </div>
@@ -337,7 +337,7 @@ export default function ServicesPage() {
       >
         <h3>Ready to start your project?</h3>
         <p>Let's discuss your requirements and build something amazing together.</p>
-        <Link href="/pages/contact-page" className="sp-bottom-btn">
+        <Link href="/contact-page" className="sp-bottom-btn">
           Contact Us <ArrowRight size={18} />
         </Link>
       </motion.div>

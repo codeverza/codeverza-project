@@ -90,7 +90,7 @@ function replyEmailHTML({ userName, userMessage, replyMessage }) {
                   <td style="padding:0 6px;"><a href="https://instagram.com/codeverza"><img src="https://cdn.jsdelivr.net/npm/simple-icons@v11/icons/instagram.svg" width="24" height="24" style="background:#e535ab;border-radius:6px;padding:4px;display:block;" alt="Instagram"/></a></td>
                 </tr>
               </table>
-              <p style="margin:0 0 4px;font-size:12px;color:#555;">📧 codeverza02@gmail.com &nbsp;|&nbsp; 📞 +92 325 1507557</p>
+              <p style="margin:0 0 4px;font-size:12px;color:#555;">📧 info@codeverza.com &nbsp;|&nbsp; 📞 +92 325 1507557</p>
               <p style="margin:0;font-size:11px;color:#444;">© ${new Date().getFullYear()} Codeverza. All rights reserved.</p>
             </td>
           </tr>
@@ -112,9 +112,9 @@ export async function POST(req) {
     }
 
     await transporter.sendMail({
-      from: `"Codeverza" <${process.env.GMAIL_USER}>`,
+      from: `"Codeverza" <info@codeverza.com>`,
+      replyTo: `"Codeverza" <info@codeverza.com>`,
       to: userEmail,
-      replyTo: process.env.GMAIL_USER,
       subject: `Re: Your inquiry at Codeverza`,
       html: replyEmailHTML({ userName, userMessage, replyMessage }),
     });

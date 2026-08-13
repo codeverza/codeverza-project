@@ -4,8 +4,8 @@ import { useEffect, useRef } from 'react';
 import { motion, useInView } from 'framer-motion';
 import Link from 'next/link';
 import { ArrowLeft, ArrowRight, Rocket, Users, Heart, Zap, Shield, Globe } from 'lucide-react';
-import ReusableNavbar from '../../components/reusable-navbar';
-import Footer from '../../components/footer';
+import ReusableNavbar from '../components/reusable-navbar';
+import Footer from '../components/footer';
 import './about-page.css';
 
 /* ── Particle BG ── */

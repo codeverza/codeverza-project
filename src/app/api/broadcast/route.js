@@ -40,7 +40,7 @@ function broadcastHTML({ subject, message }) {
         </tr>
         <tr>
           <td style="padding:20px 40px;text-align:center;border-top:1px solid rgba(255,255,255,0.05);">
-            <p style="margin:0 0 4px;font-size:12px;color:#555;">📧 codeverza02@gmail.com &nbsp;|&nbsp; 🇵🇰 Pakistan</p>
+            <p style="margin:0 0 4px;font-size:12px;color:#555;">📧 info@codeverza.com &nbsp;|&nbsp; 🇵🇰 Pakistan</p>
             <p style="margin:0;font-size:11px;color:#444;">© ${new Date().getFullYear()} Codeverza. You received this because you subscribed or contacted us.</p>
           </td>
         </tr>
@@ -65,7 +65,8 @@ export async function POST(req) {
     const results = await Promise.allSettled(
       uniqueRecipients.map(email =>
         transporter.sendMail({
-          from: `"Codeverza" <${process.env.GMAIL_USER}>`,
+          from: `"Codeverza" <info@codeverza.com>`,
+          replyTo: `"Codeverza" <info@codeverza.com>`,
           to: email,
           subject,
           html,

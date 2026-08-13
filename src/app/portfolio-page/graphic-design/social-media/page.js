@@ -4,8 +4,8 @@ import { useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { ArrowLeft, CheckCircle, ArrowRight, Sparkles } from 'lucide-react';
-import ReusableNavbar from '../../../../components/reusable-navbar';
-import Footer from '../../../../components/footer';
+import ReusableNavbar from '@/app/components/reusable-navbar';
+import Footer from '@/app/components/footer';
 import '../graphic-design.css';
 import './social-media.css';
 
@@ -138,7 +138,7 @@ export default function SocialMediaPage() {
 
         {/* ── BACK BUTTON ── */}
         <div style={{ position: 'relative', zIndex: 2, padding: '90px 6% 0' }}>
-          <Link href="/pages/portfolio-page" className="gd-back mt-[30px]">
+          <Link href="/portfolio-page" className="gd-back mt-[30px]">
             <ArrowLeft size={16} /> Back to Portfolio
           </Link>
         </div>
@@ -248,7 +248,7 @@ export default function SocialMediaPage() {
           <div className="sm-cta-glow" />
           <h3>Need social media designs?</h3>
           <p>We create content that stops the scroll and drives engagement.</p>
-          <Link href="/pages/contact-page" className="sm-cta-btn">
+          <Link href="/contact-page" className="sm-cta-btn">
             Get Started <ArrowRight size={16} />
           </Link>
         </motion.div>

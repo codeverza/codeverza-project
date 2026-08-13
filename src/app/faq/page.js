@@ -4,8 +4,8 @@ import { useEffect, useRef, useState } from 'react';
 import { motion, useInView, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
 import { ArrowLeft, HelpCircle, ArrowRight, Search } from 'lucide-react';
-import ReusableNavbar from '../../components/reusable-navbar';
-import Footer from '../../components/footer';
+import ReusableNavbar from '../components/reusable-navbar';
+import Footer from '../components/footer';
 import './faq.css';
 
 function ParticleBg() {

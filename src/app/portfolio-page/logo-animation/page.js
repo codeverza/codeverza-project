@@ -4,8 +4,8 @@ import { useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
 import { ArrowLeft, Play, Sparkles, CheckCircle, ArrowRight, X, Volume2, VolumeX } from 'lucide-react';
-import ReusableNavbar from '../../../components/reusable-navbar';
-import Footer from '../../../components/footer';
+import ReusableNavbar from '@/app/components/reusable-navbar';
+import Footer from '@/app/components/footer';
 import './logo-animation.css';
 
 function ParticleBg() {
@@ -251,7 +251,7 @@ export default function LogoAnimationPage() {
 
          {/* ── BACK ── */}
                 <div style={{ position: 'relative', zIndex: 2, padding: '90px 6% 0' }}>
-                  <Link href="/pages/portfolio-page" className="mg-back mt-[30px]">
+                  <Link href="/portfolio-page" className="mg-back mt-[30px]">
                     <ArrowLeft size={16} /> Back to Portfolio
                   </Link>
                 </div>
@@ -333,7 +333,7 @@ export default function LogoAnimationPage() {
           <div className="la-cta-glow" />
           <h3>Want a custom logo animation?</h3>
           <p>Tell us about your brand and we'll create something amazing.</p>
-          <Link href="/pages/contact-page" className="la-cta-btn">
+          <Link href="/contact-page" className="la-cta-btn">
             Get a Quote <ArrowRight size={16} />
           </Link>
         </motion.div>

@@ -4,8 +4,8 @@ import { useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { ArrowLeft, CheckCircle, ArrowRight, Sparkles } from 'lucide-react';
-import ReusableNavbar from '../../../../components/reusable-navbar';
-import Footer from '../../../../components/footer';
+import ReusableNavbar from '@/app/components/reusable-navbar';
+import Footer from '@/app/components/footer';
 import '../graphic-design.css';
 import './brand-identity.css';
 
@@ -124,7 +124,7 @@ export default function BrandIdentityPage() {
           position: 'relative', zIndex: 2,
           padding: '90px 6% 0',
         }}>
-          <Link href="/pages/portfolio-page" className="gd-back mt-[30px]">
+          <Link href="/portfolio-page" className="gd-back mt-[30px]">
             <ArrowLeft size={16} /> Back to Portfolio
           </Link>
         </div>
@@ -229,7 +229,7 @@ export default function BrandIdentityPage() {
           <div className="gd-cta-glow" />
           <h3>Need a brand identity?</h3>
           <p>Let's build a brand that people remember.</p>
-          <Link href="/pages/contact-page" className="gd-cta-btn">
+          <Link href="/contact-page" className="gd-cta-btn">
             Get Started <ArrowRight size={16} />
           </Link>
         </motion.div>

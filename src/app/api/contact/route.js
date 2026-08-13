@@ -8,8 +8,6 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-const LOGO_CID = 'codeverza-logo@codeverza';
-
 /* ── User Thank You Email ── */
 function userEmailHTML({ name, service, message }) {
   return `
@@ -29,7 +27,7 @@ function userEmailHTML({ name, service, message }) {
           <!-- HEADER -->
           <tr>
             <td style="background:linear-gradient(135deg,#1a0030,#2d0050,#1a0030);padding:40px 40px 30px;text-align:center;border-bottom:1px solid rgba(177,76,255,0.3);">
-              <img src="https://raw.githubusercontent.com/codeverza02/codeverza/main/public/img/cc-logo-new.png" alt="Codeverza" width="70" height="70"
+              <img src="https://raw.githubusercontent.com/codeverza02/codeverza/main/public/img/codeverza-logo.png" alt="Codeverza" width="70" height="70"
                 style="margin-bottom:16px;display:block;margin-left:auto;margin-right:auto;border-radius:12px;" />
               <h1 style="margin:0;font-size:28px;font-weight:900;color:#fff;letter-spacing:-0.5px;">
                 Code<span style="color:#b14cff;">verza</span>
@@ -120,7 +118,7 @@ function userEmailHTML({ name, service, message }) {
                 </tr>
               </table>
               <p style="margin:0 0 6px;font-size:13px;color:#777;">
-                📧 codeverza02@gmail.com &nbsp;|&nbsp; 📞 +92 325 1507557 &nbsp;|&nbsp; 🇵🇰 Pakistan
+                📧 info@codeverza.com &nbsp;|&nbsp; 📞 +92 325 1507557 &nbsp;|&nbsp; 🇵🇰 Pakistan
               </p>
               <p style="margin:0;font-size:12px;color:#555;">
                 © ${new Date().getFullYear()} Codeverza. All rights reserved.
@@ -158,7 +156,7 @@ function adminEmailHTML({ name, email, phone, service, message, source }) {
               <table width="100%" cellpadding="0" cellspacing="0">
                 <tr>
                   <td>
-                    <img src="https://raw.githubusercontent.com/codeverza02/codeverza/main/public/img/cc-logo-new.png" alt="Codeverza" width="44" height="44"
+                    <img src="https://raw.githubusercontent.com/codeverza02/codeverza/main/public/img/codeverza-logo.png" alt="Codeverza" width="44" height="44"
                       style="vertical-align:middle;margin-right:12px;border-radius:8px;" />
                     <span style="font-size:20px;font-weight:900;color:#fff;vertical-align:middle;">Codeverza</span>
                   </td>
@@ -245,14 +243,15 @@ export async function POST(req) {
 
     // Send both emails in parallel
     await Promise.all([
-      // 1. Thank you to user
+      // 1. Thank you to user — sent "from" info@codeverza.com
       transporter.sendMail({
-        from: `"Codeverza" <${process.env.GMAIL_USER}>`,
+        from: `"Codeverza" <info@codeverza.com>`,
+        replyTo: `"Codeverza" <info@codeverza.com>`,
         to: email,
         subject: `Thank you for reaching out, ${name}! 🚀`,
         html: userEmailHTML({ name, service, message }),
       }),
-      // 2. Notification to admin
+      // 2. Notification to admin — internal, keep gmail address
       transporter.sendMail({
         from: `"Codeverza Alerts" <${process.env.GMAIL_USER}>`,
         to: process.env.NOTIFY_EMAIL,

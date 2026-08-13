@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { motion, useInView, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
-import { db } from '../../../../lib/firebase';
+import { db } from '../../../lib/firebase';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import Swal from 'sweetalert2';
 import {
@@ -11,8 +11,8 @@ import {
   User, MessageSquare, CheckCircle, Clock, Globe, ArrowRight
 } from 'lucide-react';
 import { FaWhatsapp, FaLinkedin, FaGithub, FaInstagram } from 'react-icons/fa';
-import ReusableNavbar from '../../components/reusable-navbar';
-import Footer from '../../components/footer';
+import ReusableNavbar from '../components/reusable-navbar';
+import Footer from '../components/footer';
 import './contact-page.css';
 
 /* ── Particle BG ── */

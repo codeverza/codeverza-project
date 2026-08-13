@@ -13,25 +13,25 @@ import '../css/footer.css';
 
 const links = {
   Company: [
-    { label: 'About Us',    href: '/pages/about-page'     },
-    { label: 'Services',    href: '/pages/services-page'  },
+    { label: 'About Us',    href: '/about-page'     },
+    { label: 'Services',    href: '/services-page'  },
     { label: 'Technologies',href: '/#technologies'        },
     { label: 'How It Works',href: '/#how-it-works'        },
-    { label: 'Contact',     href: '/pages/contact-page'   },
+    { label: 'Contact',     href: '/contact-page'   },
   ],
   Services: [
-    { label: 'Web Development', href: '/pages/services-page#web-development' },
-    { label: 'Mobile Apps',     href: '/pages/services-page#mobile-apps'     },
-    { label: 'UI/UX Design',    href: '/pages/services-page#ui-ux-design'    },
-    { label: 'AI Solutions',    href: '/pages/services-page#ai-solutions'    },
-    { label: 'Cloud & DevOps',  href: '/pages/services-page#cloud-devops'    },
+    { label: 'Web Development', href: '/services-page#web-development' },
+    { label: 'Mobile Apps',     href: '/services-page#mobile-apps'     },
+    { label: 'UI/UX Design',    href: '/services-page#ui-ux-design'    },
+    { label: 'AI Solutions',    href: '/services-page#ai-solutions'    },
+    { label: 'Cloud & DevOps',  href: '/services-page#cloud-devops'    },
   ],
   Support: [
-    { label: 'FAQ',                href: '/pages/faq'                    },
-    { label: 'Portfolio',          href: '/pages/portfolio-page'         },
-    { label: 'Privacy Policy',     href: '/pages/privacy-policy'         },
+    { label: 'FAQ',                href: '/faq'                    },
+    { label: 'Portfolio',          href: '/portfolio-page'         },
+    { label: 'Privacy Policy',     href: '/privacy-policy'         },
     { label: 'Terms & Conditions', href: '/terms-conditions'            },
-    { label: 'Contact Us',         href: '/pages/contact-page'           },
+    { label: 'Contact Us',         href: '/contact-page'           },
   ],
 };
 
