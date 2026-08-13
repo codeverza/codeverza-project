@@ -4,8 +4,8 @@ import { useEffect, useRef } from 'react';
 import { motion, useInView } from 'framer-motion';
 import Link from 'next/link';
 import { ArrowLeft, Shield, Eye, Lock, Database, Bell, Mail, RefreshCw, UserCheck, Globe } from 'lucide-react';
-import ReusableNavbar from '../../components/reusable-navbar';
-import Footer from '../../components/footer';
+import ReusableNavbar from '../components/reusable-navbar';
+import Footer from '../components/footer';
 import './privacy-policy.css';
 
 function ParticleBg() {

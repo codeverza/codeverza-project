@@ -5,8 +5,8 @@ import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { ArrowLeft, Eye, ArrowRight, Sparkles } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import ReusableNavbar from '../../../components/reusable-navbar';
-import Footer from '../../../components/footer';
+import ReusableNavbar from '../../components/reusable-navbar';
+import Footer from '../../components/footer';
 import './graphic-design.css';
 
 /* ── Particle BG ── */
