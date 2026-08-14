@@ -1,10 +1,17 @@
 import nodemailer from 'nodemailer';
 
+const SMTP_PORT = parseInt(process.env.SMTP_PORT);
 const transporter = nodemailer.createTransport({
-  service: 'gmail',
+  host: process.env.SMTP_HOST,
+  port: SMTP_PORT,
+  secure: SMTP_PORT === 465,
+  requireTLS: SMTP_PORT === 587,
   auth: {
-    user: process.env.GMAIL_USER,
-    pass: process.env.GMAIL_APP_PASSWORD,
+    user: process.env.SMTP_USER,
+    pass: process.env.SMTP_PASS,
+  },
+  tls: {
+    rejectUnauthorized: false,
   },
 });
 
@@ -253,8 +260,8 @@ export async function POST(req) {
       }),
       // 2. Notification to admin — internal, keep gmail address
       transporter.sendMail({
-        from: `"Codeverza Alerts" <${process.env.GMAIL_USER}>`,
-        to: process.env.NOTIFY_EMAIL,
+        from: `"Codeverza Alerts" <${process.env.SMTP_USER}>`,
+        to: process.env.ADMIN_EMAIL,
         subject: `🔔 New Contact: ${name} – ${service || 'General Inquiry'}`,
         html: adminEmailHTML({ name, email, phone, service, message, source }),
       }),
