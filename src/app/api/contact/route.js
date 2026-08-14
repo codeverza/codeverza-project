@@ -1,19 +1,6 @@
-import nodemailer from 'nodemailer';
+import { Resend } from 'resend';
 
-const SMTP_PORT = parseInt(process.env.SMTP_PORT);
-const transporter = nodemailer.createTransport({
-  host: process.env.SMTP_HOST,
-  port: SMTP_PORT,
-  secure: SMTP_PORT === 465,
-  requireTLS: SMTP_PORT === 587,
-  auth: {
-    user: process.env.SMTP_USER,
-    pass: process.env.SMTP_PASS,
-  },
-  tls: {
-    rejectUnauthorized: false,
-  },
-});
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 /* ── User Thank You Email ── */
 function userEmailHTML({ name, service, message }) {
@@ -250,17 +237,17 @@ export async function POST(req) {
 
     // Send both emails in parallel
     await Promise.all([
-      // 1. Thank you to user — sent "from" info@codeverza.com
-      transporter.sendMail({
-        from: `"Codeverza" <info@codeverza.com>`,
-        replyTo: `"Codeverza" <info@codeverza.com>`,
+      // 1. Thank you to user
+      resend.emails.send({
+        from: 'Codeverza <info@codeverza.com>',
+        reply_to: 'info@codeverza.com',
         to: email,
         subject: `Thank you for reaching out, ${name}! 🚀`,
         html: userEmailHTML({ name, service, message }),
       }),
-      // 2. Notification to admin — internal, keep gmail address
-      transporter.sendMail({
-        from: `"Codeverza Alerts" <${process.env.SMTP_USER}>`,
+      // 2. Notification to admin
+      resend.emails.send({
+        from: 'Codeverza Alerts <info@codeverza.com>',
         to: process.env.ADMIN_EMAIL,
         subject: `🔔 New Contact: ${name} – ${service || 'General Inquiry'}`,
         html: adminEmailHTML({ name, email, phone, service, message, source }),
@@ -270,13 +257,6 @@ export async function POST(req) {
     return Response.json({ success: true });
   } catch (err) {
     console.error('Email error:', err);
-    return Response.json({
-      error: err.message,
-      code: err.code,
-      command: err.command,
-      smtp_host: process.env.SMTP_HOST,
-      smtp_port: process.env.SMTP_PORT,
-      smtp_user: process.env.SMTP_USER,
-    }, { status: 500 });
+    return Response.json({ error: err.message }, { status: 500 });
   }
 }

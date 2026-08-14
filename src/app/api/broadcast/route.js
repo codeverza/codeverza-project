@@ -1,19 +1,6 @@
-import nodemailer from 'nodemailer';
+import { Resend } from 'resend';
 
-const SMTP_PORT = parseInt(process.env.SMTP_PORT);
-const transporter = nodemailer.createTransport({
-  host: process.env.SMTP_HOST,
-  port: SMTP_PORT,
-  secure: SMTP_PORT === 465,
-  requireTLS: SMTP_PORT === 587,
-  auth: {
-    user: process.env.SMTP_USER,
-    pass: process.env.SMTP_PASS,
-  },
-  tls: {
-    rejectUnauthorized: false,
-  },
-});
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 function broadcastHTML({ subject, message }) {
   return `
@@ -71,9 +58,9 @@ export async function POST(req) {
     const html = broadcastHTML({ subject, message });
     const results = await Promise.allSettled(
       uniqueRecipients.map(email =>
-        transporter.sendMail({
-          from: `"Codeverza" <info@codeverza.com>`,
-          replyTo: `"Codeverza" <info@codeverza.com>`,
+        resend.emails.send({
+          from: 'Codeverza <info@codeverza.com>',
+          reply_to: 'info@codeverza.com',
           to: email,
           subject,
           html,

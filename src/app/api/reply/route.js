@@ -1,19 +1,6 @@
-import nodemailer from 'nodemailer';
+import { Resend } from 'resend';
 
-const SMTP_PORT = parseInt(process.env.SMTP_PORT);
-const transporter = nodemailer.createTransport({
-  host: process.env.SMTP_HOST,
-  port: SMTP_PORT,
-  secure: SMTP_PORT === 465,
-  requireTLS: SMTP_PORT === 587,
-  auth: {
-    user: process.env.SMTP_USER,
-    pass: process.env.SMTP_PASS,
-  },
-  tls: {
-    rejectUnauthorized: false,
-  },
-});
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 function replyEmailHTML({ userName, userMessage, replyMessage }) {
   return `
@@ -118,9 +105,9 @@ export async function POST(req) {
       return Response.json({ error: 'Missing fields' }, { status: 400 });
     }
 
-    await transporter.sendMail({
-      from: `"Codeverza" <info@codeverza.com>`,
-      replyTo: `"Codeverza" <info@codeverza.com>`,
+    await resend.emails.send({
+      from: 'Codeverza <info@codeverza.com>',
+      reply_to: 'info@codeverza.com',
       to: userEmail,
       subject: `Re: Your inquiry at Codeverza`,
       html: replyEmailHTML({ userName, userMessage, replyMessage }),
