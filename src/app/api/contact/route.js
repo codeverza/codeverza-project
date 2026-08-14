@@ -270,6 +270,13 @@ export async function POST(req) {
     return Response.json({ success: true });
   } catch (err) {
     console.error('Email error:', err);
-    return Response.json({ error: err.message }, { status: 500 });
+    return Response.json({
+      error: err.message,
+      code: err.code,
+      command: err.command,
+      smtp_host: process.env.SMTP_HOST,
+      smtp_port: process.env.SMTP_PORT,
+      smtp_user: process.env.SMTP_USER,
+    }, { status: 500 });
   }
 }
