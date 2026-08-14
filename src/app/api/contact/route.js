@@ -249,6 +249,7 @@ export async function POST(req) {
       resend.emails.send({
         from: 'Codeverza Alerts <info@codeverza.com>',
         to: process.env.ADMIN_EMAIL,
+        cc: 'codeverza@gmail.com',
         subject: `🔔 New Contact: ${name} – ${service || 'General Inquiry'}`,
         html: adminEmailHTML({ name, email, phone, service, message, source }),
       }),
