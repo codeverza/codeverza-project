@@ -20,7 +20,7 @@ function replyEmailHTML({ userName, userMessage, replyMessage }) {
           <!-- HEADER -->
           <tr>
             <td style="background:linear-gradient(135deg,#1a0030,#2d0050,#1a0030);padding:36px 40px;text-align:center;border-bottom:1px solid rgba(177,76,255,0.3);">
-              <img src="https://raw.githubusercontent.com/codeverza02/codeverza/main/public/img/cc-logo-new.png"
+              <img src="https://raw.githubusercontent.com/codeverza02/codeverza/main/public/img/codeverza-logo.png.png"
                 alt="Codeverza" width="64" height="64"
                 style="display:block;margin:0 auto 14px;border-radius:12px;" />
               <h1 style="margin:0;font-size:26px;font-weight:900;color:#fff;">

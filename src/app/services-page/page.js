@@ -5,6 +5,7 @@ import { motion, useInView } from 'framer-motion';
 import Link from 'next/link';
 import ReusableNavbar from '../components/reusable-navbar';
 import Footer from '../components/footer';
+import JsonLd from './JsonLd';
 import {
   Code, Smartphone, Palette, Brain, Cloud, Headphones,
   ArrowLeft, CheckCircle, ArrowRight, Brush, Sparkles
@@ -257,6 +258,7 @@ function ServiceCard({ service, index }) {
 export default function ServicesPage() {
   return (
     <>
+    <JsonLd />
     <ReusableNavbar/>
     <main className="sp-main pb-1">
       {/* full page particle bg */}

@@ -13,6 +13,7 @@ import {
 import { FaWhatsapp, FaLinkedin, FaGithub, FaInstagram } from 'react-icons/fa';
 import ReusableNavbar from '../components/reusable-navbar';
 import Footer from '../components/footer';
+import JsonLd from './JsonLd';
 import './contact-page.css';
 
 /* ── Particle BG ── */
@@ -269,6 +270,7 @@ export default function ContactPage() {
   const toggleFaq = (i) => setFaqOpen(faqOpen === i ? null : i);
   return (
     <>
+      <JsonLd />
       <ReusableNavbar />
       <main className="cp-main pb-1">
         <ParticleBg />

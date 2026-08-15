@@ -25,6 +25,33 @@ body {
   font-family: var(--font-poppins);
 }
 
+/* ── Custom Scrollbar ── */
+html {
+  scrollbar-width: thin;
+  scrollbar-color: #b14cff #0a0a0a;
+}
+
+html::-webkit-scrollbar {
+  width: 6px;
+}
+
+html::-webkit-scrollbar-track {
+  background: #0a0a0a;
+}
+
+html::-webkit-scrollbar-thumb {
+  background: #b14cff;
+  border-radius: 10px;
+}
+
+html::-webkit-scrollbar-thumb:hover {
+  background: #9b30ff;
+}
+
+html::-webkit-scrollbar-corner {
+  background: #0a0a0a;
+}
+
 h1 {
   font-size: clamp(1.8rem, 2.5vw, 2.5rem) !important;
   font-weight: 700 !important;

@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation';
 import { ArrowLeft, ExternalLink, ArrowRight, Star, Eye, ShoppingBag, Globe, Smartphone, Palette, Package, Heart, Tag, Truck, Code2, Brush, Sparkles } from 'lucide-react';
 import ReusableNavbar from '../components/reusable-navbar';
 import Footer from '../components/footer';
+import JsonLd from './JsonLd';
 import './portfolio-page.css';
 
 const CATEGORIES = [
@@ -202,6 +203,7 @@ export default function PortfolioPage() {
 
   return (
     <>
+      <JsonLd />
       <ReusableNavbar />
       <main className="pp-main pb-1">
         <ParticleBg />

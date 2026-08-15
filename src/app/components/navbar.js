@@ -21,6 +21,7 @@ const Navbar = () => {
             // hasDropdown: true
         },
         { name: "Portfolio", href: "/portfolio-page" },
+        { name: "Careers", href: "/career-page" },
         { name: "Contact", href: "/contact-page" },
     ];
 
