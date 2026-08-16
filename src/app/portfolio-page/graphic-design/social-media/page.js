@@ -138,7 +138,7 @@ export default function SocialMediaPage() {
 
         {/* ── BACK BUTTON ── */}
         <div style={{ position: 'relative', zIndex: 2, padding: '90px 6% 0' }}>
-          <Link href="/portfolio-page" className="gd-back mt-[30px]">
+          <Link href="/portfolio-page?tab=design" className="gd-back mt-[30px]">
             <ArrowLeft size={16} /> Back to Portfolio
           </Link>
         </div>

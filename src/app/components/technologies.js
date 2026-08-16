@@ -2,6 +2,7 @@
 
 import { useRef } from 'react';
 import { motion, useInView } from 'framer-motion';
+import Link from 'next/link';
 import {
   FaHtml5, FaCss3Alt, FaJs, FaReact, FaNodeJs,
   FaGithub, FaBootstrap,
@@ -11,6 +12,7 @@ import {
   SiTailwindcss, SiMysql, SiCanva, SiFigma,
   SiAdobephotoshop, SiAdobeillustrator, SiAdobexd, SiAdobeaftereffects,
 } from 'react-icons/si';
+import { ArrowRight } from 'lucide-react';
 import '../css/technologies.css';
 
 const techs = [
@@ -141,6 +143,21 @@ export default function Technologies() {
           );
         })}
       </div>
+
+      {/* CTA */}
+      <motion.div
+        className="tech-cta-wrap"
+        initial={{ opacity: 0, y: 24 }}
+        animate={inView ? { opacity: 1, y: 0 } : {}}
+        transition={{ duration: 0.6, delay: 0.4 }}
+      >
+        <Link
+          href="/contact-page"
+          className="bg-gradient-to-r from-purple-600 to-purple-800 hover:from-purple-700 hover:to-purple-900 text-white px-10 py-4 rounded-full font-bold transition-all duration-300 shadow-lg hover:shadow-purple-500/40 inline-flex items-center gap-3 text-base"
+        >
+          Let&apos;s Work Together <ArrowRight size={18} />
+        </Link>
+      </motion.div>
     </section>
   );
 }

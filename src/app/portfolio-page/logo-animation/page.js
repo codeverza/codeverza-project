@@ -251,7 +251,7 @@ export default function LogoAnimationPage() {
 
          {/* ── BACK ── */}
                 <div style={{ position: 'relative', zIndex: 2, padding: '90px 6% 0' }}>
-                  <Link href="/portfolio-page" className="mg-back mt-[30px]">
+                  <Link href="/portfolio-page?tab=animation" className="mg-back mt-[30px]">
                     <ArrowLeft size={16} /> Back to Portfolio
                   </Link>
                 </div>

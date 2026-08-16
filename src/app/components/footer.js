@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import {
   FaGithub, FaLinkedin, FaInstagram,
+  FaFacebook,
 } from 'react-icons/fa';
 import { Mail, Phone, MapPin, ChevronRight, Heart } from 'lucide-react';
 import { db } from '../../../lib/firebase';
@@ -40,10 +41,11 @@ const socials = [
   { icon: <FaLinkedin size={18} />, href: 'https://www.linkedin.com/feed/',       label: 'LinkedIn' },
   // { icon: <FaTwitter size={18} />,  href: '#',                label: 'Twitter'  },
   { icon: <FaInstagram size={18} />,href: 'https://www.instagram.com/codeverza?igsh=Z2NkOW84ejE1cXQ3',              label: 'Instagram'},
+  { icon: <FaFacebook size={18} />,href: 'https://www.facebook.com/share/19AgBVfZht/',  label: 'Facebook'},
 ];
 
 const contact = [
-  { icon: <Mail size={15} />,    text: 'codeverza02@gmail.com', href: 'mailto:codeverza02@gmail.com'  },
+  { icon: <Mail size={15} />,    text: 'codeverza@gmail.com', href: 'mailto:codeverza02@gmail.com'  },
   { icon: <Phone size={15} />,   text: '+92 325 1507557',        href: 'https://wa.me/923251507557'    },
   { icon: <MapPin size={15} />,  text: 'Karachi, Pakistan 🇵🇰',            href: null                            },
 ];

@@ -227,14 +227,15 @@ export default function About() {
             ))}
           </div>
 
-          <motion.a href="/contact-page" className="about-cta" variants={fadeUp} custom={7} initial="hidden" animate={inView ? 'visible' : 'hidden'} whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.97 }}>
-            Let's Work Together <ArrowRight size={18} />
-          </motion.a>
-
-          <motion.div variants={fadeUp} custom={8} initial="hidden" animate={inView ? 'visible' : 'hidden'}>
-            <Link href="/about-page" className="about-learn-more">
-              Learn More About Us <ArrowRight size={16} />
-            </Link>
+          <motion.div className="about-cta-row" variants={fadeUp} custom={7} initial="hidden" animate={inView ? 'visible' : 'hidden'}>
+            <motion.a href="/contact-page" className="about-cta" whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.97 }}>
+              Let's Work Together <ArrowRight size={18} />
+            </motion.a>
+            <motion.div whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.97 }}>
+              <Link href="/about-page" className="about-learn-more">
+                Learn More <ArrowRight size={16} />
+              </Link>
+            </motion.div>
           </motion.div>
         </motion.div>
 

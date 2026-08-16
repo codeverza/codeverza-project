@@ -53,13 +53,13 @@
 }
 
 .footer-tagline {
-  font-size: 14px; color: #aaa; line-height: 1.8; margin-bottom: 24px; max-width: 300px;
+  font-size: 14px; color: #f0f0f0; line-height: 1.8; margin-bottom: 24px; max-width: 300px;
 }
 
 .footer-contact-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 28px; }
 .footer-contact-item {
   display: flex; align-items: center; gap: 10px;
-  font-size: 13px; color: #bbb;
+  font-size: 13px; color: #f0f0f0;
 }
 .footer-contact-link {
   text-decoration: none;
@@ -99,7 +99,7 @@
 
 .footer-link {
   display: flex; align-items: center; gap: 6px;
-  font-size: 14px; color: #bbb; text-decoration: none;
+  font-size: 14px; color: #f0f0f0; text-decoration: none;
   transition: color 0.25s, gap 0.25s;
 }
 .footer-link:hover { color: #e0aaff; gap: 8px; }
@@ -108,7 +108,7 @@
 
 /* ── NEWSLETTER ── */
 .footer-newsletter-desc {
-  font-size: 13px; color: #aaa; line-height: 1.7; margin-bottom: 18px;
+  font-size: 13px; color: #f0f0f0; line-height: 1.7; margin-bottom: 18px;
 }
 
 .footer-newsletter-form {
@@ -151,11 +151,11 @@
   display: flex; align-items: center; justify-content: space-between;
   flex-wrap: wrap; gap: 12px;
 }
-.footer-copy { font-size: 13px; color: #aaa; }
+.footer-copy { font-size: 13px; color: #e4dbdb; }
 .footer-copy strong { color: #ddd; }
 .footer-made {
   display: flex; align-items: center; gap: 5px;
-  font-size: 13px; color: #aaa;
+  font-size: 13px; color: #f0f0f0;
 }
 .footer-heart {
   color: #e535ab;

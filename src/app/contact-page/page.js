@@ -10,7 +10,7 @@ import {
   ArrowLeft, Mail, Phone, MapPin, Send,
   User, MessageSquare, CheckCircle, Clock, Globe, ArrowRight
 } from 'lucide-react';
-import { FaWhatsapp, FaLinkedin, FaGithub, FaInstagram } from 'react-icons/fa';
+import { FaWhatsapp, FaLinkedin, FaGithub, FaInstagram, FaFacebook } from 'react-icons/fa';
 import ReusableNavbar from '../components/reusable-navbar';
 import Footer from '../components/footer';
 import JsonLd from './JsonLd';
@@ -62,7 +62,7 @@ function ParticleBg() {
 const services = ['Web Development', 'Mobile App', 'UI/UX Design', 'AI Solution', 'Cloud & DevOps', 'Other'];
 
 const contactCards = [
-  { icon: <Mail size={22} />,    label: 'Email Us',      value: 'codeverza02@gmail.com', sub: 'We reply within 24 hours',   color: '#b14cff', href: 'mailto:codeverza02@gmail.com'    },
+  { icon: <Mail size={22} />,    label: 'Email Us',      value: 'codeverza@gmail.com', sub: 'We reply within 24 hours',   color: '#b14cff', href: 'mailto:codeverza@gmail.com'    },
   { icon: <Phone size={22} />,   label: 'WhatsApp Us',   value: '+92 325 1507557',        sub: 'Mon–Sat, 9am–7pm PKT',       color: '#25d366', href: 'https://wa.me/923251507557'      },
   { icon: <MapPin size={22} />,  label: 'Location',      value: 'Pakistan 🇵🇰',            sub: 'Remote-first, global reach',  color: '#68a063', href: null                              },
   { icon: <Clock size={22} />,   label: 'Response Time', value: '< 24 Hours',             sub: 'Fast & reliable support',    color: '#ffd43b', href: null                              },
@@ -70,9 +70,10 @@ const contactCards = [
 
 const socials = [
   { icon: <FaWhatsapp size={20} />, label: 'WhatsApp', href: 'https://wa.me/923251507557',                    color: '#25d366' },
-  { icon: <FaLinkedin size={20} />, label: 'LinkedIn', href: 'https://www.linkedin.com/feed/',        color: '#0077b5' },
-  { icon: <FaGithub size={20} />,   label: 'GitHub',   href: 'https://github.com/codeverza02',                  color: '#fff'    },
+  { icon: <FaLinkedin size={20} />, label: 'LinkedIn', href: '#',        color: '#0077b5' },
+  { icon: <FaGithub size={20} />,   label: 'GitHub',   href: '',                  color: '#fff'    },
   { icon: <FaInstagram size={20} />,label: 'Instagram', href: 'https://www.instagram.com/codeverza?igsh=Z2NkOW84ejE1cXQ3',              color: '#e535ab' },
+  { icon: <FaFacebook size={20} />,label: 'Facebook', href: 'https://www.facebook.com/share/19AgBVfZht/',              color: '#1877F2' },
 ];
 
 const faqs = [
@@ -412,8 +413,8 @@ export default function ContactPage() {
           <div className="cp-bottom-glow" />
           <h3>Still have questions?</h3>
           <p>Reach out directly and we'll be happy to help.</p>
-          <a href="mailto:codeverza02@gmail.com" className="cp-bottom-btn">
-            <Mail size={18} /> codeverza02@gmail.com
+          <a href="mailto:codeverza@gmail.com" className="cp-bottom-btn">
+            <Mail size={18} /> codeverza@gmail.com
           </a>
         </motion.div>
 

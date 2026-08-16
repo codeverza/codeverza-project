@@ -92,7 +92,7 @@
 
 .tech-subtitle {
   font-size: 16px;
-  color: #888;
+  color: #f0f0f0;
   max-width: 520px;
   margin: 0 auto;
   line-height: 1.7;
@@ -166,7 +166,16 @@
 .tech-name {
   font-size: 13px;
   font-weight: 600;
-  color: rgba(255,255,255,0.75);
+  color: f0f0f0;
   text-align: center;
   letter-spacing: 0.3px;
+}
+
+/* ── CTA button wrap ── */
+.tech-cta-wrap {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  justify-content: center;
+  margin-top: 56px;
 }

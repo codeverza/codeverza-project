@@ -100,7 +100,7 @@ export default function GraphicDesignPage() {
         {/* ── HERO ── */}
         <div className="gd-hero">
           <div className="gd-back-wrap">
-            <Link href="/pages/portfolio-page" className="gd-back">
+            <Link href="/portfolio-page?tab=design" className="gd-back">
               <ArrowLeft size={16} /> Back to Portfolio
             </Link>
           </div>

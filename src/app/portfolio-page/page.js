@@ -1,9 +1,9 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, Suspense } from 'react';
 import { motion, useInView, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { ArrowLeft, ExternalLink, ArrowRight, Star, Eye, ShoppingBag, Globe, Smartphone, Palette, Package, Heart, Tag, Truck, Code2, Brush, Sparkles } from 'lucide-react';
 import ReusableNavbar from '../components/reusable-navbar';
 import Footer from '../components/footer';
@@ -193,13 +193,24 @@ const project = {
 };
 
 export default function PortfolioPage() {
+  return (
+    <Suspense fallback={null}>
+      <PortfolioContent />
+    </Suspense>
+  );
+}
+
+function PortfolioContent() {
   const router  = useRouter();
   const heroRef  = useRef(null);
   const detailRef = useRef(null);
   const inView   = useInView(detailRef, { once: true, margin: '-60px' });
+  const searchParams = useSearchParams();
   const [hovered, setHovered] = useState(null);
   const [activeProject, setActiveProject] = useState(null);
-  const [activeCategory, setActiveCategory] = useState('development');
+  const [activeCategory, setActiveCategory] = useState(
+    () => searchParams.get('tab') ?? 'development'
+  );
 
   return (
     <>

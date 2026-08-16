@@ -221,7 +221,7 @@
 .timeline-item p {
   font-size: 15px;
   line-height: 1.7;
-  color: #cfcfcf;
+  color: #f0f0f0;
 }
 
 @media (max-width: 900px) {
@@ -281,4 +281,13 @@
   .timeline { padding-left: 20px; }
   .timeline-item { padding-left: 20px; }
   .timeline-item .content { padding: 20px 18px; }
+}
+
+/* ── CTA button wrap ── */
+.hiw-cta-wrap {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  justify-content: center;
+  margin-top: 64px;
 }

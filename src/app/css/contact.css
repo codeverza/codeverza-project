@@ -62,7 +62,7 @@
 }
 
 .cv-desc {
-  font-size: 15px; color: #888; line-height: 1.8; margin: 0; max-width: 420px;
+  font-size: 15px; color: #f0f0f0; line-height: 1.8; margin: 0; max-width: 420px;
 }
 
 /* contact info rows */
@@ -84,8 +84,8 @@
   border: 1px solid rgba(177,76,255,0.3);
   display: flex; align-items: center; justify-content: center; color: #b14cff;
 }
-.cv-info-label { font-size: 11px; color: #666; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 3px; }
-.cv-info-value { font-size: 14px; font-weight: 600; color: #ddd; }
+.cv-info-label { font-size: 11px; color: #f0f0f0; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 3px; }
+.cv-info-value { font-size: 14px; font-weight: 600; color: #f0f0f0; }
 
 /* illustration box */
 .cv-illustration {
@@ -170,7 +170,7 @@
   background: linear-gradient(135deg, #b14cff, #e0aaff);
   -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
 }
-.cf-form-sub { font-size: 14px; color: #666; line-height: 1.6; }
+.cf-form-sub { font-size: 14px; color: #f0f0f0; line-height: 1.6; }
 
 /* two col row */
 .cf-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
@@ -181,7 +181,7 @@
 
 .cf-label {
   font-size: 12px; font-weight: 600;
-  color: rgba(255,255,255,0.45); letter-spacing: 0.8px; text-transform: uppercase;
+  color: #f0f0f0; letter-spacing: 0.8px; text-transform: uppercase;
 }
 
 /* input box */
@@ -218,6 +218,7 @@
   border-radius: 50px; padding: 9px 18px;
   font-size: 13px; font-weight: 500; color: rgba(255,255,255,0.6);
   cursor: pointer; transition: all 0.25s; font-family: inherit;
+  color: #f0f0f0 !important;
 }
 .cf-service-btn:hover {
   border-color: rgba(177,76,255,0.5); color: #e0aaff;

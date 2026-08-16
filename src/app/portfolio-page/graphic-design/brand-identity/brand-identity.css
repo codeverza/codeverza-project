@@ -7,7 +7,7 @@
   font-size: 36px; font-weight: 800; margin-bottom: 40px; line-height: 1.2; color: #fff;
 }
 
-/* ── GRID ── */
+/* ── OLD 3-COLUMN GRID — commented out ──
 .bi-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -17,7 +17,6 @@
 @media (max-width: 900px) { .bi-grid { grid-template-columns: repeat(2, 1fr); } }
 @media (max-width: 540px)  { .bi-grid { grid-template-columns: 1fr; } }
 
-/* ── CARD ── */
 .bi-card {
   background: rgba(255,255,255,0.03);
   border: 1px solid rgba(255,255,255,0.07);
@@ -29,43 +28,246 @@
   border-color: rgba(242,78,30,0.45);
   box-shadow: 0 0 36px rgba(242,78,30,0.1);
 }
-
-/* visual */
 .bi-card-visual {
-  position: relative;
-  height: 180px;
-  display: flex; align-items: center; justify-content: center;
-  overflow: hidden;
+  position: relative; height: 180px;
+  display: flex; align-items: center; justify-content: center; overflow: hidden;
 }
 .bi-card-emoji {
-  font-size: 64px;
-  filter: drop-shadow(0 4px 24px rgba(0,0,0,0.5));
-  transition: transform 0.4s ease;
-  position: relative; z-index: 1;
+  font-size: 64px; filter: drop-shadow(0 4px 24px rgba(0,0,0,0.5));
+  transition: transform 0.4s ease; position: relative; z-index: 1;
 }
 .bi-card:hover .bi-card-emoji { transform: scale(1.15) rotate(-4deg); }
-
-/* shine sweep on hover */
 .bi-card-shine {
   position: absolute; inset: 0;
   background: linear-gradient(120deg, transparent 30%, rgba(255,255,255,0.06) 50%, transparent 70%);
-  transform: translateX(-100%);
-  transition: transform 0.6s ease;
+  transform: translateX(-100%); transition: transform 0.6s ease;
 }
 .bi-card:hover .bi-card-shine { transform: translateX(100%); }
-
-/* body */
 .bi-card-body { padding: 18px 18px 20px; }
-.bi-card-label {
-  font-size: 15px; font-weight: 800; color: #fff; margin-bottom: 6px;
-}
-.bi-card-desc {
-  font-size: 13px; color: #888; line-height: 1.65; margin-bottom: 12px;
-}
-.bi-card-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+.bi-card-label { font-size: 15px; font-weight: 800; color: #fff; margin-bottom: 6px; }
+.bi-card-desc  { font-size: 13px; color: #888; line-height: 1.65; margin-bottom: 12px; }
+.bi-card-tags  { display: flex; flex-wrap: wrap; gap: 6px; }
+── end old grid ── */
 
-@media (max-width: 600px) {
+/* ══════════════════════════════════════════
+   NEW POSTER LAYOUT
+══════════════════════════════════════════ */
+
+/* ── POSTER LIST ── */
+.bi-poster-list {
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+  margin-bottom: 40px;
+}
+
+/* ── POSTER CARD ── */
+.bi-poster-card {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 24px;
+  overflow: hidden;
+  transition: border-color 0.3s, box-shadow 0.3s;
+}
+.bi-poster-card:hover {
+  border-color: rgba(242,78,30,0.4);
+  box-shadow: 0 0 48px rgba(242,78,30,0.09);
+}
+
+/* ── POSTER IMAGE AREA ── */
+.bi-poster-visual {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 7;
+  display: flex; align-items: center; justify-content: center;
+  overflow: hidden;
+  cursor: zoom-in;
+}
+.bi-poster-visual img {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  transition: transform 0.5s ease;
+}
+.bi-poster-card:hover .bi-poster-visual img { transform: scale(1.03); }
+
+/* emoji fallback (when no real image) */
+.bi-poster-emoji-wrap {
+  width: 100%; height: 100%;
+  display: flex; align-items: center; justify-content: center;
+}
+.bi-poster-emoji {
+  font-size: 96px;
+  filter: drop-shadow(0 8px 32px rgba(0,0,0,0.6));
+  transition: transform 0.4s ease;
+}
+.bi-poster-card:hover .bi-poster-emoji { transform: scale(1.1) rotate(-3deg); }
+
+/* zoom icon overlay */
+.bi-poster-zoom-overlay {
+  position: absolute; inset: 0;
+  background: rgba(0,0,0,0);
+  display: flex; align-items: center; justify-content: center;
+  transition: background 0.3s;
+}
+.bi-poster-card:hover .bi-poster-zoom-overlay { background: rgba(0,0,0,0.25); }
+.bi-zoom-icon {
+  opacity: 0; transform: scale(0.8);
+  background: rgba(242,78,30,0.85);
+  border-radius: 50%; width: 52px; height: 52px;
+  display: flex; align-items: center; justify-content: center;
+  color: #fff; transition: opacity 0.3s, transform 0.3s;
+  backdrop-filter: blur(6px);
+}
+.bi-poster-card:hover .bi-zoom-icon { opacity: 1; transform: scale(1); }
+
+/* shine sweep */
+.bi-poster-shine {
+  position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(120deg, transparent 30%, rgba(255,255,255,0.05) 50%, transparent 70%);
+  transform: translateX(-100%);
+  transition: transform 0.7s ease;
+}
+.bi-poster-card:hover .bi-poster-shine { transform: translateX(100%); }
+
+/* ── POSTER BODY ── */
+.bi-poster-body {
+  padding: 22px 28px 26px;
+  display: flex; align-items: flex-start; justify-content: space-between; gap: 20px;
+}
+.bi-poster-body-left { flex: 1; min-width: 0; }
+.bi-poster-number {
+  font-size: 11px; font-weight: 700; letter-spacing: 2px;
+  text-transform: uppercase; color: #f24e1e; margin-bottom: 6px;
+}
+.bi-poster-label {
+  font-size: 20px; font-weight: 800; color: #fff;
+  margin-bottom: 8px; line-height: 1.25;
+}
+.bi-poster-short-desc {
+  font-size: 14px; color: #888; line-height: 1.7;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.bi-poster-tags {
+  display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px;
+}
+
+/* View Full button */
+.bi-view-full-btn {
+  flex-shrink: 0; align-self: center;
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 10px 20px;
+  background: rgba(242,78,30,0.12);
+  border: 1px solid rgba(242,78,30,0.4);
+  border-radius: 50px;
+  color: #f24e1e; font-size: 13px; font-weight: 700;
+  cursor: pointer; white-space: nowrap;
+  transition: background 0.2s, border-color 0.2s, transform 0.2s, box-shadow 0.2s;
+}
+.bi-view-full-btn:hover {
+  background: rgba(242,78,30,0.22);
+  border-color: #f24e1e;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(242,78,30,0.2);
+}
+
+/* ═══════════════════════════════════════
+   DESCRIPTION POPUP MODAL
+═══════════════════════════════════════ */
+.bi-modal-overlay {
+  position: fixed; inset: 0; z-index: 1200;
+  background: rgba(0,0,0,0.82);
+  backdrop-filter: blur(10px);
+  display: flex; align-items: center; justify-content: center;
+  padding: 24px;
+}
+.bi-modal {
+  background: #111;
+  border: 1px solid rgba(242,78,30,0.25);
+  border-top: 3px solid #f24e1e;
+  border-radius: 24px;
+  width: 100%; max-width: 600px;
+  max-height: 88vh; overflow-y: auto;
+  position: relative;
+}
+.bi-modal-visual {
+  width: 100%; aspect-ratio: 16 / 7;
+  display: flex; align-items: center; justify-content: center;
+  overflow: hidden; border-radius: 20px 20px 0 0;
+  cursor: zoom-in;
+}
+.bi-modal-visual img {
+  width: 100%; height: 100%; object-fit: cover;
+  transition: transform 0.4s;
+}
+.bi-modal-visual:hover img { transform: scale(1.04); }
+.bi-modal-visual-emoji {
+  width: 100%; height: 100%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 96px;
+}
+.bi-modal-body { padding: 28px 32px 36px; }
+.bi-modal-num {
+  font-size: 11px; font-weight: 700; letter-spacing: 2px;
+  text-transform: uppercase; color: #f24e1e; margin-bottom: 8px;
+}
+.bi-modal-title {
+  font-size: 24px; font-weight: 800; color: #fff; margin-bottom: 14px; line-height: 1.3;
+}
+.bi-modal-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 18px; }
+.bi-modal-desc {
+  font-size: 14px; color: #aaa; line-height: 1.8;
+  white-space: pre-line;
+}
+.bi-modal-close {
+  position: absolute; top: 16px; right: 18px;
+  background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 50%; width: 34px; height: 34px;
+  color: #fff; font-size: 16px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: background 0.2s; z-index: 2;
+}
+.bi-modal-close:hover { background: rgba(255,255,255,0.18); }
+
+/* ═══════════════════════════════════════
+   LIGHTBOX (full poster zoom)
+═══════════════════════════════════════ */
+.bi-lightbox-overlay {
+  position: fixed; inset: 0; z-index: 1400;
+  background: rgba(0,0,0,0.95);
+  backdrop-filter: blur(14px);
+  display: flex; align-items: center; justify-content: center;
+  padding: 16px;
+  cursor: zoom-out;
+}
+.bi-lightbox-img {
+  max-width: 92vw; max-height: 88vh;
+  border-radius: 16px;
+  object-fit: contain;
+  box-shadow: 0 0 80px rgba(0,0,0,0.8);
+}
+.bi-lightbox-emoji {
+  font-size: 180px;
+  filter: drop-shadow(0 0 60px rgba(242,78,30,0.3));
+}
+.bi-lightbox-close {
+  position: fixed; top: 20px; right: 24px;
+  background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 50%; width: 40px; height: 40px;
+  color: #fff; font-size: 18px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: background 0.2s; z-index: 1500;
+}
+.bi-lightbox-close:hover { background: rgba(255,255,255,0.22); }
+
+/* ── RESPONSIVE ── */
+@media (max-width: 640px) {
   .bi-section-title { font-size: 26px; }
-  .bi-card-visual { height: 140px; }
-  .bi-card-emoji { font-size: 48px; }
+  .bi-poster-visual { aspect-ratio: 16 / 9; }
+  .bi-poster-body { flex-direction: column; gap: 14px; }
+  .bi-view-full-btn { align-self: flex-start; }
+  .bi-poster-label { font-size: 17px; }
+  .bi-modal-body { padding: 22px 20px 28px; }
+  .bi-modal-title { font-size: 20px; }
+  .bi-lightbox-emoji { font-size: 110px; }
 }

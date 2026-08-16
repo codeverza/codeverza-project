@@ -117,8 +117,11 @@ export default function Services() {
       </div>
 
       <div className="services-btn-wrap">
-        <Link href="/services-page" className="about-cta">
+        <Link href="/services-page" className="services-outline-btn">
           See All Services <ArrowRight size={18} />
+        </Link>
+        <Link href="/contact-page" className="about-cta">
+          Let&apos;s Work Together <ArrowRight size={18} />
         </Link>
       </div>
     </section>
