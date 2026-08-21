@@ -45,7 +45,7 @@ const socials = [
 ];
 
 const contact = [
-  { icon: <Mail size={15} />,    text: 'codeverza@gmail.com', href: 'mailto:codeverza02@gmail.com'  },
+  { icon: <Mail size={15} />,    text: 'info@codeverza.com', href: 'mailto:info@codeverza.com'  },
   { icon: <Phone size={15} />,   text: '+92 325 1507557',        href: 'https://wa.me/923251507557'    },
   { icon: <MapPin size={15} />,  text: 'Karachi, Pakistan 🇵🇰',            href: null                            },
 ];
