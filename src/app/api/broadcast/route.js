@@ -1,6 +1,15 @@
-import { Resend } from 'resend';
+import nodemailer from 'nodemailer';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+/* ── SMTP Transporter ── */
+const transporter = nodemailer.createTransport({
+  host:   process.env.SMTP_HOST,
+  port:   Number(process.env.SMTP_PORT) || 465,
+  secure: true,
+  auth: {
+    user: process.env.SMTP_USER,
+    pass: process.env.SMTP_PASS,
+  },
+});
 
 function broadcastHTML({ subject, message }) {
   return `
@@ -13,7 +22,7 @@ function broadcastHTML({ subject, message }) {
       <table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;background:#111;border-radius:20px;overflow:hidden;border:1px solid rgba(177,76,255,0.25);">
         <tr>
           <td style="background:linear-gradient(135deg,#1a0030,#2d0050,#1a0030);padding:36px 40px;text-align:center;border-bottom:1px solid rgba(177,76,255,0.3);">
-            <img src="https://raw.githubusercontent.com/codeverza02/codeverza/main/public/img/cc-logo-new.png" alt="Codeverza" width="64" height="64" style="display:block;margin:0 auto 14px;border-radius:12px;"/>
+            <img src="https://raw.githubusercontent.com/codeverza02/codeverza/main/public/img/codeverza-logo.png" alt="Codeverza" width="64" height="64" style="display:block;margin:0 auto 14px;border-radius:12px;"/>
             <h1 style="margin:0;font-size:26px;font-weight:900;color:#fff;">Code<span style="color:#b14cff;">verza</span></h1>
             <p style="margin:6px 0 0;font-size:12px;color:rgba(255,255,255,0.4);letter-spacing:2px;text-transform:uppercase;">Software House</p>
           </td>
@@ -58,10 +67,10 @@ export async function POST(req) {
     const html = broadcastHTML({ subject, message });
     const results = await Promise.allSettled(
       uniqueRecipients.map(email =>
-        resend.emails.send({
-          from: 'Codeverza <info@codeverza.com>',
-          reply_to: 'info@codeverza.com',
-          to: email,
+        transporter.sendMail({
+          from:    '"Codeverza" <info@codeverza.com>',
+          replyTo: 'info@codeverza.com',
+          to:      email,
           subject,
           html,
         })

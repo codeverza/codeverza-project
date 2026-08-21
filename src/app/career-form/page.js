@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import ReusableNavbar from '../components/reusable-navbar';
 import Footer from '../components/footer';
+import JsonLd from './JsonLd';
 import './career-form.css';
 
 /* ── Particle Background ── */
@@ -196,6 +197,7 @@ export default function CareerFormPage() {
 
   return (
     <>
+      <JsonLd />
       <ReusableNavbar />
       <main className="cf-main">
         <ParticleBg />

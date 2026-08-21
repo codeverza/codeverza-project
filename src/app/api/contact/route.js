@@ -1,6 +1,15 @@
-import { Resend } from 'resend';
+import nodemailer from 'nodemailer';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+/* ── SMTP Transporter ── */
+const transporter = nodemailer.createTransport({
+  host:   process.env.SMTP_HOST,
+  port:   Number(process.env.SMTP_PORT) || 465,
+  secure: true, // true for port 465
+  auth: {
+    user: process.env.SMTP_USER,
+    pass: process.env.SMTP_PASS,
+  },
+});
 
 /* ── User Thank You Email ── */
 function userEmailHTML({ name, service, message }) {
@@ -21,8 +30,8 @@ function userEmailHTML({ name, service, message }) {
           <!-- HEADER -->
           <tr>
             <td style="background:linear-gradient(135deg,#1a0030,#2d0050,#1a0030);padding:40px 40px 30px;text-align:center;border-bottom:1px solid rgba(177,76,255,0.3);">
-              <img src="https://raw.githubusercontent.com/codeverza02/codeverza/main/public/img/codeverza-logo.png" alt="Codeverza" width="70" height="70"
-                style="margin-bottom:16px;display:block;margin-left:auto;margin-right:auto;border-radius:12px;" />
+              <img src="https://res.cloudinary.com/icqvc17h/image/upload/v1787310867/codeverza-assets/codeverza-logo.png" alt="Codeverza" width="120" height="120"
+                style="margin-bottom:8px;display:block;margin-left:auto;margin-right:auto;border-radius:12px;" />
               <h1 style="margin:0;font-size:28px;font-weight:900;color:#fff;letter-spacing:-0.5px;">
                 Code<span style="color:#b14cff;">verza</span>
               </h1>
@@ -82,7 +91,6 @@ function userEmailHTML({ name, service, message }) {
           <!-- FOOTER -->
           <tr>
             <td style="padding:24px 40px;text-align:center;">
-              <!-- Social Icons -->
               <table cellpadding="0" cellspacing="0" style="margin:0 auto 16px;">
                 <tr>
                   <td style="padding:0 6px;">
@@ -150,7 +158,7 @@ function adminEmailHTML({ name, email, phone, service, message, source }) {
               <table width="100%" cellpadding="0" cellspacing="0">
                 <tr>
                   <td>
-                    <img src="https://raw.githubusercontent.com/codeverza02/codeverza/main/public/img/codeverza-logo.png" alt="Codeverza" width="44" height="44"
+                    <img src="https://res.cloudinary.com/icqvc17h/image/upload/v1787310867/codeverza-assets/codeverza-logo.png" alt="Codeverza" width="80" height="80"
                       style="vertical-align:middle;margin-right:12px;border-radius:8px;" />
                     <span style="font-size:20px;font-weight:900;color:#fff;vertical-align:middle;">Codeverza</span>
                   </td>
@@ -237,21 +245,20 @@ export async function POST(req) {
 
     // Send both emails in parallel
     await Promise.all([
-      // 1. Thank you to user
-      resend.emails.send({
-        from: 'Codeverza <info@codeverza.com>',
-        reply_to: 'info@codeverza.com',
-        to: email,
-        subject: `Thank you for reaching out, ${name}! 🚀`,
-        html: userEmailHTML({ name, service, message }),
+      // 1. Thank you to user — sent FROM info@codeverza.com
+      transporter.sendMail({
+        from:     '"Codeverza" <info@codeverza.com>',
+        replyTo:  'info@codeverza.com',
+        to:       email,
+        subject:  `Thank you for reaching out, ${name}! 🚀`,
+        html:     userEmailHTML({ name, service, message }),
       }),
-      // 2. Notification to admin
-      resend.emails.send({
-        from: 'Codeverza Alerts <info@codeverza.com>',
-        to: process.env.ADMIN_EMAIL,
-        cc: 'codeverza@gmail.com',
-        subject: `🔔 New Contact: ${name} – ${service || 'General Inquiry'}`,
-        html: adminEmailHTML({ name, email, phone, service, message, source }),
+      // 2. Notification to admin — arrives AT info@codeverza.com
+      transporter.sendMail({
+        from:     '"Codeverza Alerts" <info@codeverza.com>',
+        to:       process.env.ADMIN_EMAIL,
+        subject:  `🔔 New Contact: ${name} – ${service || 'General Inquiry'}`,
+        html:     adminEmailHTML({ name, email, phone, service, message, source }),
       }),
     ]);
 

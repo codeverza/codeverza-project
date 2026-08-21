@@ -1,42 +1,15 @@
-import { Resend } from 'resend';
-import { v2 as cloudinary } from 'cloudinary';
+import nodemailer from 'nodemailer';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
-
-cloudinary.config({
-  cloud_name:  process.env.CLOUDINARY_CLOUD_NAME,
-  api_key:     process.env.CLOUDINARY_API_KEY,
-  api_secret:  process.env.CLOUDINARY_API_SECRET,
+/* ── SMTP Transporter (careers@codeverza.com) ── */
+const transporter = nodemailer.createTransport({
+  host:   process.env.CAREERS_SMTP_HOST,
+  port:   Number(process.env.CAREERS_SMTP_PORT) || 465,
+  secure: true,
+  auth: {
+    user: process.env.CAREERS_SMTP_USER,
+    pass: process.env.CAREERS_SMTP_PASS,
+  },
 });
-
-/* ── Upload buffer to Cloudinary ── */
-async function uploadCV(buffer, filename) {
-  return new Promise((resolve, reject) => {
-    const stream = cloudinary.uploader.upload_stream(
-      {
-        folder:        'codeverza-cvs',
-        resource_type: 'raw',
-        public_id:     `cv_${Date.now()}_${filename.replace(/[^a-zA-Z0-9._-]/g, '_')}`,
-        use_filename:  false,
-      },
-      (error, result) => {
-        if (error) reject(error);
-        else resolve(result);
-      }
-    );
-    stream.end(buffer);
-  });
-}
-
-/* ── Wrap URL in Google Docs Viewer so PDF opens properly in browser ── */
-function buildDownloadUrl(secureUrl, filename) {
-  const ext = filename.split('.').pop().toLowerCase();
-  // PDF and DOC/DOCX open via Google Docs viewer — no plugin needed
-  if (['pdf', 'doc', 'docx'].includes(ext)) {
-    return `https://docs.google.com/viewer?url=${encodeURIComponent(secureUrl)}&embedded=false`;
-  }
-  return secureUrl;
-}
 
 /* ── User Confirmation Email ── */
 function userEmailHTML({ name, position }) {
@@ -57,8 +30,8 @@ function userEmailHTML({ name, position }) {
           <!-- HEADER -->
           <tr>
             <td style="background:linear-gradient(135deg,#1a0030,#2d0050,#1a0030);padding:40px 40px 30px;text-align:center;border-bottom:1px solid rgba(177,76,255,0.3);">
-              <img src="https://raw.githubusercontent.com/codeverza02/codeverza/main/public/img/codeverza-logo.png" alt="Codeverza" width="70" height="70"
-                style="margin-bottom:16px;display:block;margin-left:auto;margin-right:auto;border-radius:12px;" />
+              <img src="https://res.cloudinary.com/icqvc17h/image/upload/v1787310867/codeverza-assets/codeverza-logo.png" alt="Codeverza" width="120" height="120"
+                style="margin-bottom:8px;display:block;margin-left:auto;margin-right:auto;border-radius:12px;" />
               <h1 style="margin:0;font-size:28px;font-weight:900;color:#fff;letter-spacing:-0.5px;">
                 Code<span style="color:#b14cff;">verza</span>
               </h1>
@@ -171,7 +144,7 @@ function userEmailHTML({ name, position }) {
                 </tr>
               </table>
               <p style="margin:0 0 6px;font-size:13px;color:#777;">
-                📧 info@codeverza.com &nbsp;|&nbsp; 📞 +92 325 1507557 &nbsp;|&nbsp; 🇵🇰 Pakistan
+                📧 careers@codeverza.com &nbsp;|&nbsp; 📞 +92 325 1507557 &nbsp;|&nbsp; 🇵🇰 Pakistan
               </p>
               <p style="margin:0;font-size:12px;color:#555;">
                 © ${new Date().getFullYear()} Codeverza. All rights reserved.
@@ -188,7 +161,7 @@ function userEmailHTML({ name, position }) {
 }
 
 /* ── Admin Notification Email ── */
-function adminEmailHTML({ name, email, phone, position, experience, linkedin, portfolio, coverLetter, cvUrl, cvFilename }) {
+function adminEmailHTML({ name, email, phone, position, experience, linkedin, portfolio, coverLetter, cvFilename }) {
   return `
 <!DOCTYPE html>
 <html lang="en">
@@ -209,7 +182,7 @@ function adminEmailHTML({ name, email, phone, position, experience, linkedin, po
               <table width="100%" cellpadding="0" cellspacing="0">
                 <tr>
                   <td>
-                    <img src="https://raw.githubusercontent.com/codeverza02/codeverza/main/public/img/codeverza-logo.png" alt="Codeverza" width="44" height="44"
+                    <img src="https://res.cloudinary.com/icqvc17h/image/upload/v1787310867/codeverza-assets/codeverza-logo.png" alt="Codeverza" width="80" height="80"
                       style="vertical-align:middle;margin-right:12px;border-radius:8px;" />
                     <span style="font-size:20px;font-weight:900;color:#fff;vertical-align:middle;">Codeverza</span>
                   </td>
@@ -257,27 +230,15 @@ function adminEmailHTML({ name, email, phone, position, experience, linkedin, po
             </td>
           </tr>
 
-          ${cvUrl ? `
-          <!-- CV DOWNLOAD -->
+          ${cvFilename ? `
+          <!-- CV ATTACHED -->
           <tr>
             <td style="padding:0 40px 28px;">
               <table width="100%" cellpadding="0" cellspacing="0" style="background:rgba(74,222,128,0.06);border:1px solid rgba(74,222,128,0.2);border-radius:14px;padding:0;">
                 <tr>
-                  <td style="padding:20px 24px;">
-                    <table width="100%" cellpadding="0" cellspacing="0">
-                      <tr>
-                        <td>
-                          <p style="margin:0 0 4px;font-size:13px;font-weight:700;color:#4ade80;letter-spacing:1px;text-transform:uppercase;">📄 CV Attached</p>
-                          <p style="margin:0;font-size:13px;color:#888;">${cvFilename}</p>
-                        </td>
-                        <td align="right">
-                          <a href="${cvUrl}" target="_blank" download
-                            style="display:inline-block;background:linear-gradient(135deg,#4ade80,#22c55e);color:#000;padding:10px 22px;border-radius:50px;font-size:13px;font-weight:700;text-decoration:none;">
-                            ⬇ Download CV
-                          </a>
-                        </td>
-                      </tr>
-                    </table>
+                  <td style="padding:20px 24px;text-align:center;">
+                    <p style="margin:0 0 4px;font-size:13px;font-weight:700;color:#4ade80;letter-spacing:1px;text-transform:uppercase;">📎 CV Attached</p>
+                    <p style="margin:0;font-size:13px;color:#888;">${cvFilename} — See email attachment</p>
                   </td>
                 </tr>
               </table>
@@ -333,33 +294,35 @@ export async function POST(req) {
       return Response.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
-    // Upload CV to Cloudinary if provided
-    let cvUrl      = null;
+    // Prepare CV attachment if provided
+    let cvAttachment = null;
     let cvFilename = null;
     if (cvFile && cvFile.size > 0) {
-      const buffer   = Buffer.from(await cvFile.arrayBuffer());
-      cvFilename     = cvFile.name;
-      const uploaded = await uploadCV(buffer, cvFilename);
-      // Force download URL — prevents "Failed to load PDF" browser preview error
-      cvUrl          = buildDownloadUrl(uploaded.secure_url, cvFilename);
+      const buffer = Buffer.from(await cvFile.arrayBuffer());
+      cvFilename = cvFile.name;
+      cvAttachment = {
+        filename: cvFilename,
+        content: buffer,
+        contentType: cvFile.type,
+      };
     }
 
     await Promise.all([
-      // 1. Confirmation to applicant
-      resend.emails.send({
-        from:     'Codeverza Careers <info@codeverza.com>',
-        reply_to: 'careers@codeverza.com',
+      // 1. Confirmation to applicant — FROM careers@codeverza.com
+      transporter.sendMail({
+        from:     '"Codeverza Careers" <careers@codeverza.com>',
+        replyTo:  'careers@codeverza.com',
         to:       email,
         subject:  `Application Received – ${position} at Codeverza 🚀`,
         html:     userEmailHTML({ name, position }),
       }),
-      // 2. Notification to admin with CV link
-      resend.emails.send({
-        from:    'Codeverza Careers <info@codeverza.com>',
-        to:      'careers@codeverza.com',
-        cc:      'codeverza@gmail.com',
-        subject: `💼 New Application: ${name} – ${position}`,
-        html:    adminEmailHTML({ name, email, phone, position, experience, linkedin, portfolio, coverLetter, cvUrl, cvFilename }),
+      // 2. Notification to admin with CV attached
+      transporter.sendMail({
+        from:        '"Codeverza Careers" <careers@codeverza.com>',
+        to:          'careers@codeverza.com',
+        subject:     `💼 New Application: ${name} – ${position}`,
+        html:        adminEmailHTML({ name, email, phone, position, experience, linkedin, portfolio, coverLetter, cvFilename }),
+        attachments: cvAttachment ? [cvAttachment] : [],
       }),
     ]);
 

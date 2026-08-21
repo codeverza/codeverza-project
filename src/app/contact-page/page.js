@@ -62,7 +62,7 @@ function ParticleBg() {
 const services = ['Web Development', 'Mobile App', 'UI/UX Design', 'AI Solution', 'Cloud & DevOps', 'Other'];
 
 const contactCards = [
-  { icon: <Mail size={22} />,    label: 'Email Us',      value: 'codeverza@gmail.com', sub: 'We reply within 24 hours',   color: '#b14cff', href: 'mailto:codeverza@gmail.com'    },
+  { icon: <Mail size={22} />,    label: 'Email Us',      value: 'info@codeverza.com', sub: 'We reply within 24 hours',   color: '#b14cff', href: 'mailto:info@codeverza.com'    },
   { icon: <Phone size={22} />,   label: 'WhatsApp Us',   value: '+92 325 1507557',        sub: 'Mon–Sat, 9am–7pm PKT',       color: '#25d366', href: 'https://wa.me/923251507557'      },
   { icon: <MapPin size={22} />,  label: 'Location',      value: 'Pakistan 🇵🇰',            sub: 'Remote-first, global reach',  color: '#68a063', href: null                              },
   { icon: <Clock size={22} />,   label: 'Response Time', value: '< 24 Hours',             sub: 'Fast & reliable support',    color: '#ffd43b', href: null                              },
@@ -413,8 +413,8 @@ export default function ContactPage() {
           <div className="cp-bottom-glow" />
           <h3>Still have questions?</h3>
           <p>Reach out directly and we'll be happy to help.</p>
-          <a href="mailto:codeverza@gmail.com" className="cp-bottom-btn">
-            <Mail size={18} /> codeverza@gmail.com
+          <a href="mailto:info@codeverza.com" className="cp-bottom-btn">
+            <Mail size={18} /> info@codeverza.com
           </a>
         </motion.div>
 
