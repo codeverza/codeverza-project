@@ -75,8 +75,8 @@ function userEmailHTML({ name, service, message }) {
                 </tr>
               </table>
 
-              <p style="margin:0;font-size:14px;color:#888;text-align:center;">
-                Or visit us at <a href="https://codeverza.vercel.app" style="color:#b14cff;text-decoration:none;">codeverza.vercel.app</a>
+              <p style="margin:0;font-size:14px;color:#fff;text-align:center;">
+                Or visit us at <a href="https://codeverza.com" style="color:#b14cff;text-decoration:none;">codeverza.com</a>
               </p>
             </td>
           </tr>
@@ -100,18 +100,6 @@ function userEmailHTML({ name, service, message }) {
                     </a>
                   </td>
                   <td style="padding:0 6px;">
-                    <a href="https://linkedin.com/company/codeverza" title="LinkedIn">
-                      <img src="https://cdn.jsdelivr.net/npm/simple-icons@v11/icons/linkedin.svg" width="28" height="28"
-                        style="background:#0077b5;border-radius:8px;padding:5px;display:block;" alt="LinkedIn"/>
-                    </a>
-                  </td>
-                  <td style="padding:0 6px;">
-                    <a href="https://github.com/codeverza" title="GitHub">
-                      <img src="https://cdn.jsdelivr.net/npm/simple-icons@v11/icons/github.svg" width="28" height="28"
-                        style="background:#333;border-radius:8px;padding:5px;display:block;" alt="GitHub"/>
-                    </a>
-                  </td>
-                  <td style="padding:0 6px;">
                     <a href="https://instagram.com/codeverza" title="Instagram">
                       <img src="https://cdn.jsdelivr.net/npm/simple-icons@v11/icons/instagram.svg" width="28" height="28"
                         style="background:linear-gradient(45deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888);border-radius:8px;padding:5px;display:block;" alt="Instagram"/>
@@ -119,10 +107,10 @@ function userEmailHTML({ name, service, message }) {
                   </td>
                 </tr>
               </table>
-              <p style="margin:0 0 6px;font-size:13px;color:#777;">
+              <p style="margin:0 0 6px;font-size:13px;color:#fff;">
                 📧 info@codeverza.com &nbsp;|&nbsp; 📞 +92 325 1507557 &nbsp;|&nbsp; 🇵🇰 Pakistan
               </p>
-              <p style="margin:0;font-size:12px;color:#555;">
+              <p style="margin:0;font-size:12px;color:#fff;">
                 © ${new Date().getFullYear()} Codeverza. All rights reserved.
               </p>
             </td>

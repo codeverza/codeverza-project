@@ -84,9 +84,17 @@ export default function Footer() {
         subscribedAt: serverTimestamp(),
         source: 'footer',
       }, { merge: true });
+
+      // Send welcome email
+      await fetch('/api/newsletter', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: subEmail.trim() }),
+      });
+
       Swal.fire({
         title: 'Subscribed! 🎉',
-        text: "You'll receive the latest updates from Codeverza.",
+        text: "You'll receive the latest updates from Codeverza. Check your email for a welcome message!",
         icon: 'success',
         confirmButtonText: 'Great!',
         background: '#0d0d0d',
