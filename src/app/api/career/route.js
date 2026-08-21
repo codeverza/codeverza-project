@@ -35,7 +35,7 @@ function userEmailHTML({ name, position }) {
               <h1 style="margin:0;font-size:28px;font-weight:900;color:#fff;letter-spacing:-0.5px;">
                 Code<span style="color:#b14cff;">verza</span>
               </h1>
-              <p style="margin:6px 0 0;font-size:13px;color:rgba(255,255,255,0.5);letter-spacing:2px;text-transform:uppercase;">Software House</p>
+              <p style="margin:6px 0 0;font-size:13px;color:rgba(255, 255, 255, 1);letter-spacing:2px;text-transform:uppercase;">Software House</p>
             </td>
           </tr>
 
@@ -99,8 +99,8 @@ function userEmailHTML({ name, position }) {
                 </tr>
               </table>
 
-              <p style="margin:0;font-size:14px;color:#888;text-align:center;">
-                Or visit us at <a href="https://codeverza.vercel.app" style="color:#b14cff;text-decoration:none;">codeverza.vercel.app</a>
+              <p style="margin:0;font-size:14px;color:#fff;text-align:center;">
+                Or visit us at <a href="https://codeverza.com" style="color:#b14cff;text-decoration:none;">codeverza.com</a>
               </p>
             </td>
           </tr>
@@ -123,18 +123,18 @@ function userEmailHTML({ name, position }) {
                         style="background:#25d366;border-radius:8px;padding:5px;display:block;" alt="WhatsApp"/>
                     </a>
                   </td>
-                  <td style="padding:0 6px;">
-                    <a href="https://linkedin.com/company/codeverza" title="LinkedIn">
-                      <img src="https://cdn.jsdelivr.net/npm/simple-icons@v11/icons/linkedin.svg" width="28" height="28"
-                        style="background:#0077b5;border-radius:8px;padding:5px;display:block;" alt="LinkedIn"/>
-                    </a>
-                  </td>
-                  <td style="padding:0 6px;">
-                    <a href="https://github.com/codeverza" title="GitHub">
-                      <img src="https://cdn.jsdelivr.net/npm/simple-icons@v11/icons/github.svg" width="28" height="28"
-                        style="background:#333;border-radius:8px;padding:5px;display:block;" alt="GitHub"/>
-                    </a>
-                  </td>
+                  // <td style="padding:0 6px;">
+                  //   <a href="https://linkedin.com/company/codeverza" title="LinkedIn">
+                  //     <img src="https://cdn.jsdelivr.net/npm/simple-icons@v11/icons/linkedin.svg" width="28" height="28"
+                  //       style="background:#0077b5;border-radius:8px;padding:5px;display:block;" alt="LinkedIn"/>
+                  //   </a>
+                  // </td>
+                  // <td style="padding:0 6px;">
+                  //   <a href="https://github.com/codeverza" title="GitHub">
+                  //     <img src="https://cdn.jsdelivr.net/npm/simple-icons@v11/icons/github.svg" width="28" height="28"
+                  //       style="background:#333;border-radius:8px;padding:5px;display:block;" alt="GitHub"/>
+                  //   </a>
+                  // </td>
                   <td style="padding:0 6px;">
                     <a href="https://instagram.com/codeverza" title="Instagram">
                       <img src="https://cdn.jsdelivr.net/npm/simple-icons@v11/icons/instagram.svg" width="28" height="28"
@@ -143,10 +143,10 @@ function userEmailHTML({ name, position }) {
                   </td>
                 </tr>
               </table>
-              <p style="margin:0 0 6px;font-size:13px;color:#777;">
+              <p style="margin:0 0 6px;font-size:13px;color:#fff;">
                 📧 careers@codeverza.com &nbsp;|&nbsp; 📞 +92 325 1507557 &nbsp;|&nbsp; 🇵🇰 Pakistan
               </p>
-              <p style="margin:0;font-size:12px;color:#555;">
+              <p style="margin:0;font-size:12px;color:#fff;">
                 © ${new Date().getFullYear()} Codeverza. All rights reserved.
               </p>
             </td>
