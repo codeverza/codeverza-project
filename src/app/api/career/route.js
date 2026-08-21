@@ -123,18 +123,6 @@ function userEmailHTML({ name, position }) {
                         style="background:#25d366;border-radius:8px;padding:5px;display:block;" alt="WhatsApp"/>
                     </a>
                   </td>
-                  // <td style="padding:0 6px;">
-                  //   <a href="https://linkedin.com/company/codeverza" title="LinkedIn">
-                  //     <img src="https://cdn.jsdelivr.net/npm/simple-icons@v11/icons/linkedin.svg" width="28" height="28"
-                  //       style="background:#0077b5;border-radius:8px;padding:5px;display:block;" alt="LinkedIn"/>
-                  //   </a>
-                  // </td>
-                  // <td style="padding:0 6px;">
-                  //   <a href="https://github.com/codeverza" title="GitHub">
-                  //     <img src="https://cdn.jsdelivr.net/npm/simple-icons@v11/icons/github.svg" width="28" height="28"
-                  //       style="background:#333;border-radius:8px;padding:5px;display:block;" alt="GitHub"/>
-                  //   </a>
-                  // </td>
                   <td style="padding:0 6px;">
                     <a href="https://instagram.com/codeverza" title="Instagram">
                       <img src="https://cdn.jsdelivr.net/npm/simple-icons@v11/icons/instagram.svg" width="28" height="28"
