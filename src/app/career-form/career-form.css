@@ -142,7 +142,14 @@
 .cf-row-single { grid-template-columns: 1fr; }
 
 /* ── Field ── */
-.cf-field { display: flex; flex-direction: column; gap: 8px; margin-bottom: 0; }
+.cf-field { 
+  display: flex; 
+  flex-direction: column; 
+  gap: 8px; 
+  margin-bottom: 0;
+  position: relative;
+  z-index: 1;
+}
 
 /* ── Label ── */
 .cf-label {
@@ -157,12 +164,31 @@
   width: 100%;
   background: rgba(255,255,255,0.04);
   border: 1px solid rgba(177,76,255,0.18);
-  border-radius: 12px; padding: 13px 16px;
-  font-size: 14px; color: #fff;
-  outline: none; transition: border-color 0.25s, box-shadow 0.25s, background 0.25s;
+  border-radius: 12px; 
+  padding: 13px 16px;
+  font-size: 14px; 
+  color: #fff;
+  outline: none; 
+  transition: border-color 0.25s, box-shadow 0.25s, background 0.25s;
   font-family: 'Segoe UI', Arial, sans-serif;
   box-sizing: border-box;
+  position: relative;
+  z-index: 2;
+  pointer-events: auto;
 }
+
+/* Autofill styling override */
+.cf-input:-webkit-autofill,
+.cf-input:-webkit-autofill:hover,
+.cf-input:-webkit-autofill:focus,
+.cf-input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 1000px rgba(177,76,255,0.08) inset !important;
+  -webkit-text-fill-color: #fff !important;
+  background-color: rgba(177,76,255,0.08) !important;
+  border-color: rgba(177,76,255,0.35) !important;
+  transition: background-color 5000s ease-in-out 0s;
+}
+
 .cf-input::placeholder { color: #555; }
 .cf-input:focus {
   border-color: rgba(177,76,255,0.55);

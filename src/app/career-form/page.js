@@ -76,6 +76,39 @@ const initialForm = {
   linkedin: '', portfolio: '', coverLetter: '',
 };
 
+/* ── Field Component ── */
+function FormField({ label, name, icon: Icon, type = 'text', required, placeholder, children, form, errors, touched, handleChange, handleBlur }) {
+  return (
+    <div className="cf-field">
+      <label className="cf-label">
+        <Icon size={15} className="cf-label-icon" />
+        {label} {required && <span className="cf-required">*</span>}
+      </label>
+      {children || (
+        <input
+          type={type}
+          name={name}
+          value={form[name]}
+          onChange={handleChange}
+          onBlur={handleBlur}
+          placeholder={placeholder}
+          className={`cf-input ${errors[name] && touched[name] ? 'cf-input-error' : ''}`}
+          autoComplete="off"
+        />
+      )}
+      <AnimatePresence>
+        {errors[name] && touched[name] && (
+          <motion.p className="cf-error-msg"
+            initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -4 }} transition={{ duration: 0.2 }}>
+            <AlertCircle size={13} /> {errors[name]}
+          </motion.p>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
 export default function CareerFormPage() {
   const [form, setForm]       = useState(initialForm);
   const [cvFile, setCvFile]   = useState(null);
@@ -165,36 +198,6 @@ export default function CareerFormPage() {
     }
   };
 
-  const Field = ({ label, name, icon: Icon, type = 'text', required, placeholder, children }) => (
-    <div className="cf-field">
-      <label className="cf-label">
-        <Icon size={15} className="cf-label-icon" />
-        {label} {required && <span className="cf-required">*</span>}
-      </label>
-      {children || (
-        <input
-          type={type}
-          name={name}
-          value={form[name]}
-          onChange={handleChange}
-          onBlur={handleBlur}
-          placeholder={placeholder}
-          className={`cf-input ${errors[name] && touched[name] ? 'cf-input-error' : ''}`}
-          autoComplete="off"
-        />
-      )}
-      <AnimatePresence>
-        {errors[name] && touched[name] && (
-          <motion.p className="cf-error-msg"
-            initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -4 }} transition={{ duration: 0.2 }}>
-            <AlertCircle size={13} /> {errors[name]}
-          </motion.p>
-        )}
-      </AnimatePresence>
-    </div>
-  );
-
   return (
     <>
       <JsonLd />
@@ -262,55 +265,46 @@ export default function CareerFormPage() {
               </div>
 
               <div className="cf-row">
-                <Field label="Full Name" name="name" icon={User} required placeholder="e.g. Muhammad Ali">
-                  <input
-                    type="text" name="name" value={form.name}
-                    onChange={handleChange} onBlur={handleBlur}
-                    placeholder="e.g. Muhammad Ali"
-                    className={`cf-input ${errors.name && touched.name ? 'cf-input-error' : ''}`}
-                    autoComplete="off"
-                  />
-                  <AnimatePresence>
-                    {errors.name && touched.name && (
-                      <motion.p className="cf-error-msg"
-                        initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -4 }} transition={{ duration: 0.2 }}>
-                        <AlertCircle size={13} /> {errors.name}
-                      </motion.p>
-                    )}
-                  </AnimatePresence>
-                </Field>
-
-                <Field label="Email Address" name="email" icon={Mail} required placeholder="e.g. ali@gmail.com">
-                  <input
-                    type="email" name="email" value={form.email}
-                    onChange={handleChange} onBlur={handleBlur}
-                    placeholder="e.g. ali@gmail.com"
-                    className={`cf-input ${errors.email && touched.email ? 'cf-input-error' : ''}`}
-                    autoComplete="off"
-                  />
-                  <AnimatePresence>
-                    {errors.email && touched.email && (
-                      <motion.p className="cf-error-msg"
-                        initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -4 }} transition={{ duration: 0.2 }}>
-                        <AlertCircle size={13} /> {errors.email}
-                      </motion.p>
-                    )}
-                  </AnimatePresence>
-                </Field>
+                <FormField 
+                  label="Full Name" 
+                  name="name" 
+                  icon={User} 
+                  required 
+                  placeholder="e.g. Muhammad Ali"
+                  form={form}
+                  errors={errors}
+                  touched={touched}
+                  handleChange={handleChange}
+                  handleBlur={handleBlur}
+                />
+                <FormField 
+                  label="Email Address" 
+                  name="email" 
+                  icon={Mail} 
+                  type="email"
+                  required 
+                  placeholder="e.g. ali@gmail.com"
+                  form={form}
+                  errors={errors}
+                  touched={touched}
+                  handleChange={handleChange}
+                  handleBlur={handleBlur}
+                />
               </div>
 
               <div className="cf-row cf-row-single">
-                <Field label="Phone Number" name="phone" icon={Phone} placeholder="e.g. +92 300 1234567">
-                  <input
-                    type="tel" name="phone" value={form.phone}
-                    onChange={handleChange} onBlur={handleBlur}
-                    placeholder="e.g. +92 300 1234567"
-                    className="cf-input"
-                    autoComplete="off"
-                  />
-                </Field>
+                <FormField 
+                  label="Phone Number" 
+                  name="phone" 
+                  icon={Phone} 
+                  type="tel"
+                  placeholder="e.g. +92 300 1234567"
+                  form={form}
+                  errors={errors}
+                  touched={touched}
+                  handleChange={handleChange}
+                  handleBlur={handleBlur}
+                />
               </div>
 
               {/* Section: Position */}
