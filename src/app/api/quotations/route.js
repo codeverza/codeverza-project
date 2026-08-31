@@ -10,11 +10,44 @@ import {
   deleteDoc, 
   query, 
   orderBy,
+  limit,
   serverTimestamp,
   Timestamp 
 } from 'firebase/firestore';
 
 const COLLECTION_NAME = 'quotations';
+
+// Generate quotation number: QT-SSDDMMYY
+// SS = 2-digit global serial (01, 02, 03...)
+// DD = day, MM = month, YY = year
+async function generateQuotationNumber() {
+  // Fetch all quotations to find the highest serial number used so far
+  const quotationsRef = collection(db, COLLECTION_NAME);
+  const q = query(quotationsRef, orderBy('createdAt', 'desc'));
+  const snapshot = await getDocs(q);
+
+  let maxSerial = 0;
+
+  snapshot.forEach((docSnap) => {
+    const data = docSnap.data();
+    const num = data.quotationNumber || '';
+    // Match new format: QT-SSDDMMYY  (SS = first 2 chars after QT-)
+    const match = num.match(/^QT-(\d{2})\d{6}$/);
+    if (match) {
+      const serial = parseInt(match[1], 10);
+      if (serial > maxSerial) maxSerial = serial;
+    }
+  });
+
+  const nextSerial = String(maxSerial + 1).padStart(2, '0');
+
+  const now = new Date();
+  const dd = String(now.getDate()).padStart(2, '0');
+  const mm = String(now.getMonth() + 1).padStart(2, '0');
+  const yy = String(now.getFullYear()).slice(-2);
+
+  return `QT-${nextSerial}${dd}${mm}${yy}`;
+}
 
 // GET - Fetch all quotations or a single quotation by ID
 export async function GET(request) {
@@ -90,8 +123,8 @@ export async function POST(request) {
       }, { status: 400 });
     }
 
-    // Generate quotation number
-    const quotationNumber = `QT-${Date.now()}`;
+    // Generate quotation number: QT-SSDDMMYY (globally unique, never repeats)
+    const quotationNumber = await generateQuotationNumber();
 
     // Calculate totals
     const subtotal = data.services.reduce((sum, service) => {

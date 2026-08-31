@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import Image from 'next/image';
 import Swal from 'sweetalert2';
 import { 
   FiArrowLeft, 
@@ -115,7 +116,7 @@ export default function QuotationPreviewPage() {
       const contactInfo = [
         'www.codeverza.com',
         'info@codeverza.com',
-        '+92 300 1234567'
+        '+92 325 1507557'
       ];
       contactInfo.forEach((line, i) => {
         pdf.text(line, pageWidth - 15, 15 + (i * 5), { align: 'right' });
@@ -298,7 +299,7 @@ export default function QuotationPreviewPage() {
       pdf.setFont('helvetica', 'normal');
       pdf.setFontSize(8);
       pdf.setTextColor(224, 224, 224);
-      pdf.text('www.codeverza.com | info@codeverza.com | +92 300 1234567', pageWidth / 2, footerY + 5, { align: 'center' });
+      pdf.text('www.codeverza.com | info@codeverza.com | +92 325 1507557', pageWidth / 2, footerY + 5, { align: 'center' });
       pdf.text('Delivering excellence in web development since 2020', pageWidth / 2, footerY + 10, { align: 'center' });
 
       // Page numbers
@@ -450,12 +451,21 @@ export default function QuotationPreviewPage() {
         </div>
       </div>
 
-      {/* Quotation Preview */}
+      {/* Quotation Document */}
       <div className="quotation-document" ref={printRef}>
-        {/* Header */}
+
+        {/* ── HEADER ── */}
         <div className="quotation-header">
           <div className="company-info">
-            <div className="company-logo">C</div>
+            <div className="company-logo">
+              <Image
+                src="/img/codeverza-logo.png"
+                alt="Codeverza Logo"
+                width={60}
+                height={60}
+                style={{ objectFit: 'contain' }}
+              />
+            </div>
             <div className="company-details">
               <h1 className="company-name">CODEVERZA</h1>
               <p className="company-tagline">Professional Web Development Solutions</p>
@@ -464,125 +474,204 @@ export default function QuotationPreviewPage() {
           <div className="company-contact">
             <p>www.codeverza.com</p>
             <p>info@codeverza.com</p>
-            <p>+92 300 1234567</p>
+            <p>+92 325 1507557</p>
           </div>
         </div>
 
-        {/* Quotation Title */}
-        <div className="document-title">
+        {/* ── TITLE BAND ── */}
+        <div className="document-title-band">
           <h2>QUOTATION</h2>
-        </div>
-
-        {/* Details Section */}
-        <div className="details-section">
-          <div className="details-box">
-            <h3>Quotation Details</h3>
-            <p><strong>Number:</strong> {quotation.quotationNumber}</p>
-            <p><strong>Issue Date:</strong> {formatDate(quotation.issueDate)}</p>
-            <p><strong>Valid Until:</strong> {formatDate(quotation.validityDate)}</p>
-            <p><strong>Status:</strong> <span className={`status-badge ${quotation.status.toLowerCase()}`}>{quotation.status}</span></p>
-          </div>
-
-          <div className="details-box">
-            <h3>Client Details</h3>
-            <p><strong>{quotation.clientName}</strong></p>
-            {quotation.clientCompany && <p>{quotation.clientCompany}</p>}
-            <p>{quotation.clientEmail}</p>
-            <p>{quotation.clientPhone}</p>
-            {quotation.clientAddress && <p className="address">{quotation.clientAddress}</p>}
+          <div className="doc-number-label">
+            Ref No: <span>{quotation.quotationNumber}</span>
           </div>
         </div>
 
-        {/* Services Table */}
-        <div className="services-section">
-          <h3>Services</h3>
-          <table className="services-table">
-            <thead>
-              <tr>
-                <th>Service</th>
-                <th>Description</th>
-                <th>Qty</th>
-                <th>Price</th>
-                <th>Billing</th>
-                <th>Total</th>
-              </tr>
-            </thead>
-            <tbody>
-              {quotation.services.map((service, index) => (
-                <tr key={index}>
-                  <td><strong>{service.name}</strong></td>
-                  <td>{service.description || '-'}</td>
-                  <td className="text-center">{service.quantity}</td>
-                  <td className="text-right">{formatCurrency(service.price, quotation.currency)}</td>
-                  <td>{service.billingCycle}</td>
-                  <td className="text-right"><strong>{formatCurrency(service.quantity * service.price, quotation.currency)}</strong></td>
+        {/* ── DOCUMENT BODY ── */}
+        <div className="document-body">
+
+          {/* Details: Quotation Info + Client Info */}
+          <div className="details-section">
+            <div className="details-box">
+              <div className="details-box-header">
+                <h3>Quotation Details</h3>
+              </div>
+              <div className="details-box-body">
+                <p><strong>Issue Date</strong>{formatDate(quotation.issueDate)}</p>
+                <p><strong>Valid Until</strong>{formatDate(quotation.validityDate)}</p>
+                <p>
+                  <strong>Status</strong>
+                  <span className={`status-badge ${quotation.status.toLowerCase()}`}>
+                    {quotation.status}
+                  </span>
+                </p>
+                {quotation.currency && (
+                  <p><strong>Currency</strong>{quotation.currency}</p>
+                )}
+              </div>
+            </div>
+
+            <div className="details-box">
+              <div className="details-box-header">
+                <h3>Billed To</h3>
+              </div>
+              <div className="details-box-body">
+                <span className="client-name">{quotation.clientName}</span>
+                {quotation.clientCompany && (
+                  <span className="client-company">{quotation.clientCompany}</span>
+                )}
+                <span className="client-contact">{quotation.clientEmail}</span>
+                {quotation.clientPhone && (
+                  <span className="client-contact">{quotation.clientPhone}</span>
+                )}
+                {quotation.clientAddress && (
+                  <span className="address">{quotation.clientAddress}</span>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Services Table */}
+          <div className="services-section">
+            <p className="section-label">Services & Deliverables</p>
+            <table className="services-table">
+              <thead>
+                <tr>
+                  <th style={{ width: '22%' }}>Service</th>
+                  <th style={{ width: '34%' }}>Description</th>
+                  <th style={{ width: '7%', textAlign: 'center' }}>Qty</th>
+                  <th style={{ width: '13%', textAlign: 'right' }}>Unit Price</th>
+                  <th style={{ width: '10%' }}>Billing</th>
+                  <th style={{ width: '14%', textAlign: 'right' }}>Total</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-
-        {/* Pricing Summary */}
-        <div className="pricing-summary-section">
-          <div className="summary-row">
-            <span>Subtotal:</span>
-            <span>{formatCurrency(quotation.subtotal, quotation.currency)}</span>
+              </thead>
+              <tbody>
+                {quotation.services.map((service, index) => (
+                  <tr key={index}>
+                    <td><strong>{service.name}</strong></td>
+                    <td>
+                      {service.description ? (
+                        <span className="service-desc">{service.description}</span>
+                      ) : '—'}
+                    </td>
+                    <td className="text-center">{service.quantity}</td>
+                    <td className="text-right">{formatCurrency(service.price, quotation.currency)}</td>
+                    <td style={{ textTransform: 'capitalize', fontSize: '11.5px', color: '#666' }}>
+                      {service.billingCycle}
+                    </td>
+                    <td className="text-right">
+                      {formatCurrency(service.quantity * service.price, quotation.currency)}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
-          {quotation.discount > 0 && (
-            <div className="summary-row discount">
-              <span>Discount ({quotation.discount}%):</span>
-              <span>- {formatCurrency(quotation.discountAmount, quotation.currency)}</span>
+
+          {/* Totals */}
+          <div className="totals-wrapper">
+            <div className="pricing-summary-section">
+              <div className="sum-row">
+                <span>Subtotal</span>
+                <span>{formatCurrency(quotation.subtotal, quotation.currency)}</span>
+              </div>
+              {quotation.discount > 0 && (
+                <div className="sum-row discount">
+                  <span>Discount ({quotation.discount}%)</span>
+                  <span>− {formatCurrency(quotation.discountAmount, quotation.currency)}</span>
+                </div>
+              )}
+              {quotation.tax > 0 && (
+                <div className="sum-row">
+                  <span>Tax ({quotation.tax}%)</span>
+                  <span>{formatCurrency(quotation.taxAmount, quotation.currency)}</span>
+                </div>
+              )}
+              <div className="sum-row grand-total">
+                <span>Grand Total</span>
+                <span>{formatCurrency(quotation.grandTotal, quotation.currency)}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Payment Terms + Project Timeline side by side */}
+          {(quotation.paymentTerms || quotation.projectTimeline) && (
+            <div className="info-grid">
+              {quotation.paymentTerms && (
+                <div className="info-section">
+                  <div className="info-section-header">
+                    <h3>Payment Terms</h3>
+                  </div>
+                  <div className="info-section-body">
+                    <p>{quotation.paymentTerms}</p>
+                  </div>
+                </div>
+              )}
+              {quotation.projectTimeline && (
+                <div className="info-section">
+                  <div className="info-section-header">
+                    <h3>Project Timeline</h3>
+                  </div>
+                  <div className="info-section-body">
+                    <p>{quotation.projectTimeline}</p>
+                  </div>
+                </div>
+              )}
             </div>
           )}
-          {quotation.tax > 0 && (
-            <div className="summary-row">
-              <span>Tax ({quotation.tax}%):</span>
-              <span>{formatCurrency(quotation.taxAmount, quotation.currency)}</span>
+
+          {/* Notes */}
+          {quotation.notes && (
+            <div className="info-section">
+              <div className="info-section-header">
+                <h3>Notes</h3>
+              </div>
+              <div className="info-section-body">
+                <p>{quotation.notes}</p>
+              </div>
             </div>
           )}
-          <div className="summary-row total">
-            <span>Grand Total:</span>
-            <span>{formatCurrency(quotation.grandTotal, quotation.currency)}</span>
-          </div>
-        </div>
 
-        {/* Additional Information */}
-        {quotation.paymentTerms && (
-          <div className="info-section">
-            <h3>Payment Terms</h3>
-            <p>{quotation.paymentTerms}</p>
-          </div>
-        )}
+          {/* Terms & Conditions */}
+          {quotation.termsAndConditions && (
+            <div className="info-section">
+              <div className="info-section-header">
+                <h3>Terms &amp; Conditions</h3>
+              </div>
+              <div className="info-section-body">
+                <p className="terms-text">{quotation.termsAndConditions}</p>
+              </div>
+            </div>
+          )}
 
-        {quotation.projectTimeline && (
-          <div className="info-section">
-            <h3>Project Timeline</h3>
-            <p>{quotation.projectTimeline}</p>
+          {/* Signature Block */}
+          <div className="signature-section">
+            <div className="signature-box">
+              <div className="signature-line"></div>
+              <strong>Authorized Signature</strong>
+              <p>Codeverza</p>
+            </div>
+            <div className="signature-box">
+              <div className="signature-line"></div>
+              <strong>Client Acceptance</strong>
+              <p>{quotation.clientName}</p>
+            </div>
           </div>
-        )}
 
-        {quotation.notes && (
-          <div className="info-section">
-            <h3>Notes</h3>
-            <p>{quotation.notes}</p>
-          </div>
-        )}
+        </div>{/* end document-body */}
 
-        {quotation.termsAndConditions && (
-          <div className="info-section">
-            <h3>Terms & Conditions</h3>
-            <p className="terms-text">{quotation.termsAndConditions}</p>
-          </div>
-        )}
-
-        {/* Footer */}
+        {/* ── FOOTER ── */}
         <div className="quotation-footer">
-          <div className="footer-content">
+          <div className="footer-left">
             <h3>Thank you for choosing Codeverza!</h3>
-            <p>www.codeverza.com | info@codeverza.com | +92 300 1234567</p>
-            <p className="footer-tagline">Delivering excellence in web development since 2020</p>
+            <p>Delivering excellence in web development since 2020</p>
+          </div>
+          <div className="footer-right">
+            <p>www.codeverza.com</p>
+            <p>info@codeverza.com</p>
+            <p>+92 325 1507557</p>
           </div>
         </div>
+
       </div>
     </div>
   );
