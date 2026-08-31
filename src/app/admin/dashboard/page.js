@@ -212,6 +212,7 @@ export default function AdminDashboard() {
     { id: 'contacts',  label: 'Contacts',  icon: <Inbox size={17} /> },
     { id: 'analytics', label: 'Analytics', icon: <BarChart2 size={17} /> },
     { id: 'broadcast', label: 'Broadcast', icon: <Radio size={17} /> },
+    { id: 'quotations', label: 'Quotations', icon: <Briefcase size={17} />, isLink: true, href: '/admin/quotations' },
   ];
 
   // fetch subscribers when broadcast tab opens
@@ -238,16 +239,29 @@ export default function AdminDashboard() {
 
         <nav style={{ flex: 1, padding: '20px 12px' }}>
           {navItems.map(n => (
-            <button key={n.id} onClick={() => setTab(n.id)} style={{
-              width: '100%', display: 'flex', alignItems: 'center', gap: 10,
-              padding: '11px 14px', borderRadius: 12, border: 'none', cursor: 'pointer',
-              background: tab === n.id ? 'rgba(177,76,255,0.15)' : 'transparent',
-              color: tab === n.id ? '#e0aaff' : '#888',
-              fontSize: 14, fontWeight: 600, fontFamily: 'inherit',
-              marginBottom: 4, transition: 'all 0.2s',
-            }}>
-              {n.icon} {n.label}
-            </button>
+            n.isLink ? (
+              <button key={n.id} onClick={() => router.push(n.href)} style={{
+                width: '100%', display: 'flex', alignItems: 'center', gap: 10,
+                padding: '11px 14px', borderRadius: 12, border: 'none', cursor: 'pointer',
+                background: 'transparent',
+                color: '#888',
+                fontSize: 14, fontWeight: 600, fontFamily: 'inherit',
+                marginBottom: 4, transition: 'all 0.2s',
+              }}>
+                {n.icon} {n.label}
+              </button>
+            ) : (
+              <button key={n.id} onClick={() => setTab(n.id)} style={{
+                width: '100%', display: 'flex', alignItems: 'center', gap: 10,
+                padding: '11px 14px', borderRadius: 12, border: 'none', cursor: 'pointer',
+                background: tab === n.id ? 'rgba(177,76,255,0.15)' : 'transparent',
+                color: tab === n.id ? '#e0aaff' : '#888',
+                fontSize: 14, fontWeight: 600, fontFamily: 'inherit',
+                marginBottom: 4, transition: 'all 0.2s',
+              }}>
+                {n.icon} {n.label}
+              </button>
+            )
           ))}
         </nav>
 
