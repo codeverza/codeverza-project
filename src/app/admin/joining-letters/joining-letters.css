@@ -1,0 +1,904 @@
+/* ==========================================
+   JOINING LETTERS SYSTEM - STYLES
+   ========================================== */
+
+@keyframes gradientShift {
+  0%   { background-position: 0% 50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0) rotate(0deg);   opacity: 0.15; }
+  50%       { transform: translateY(-20px) rotate(180deg); opacity: 0.25; }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes glow {
+  0%, 100% { box-shadow: 0 0 20px rgba(177,76,255,0.3), 0 0 40px rgba(177,76,255,0.1); }
+  50%       { box-shadow: 0 0 30px rgba(177,76,255,0.5), 0 0 60px rgba(177,76,255,0.2); }
+}
+
+/* ── Base Pages ── */
+.jl-page,
+.jl-form-page {
+  padding: 32px 36px;
+  max-width: 100%;
+  font-family: 'Segoe UI', sans-serif;
+  background: #000;
+  color: #fff;
+  min-height: 100vh;
+  position: relative;
+  overflow-x: hidden;
+}
+
+.jl-page::before,
+.jl-form-page::before {
+  content: '';
+  position: fixed;
+  top: -50%; right: -10%;
+  width: 600px; height: 600px;
+  background: radial-gradient(circle, rgba(177,76,255,0.06) 0%, transparent 70%);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 0;
+  animation: float 25s ease-in-out infinite;
+}
+
+.jl-page::after,
+.jl-form-page::after {
+  content: '';
+  position: fixed;
+  bottom: -30%; left: -10%;
+  width: 500px; height: 500px;
+  background: radial-gradient(circle, rgba(177,76,255,0.04) 0%, transparent 70%);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 0;
+  animation: float 30s ease-in-out infinite reverse;
+}
+
+.jl-page > *,
+.jl-form-page > * {
+  position: relative;
+  z-index: 1;
+}
+
+.jl-preview-page {
+  padding: 20px;
+  font-family: 'Segoe UI', sans-serif;
+  background: #000;
+  color: #fff;
+  min-height: 100vh;
+}
+
+/* ── Loaders ── */
+.jl-loading,
+.jl-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 20px;
+  text-align: center;
+  color: #888;
+  font-size: 16px;
+  gap: 16px;
+}
+
+.spinner {
+  width: 48px; height: 48px;
+  border: 4px solid rgba(255,255,255,0.1);
+  border-top-color: #b14cff;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+.spinner-small {
+  display: inline-block;
+  width: 16px; height: 16px;
+  border: 2px solid #fff;
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+  margin-right: 8px;
+}
+
+/* ── Page Header ── */
+.jl-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-bottom: 28px;
+  flex-wrap: wrap;
+  gap: 16px;
+  animation: fadeIn 0.5s ease;
+}
+
+.jl-header-left h1 {
+  font-size: 28px;
+  font-weight: 800;
+  background: linear-gradient(135deg, #fff 0%, #e0aaff 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin: 0 0 4px;
+}
+
+.jl-header-left p {
+  color: #666;
+  margin: 0;
+  font-size: 14px;
+}
+
+/* ── Filters ── */
+.jl-filters {
+  display: flex;
+  gap: 14px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+  animation: fadeIn 0.6s ease 0.1s both;
+}
+
+.jl-search-box,
+.jl-filter-box {
+  position: relative;
+  flex: 1;
+  min-width: 220px;
+}
+
+.jl-search-box input,
+.jl-filter-box select {
+  width: 100%;
+  padding: 12px 12px 12px 40px;
+  border: 1px solid rgba(177,76,255,0.25);
+  background: rgba(255,255,255,0.03);
+  color: #fff;
+  border-radius: 12px;
+  font-size: 14px;
+  font-family: inherit;
+  transition: all 0.3s;
+  box-sizing: border-box;
+}
+
+.jl-search-box input::placeholder { color: #555; }
+
+.jl-filter-box select {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23b14cff' d='M10.293 3.293L6 7.586 1.707 3.293A1 1 0 00.293 4.707l5 5a1 1 0 001.414 0l5-5a1 1 0 10-1.414-1.414z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  padding-right: 40px;
+  cursor: pointer;
+}
+
+.jl-filter-box select option { background: #111; color: #fff; }
+
+.jl-search-box input:focus,
+.jl-filter-box select:focus {
+  outline: none;
+  border-color: #b14cff;
+  background: rgba(255,255,255,0.05);
+  box-shadow: 0 0 0 3px rgba(177,76,255,0.15);
+}
+
+.jl-search-icon,
+.jl-filter-icon {
+  position: absolute;
+  left: 13px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #b14cff;
+  font-size: 17px;
+  pointer-events: none;
+}
+
+/* ── Stat Cards ── */
+.jl-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 18px;
+  margin-bottom: 28px;
+}
+
+.jl-stat-card {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(177,76,255,0.15);
+  padding: 22px 24px;
+  border-radius: 18px;
+  transition: all 0.3s;
+  position: relative;
+  overflow: hidden;
+  animation: fadeIn 0.6s ease both;
+}
+
+.jl-stat-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #b14cff, #e0aaff);
+  transform: scaleX(0);
+  transition: transform 0.3s;
+}
+
+.jl-stat-card:hover {
+  transform: translateY(-4px);
+  border-color: rgba(177,76,255,0.4);
+  box-shadow: 0 10px 40px rgba(177,76,255,0.2);
+}
+
+.jl-stat-card:hover::before { transform: scaleX(1); }
+
+.jl-stat-card h3 {
+  font-size: 34px;
+  font-weight: 900;
+  margin: 0 0 4px;
+  background: linear-gradient(135deg, #fff 0%, #e0aaff 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.jl-stat-card p {
+  margin: 0;
+  font-size: 11px;
+  color: #666;
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  font-weight: 600;
+}
+
+/* ── Table Container ── */
+.jl-table-container {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(177,76,255,0.15);
+  border-radius: 18px;
+  overflow: hidden;
+  animation: fadeIn 0.7s ease 0.2s both;
+}
+
+.jl-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.jl-table thead {
+  background: rgba(177,76,255,0.08);
+  border-bottom: 1px solid rgba(177,76,255,0.2);
+}
+
+.jl-table th {
+  padding: 16px 18px;
+  text-align: left;
+  font-size: 11px;
+  font-weight: 700;
+  color: #e0aaff;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.jl-table td {
+  padding: 16px 18px;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+  font-size: 14px;
+  color: #ddd;
+}
+
+.jl-table tbody tr {
+  transition: background 0.2s;
+}
+
+.jl-table tbody tr:hover {
+  background: rgba(177,76,255,0.05);
+}
+
+.jl-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.jl-employee-info {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.jl-employee-info strong { color: #fff; font-size: 14px; }
+.jl-employee-info span   { color: #888; font-size: 12px; }
+.jl-employee-info .dept  { color: #b14cff; font-size: 12px; font-weight: 500; }
+
+/* ── Status Badges ── */
+.jl-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+}
+
+.jl-badge::before {
+  content: '';
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.jl-badge-draft    { background: rgba(150,150,150,0.15); color: #999; }
+.jl-badge-sent     { background: rgba(97,218,251,0.12);  color: #61dafb; }
+.jl-badge-accepted { background: rgba(40,200,64,0.12);   color: #28c840; }
+.jl-badge-rejected { background: rgba(255,107,107,0.12); color: #ff6b6b; }
+
+/* ── Action Buttons (table) ── */
+.jl-actions {
+  display: flex;
+  gap: 7px;
+  flex-wrap: wrap;
+}
+
+.jl-btn-icon {
+  width: 36px; height: 36px;
+  border-radius: 10px;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+  transition: all 0.25s;
+}
+
+.jl-btn-view      { background: rgba(177,76,255,0.1); color: #e0aaff; border: 1px solid rgba(177,76,255,0.25); }
+.jl-btn-view:hover{ background: rgba(177,76,255,0.22); transform: translateY(-2px); box-shadow: 0 4px 16px rgba(177,76,255,0.3); }
+
+.jl-btn-edit      { background: rgba(255,211,67,0.1); color: #ffd43b; border: 1px solid rgba(255,211,67,0.25); }
+.jl-btn-edit:hover{ background: rgba(255,211,67,0.2); transform: translateY(-2px); box-shadow: 0 4px 16px rgba(255,211,67,0.3); }
+
+.jl-btn-delete      { background: rgba(255,107,107,0.1); color: #ff6b6b; border: 1px solid rgba(255,107,107,0.25); }
+.jl-btn-delete:hover{ background: rgba(255,107,107,0.2); transform: translateY(-2px); box-shadow: 0 4px 16px rgba(255,107,107,0.3); }
+
+/* ── Shared Buttons ── */
+.jl-btn-primary,
+.jl-btn-secondary,
+.jl-btn-back,
+.jl-btn-icon-text {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 11px 22px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  font-family: inherit;
+  transition: all 0.25s;
+  text-decoration: none;
+}
+
+.jl-btn-primary {
+  background: linear-gradient(135deg, #b14cff, #6a00ff);
+  color: #fff;
+  box-shadow: 0 4px 24px rgba(177,76,255,0.4);
+}
+
+.jl-btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 32px rgba(177,76,255,0.6);
+}
+
+.jl-btn-primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.jl-btn-secondary {
+  background: rgba(255,255,255,0.05);
+  color: #ccc;
+  border: 1px solid rgba(255,255,255,0.12);
+}
+
+.jl-btn-secondary:hover {
+  background: rgba(177,76,255,0.1);
+  border-color: rgba(177,76,255,0.4);
+  color: #e0aaff;
+}
+
+.jl-btn-back {
+  background: transparent;
+  color: #888;
+  border: none;
+  padding: 8px 12px;
+}
+
+.jl-btn-back:hover {
+  color: #e0aaff;
+  background: rgba(177,76,255,0.1);
+  transform: translateX(-3px);
+}
+
+.jl-btn-icon-text {
+  background: rgba(255,255,255,0.04);
+  color: #ccc;
+  border: 1px solid rgba(177,76,255,0.2);
+  padding: 9px 16px;
+  font-size: 13px;
+}
+
+.jl-btn-icon-text:hover {
+  background: rgba(177,76,255,0.12);
+  border-color: #b14cff;
+  color: #e0aaff;
+  transform: translateY(-1px);
+}
+
+/* ── Form Page ── */
+.jl-form-header {
+  margin-bottom: 28px;
+}
+
+.jl-form-header h1 {
+  font-size: 26px;
+  font-weight: 800;
+  background: linear-gradient(135deg, #fff 0%, #e0aaff 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin: 12px 0 0;
+}
+
+.jl-form {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(177,76,255,0.15);
+  border-radius: 18px;
+  overflow: hidden;
+  box-shadow: 0 8px 32px rgba(177,76,255,0.08);
+  animation: fadeIn 0.6s ease;
+}
+
+.jl-form-section {
+  padding: 28px 30px;
+  border-bottom: 1px solid rgba(177,76,255,0.1);
+}
+
+.jl-form-section:last-of-type { border-bottom: none; }
+
+.jl-form-section h2 {
+  font-size: 18px;
+  font-weight: 700;
+  background: linear-gradient(135deg, #e0aaff 0%, #b14cff 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin: 0 0 20px;
+}
+
+.jl-form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 18px;
+}
+
+.jl-form-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.jl-form-group.full { grid-column: 1 / -1; }
+
+.jl-form-group label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #888;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  margin-bottom: 8px;
+}
+
+.jl-form-group input,
+.jl-form-group select,
+.jl-form-group textarea {
+  padding: 12px 14px;
+  border: 1px solid rgba(177,76,255,0.25);
+  background: rgba(255,255,255,0.03);
+  color: #fff;
+  border-radius: 10px;
+  font-size: 14px;
+  font-family: inherit;
+  transition: all 0.25s;
+}
+
+.jl-form-group select {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23b14cff' d='M10.293 3.293L6 7.586 1.707 3.293A1 1 0 00.293 4.707l5 5a1 1 0 001.414 0l5-5a1 1 0 10-1.414-1.414z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  padding-right: 36px;
+  cursor: pointer;
+}
+
+.jl-form-group select option { background: #111; color: #fff; }
+
+.jl-form-group input:focus,
+.jl-form-group select:focus,
+.jl-form-group textarea:focus {
+  outline: none;
+  border-color: #b14cff;
+  background: rgba(255,255,255,0.05);
+  box-shadow: 0 0 0 3px rgba(177,76,255,0.15);
+}
+
+.jl-form-group input::placeholder,
+.jl-form-group textarea::placeholder { color: #444; }
+
+/* ── Form Actions ── */
+.jl-form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 20px 30px;
+  background: rgba(255,255,255,0.02);
+  border-top: 1px solid rgba(177,76,255,0.1);
+}
+
+/* ── Preview Page ── */
+.jl-preview-actions {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(177,76,255,0.15);
+  padding: 14px 20px;
+  border-radius: 16px;
+  margin-bottom: 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  backdrop-filter: blur(20px);
+  animation: fadeIn 0.5s ease;
+}
+
+.jl-preview-actions .jl-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+/* ==========================================
+   JOINING LETTER DOCUMENT
+   ========================================== */
+
+.jl-document {
+  background: #fff;
+  max-width: 860px;
+  margin: 0 auto;
+  box-shadow: 0 8px 60px rgba(0,0,0,0.25);
+  font-family: 'Segoe UI', Arial, sans-serif;
+  font-size: 13px;
+  color: #2d2d2d;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+/* ── Doc Header ── */
+.jl-doc-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 28px 40px;
+  background: linear-gradient(135deg, #0d1b3e 0%, #1a2f6b 60%, #0f3460 100%);
+  color: #fff;
+  position: relative;
+  overflow: hidden;
+}
+
+.jl-doc-header::after {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #4f8ef7, #a78bfa, #4f8ef7);
+}
+
+.jl-doc-company {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.jl-doc-logo {
+  width: 72px; height: 72px;
+  background: #fff;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  overflow: hidden;
+}
+
+.jl-doc-company-name {
+  font-size: 22px;
+  font-weight: 800;
+  margin: 0;
+  letter-spacing: 2px;
+  color: #fff;
+}
+
+.jl-doc-company-tag {
+  font-size: 10.5px;
+  margin: 2px 0 0;
+  color: rgba(255,255,255,0.65);
+}
+
+.jl-doc-contact {
+  text-align: right;
+}
+
+.jl-doc-contact p {
+  margin: 2px 0;
+  font-size: 11px;
+  color: rgba(255,255,255,0.75);
+}
+
+/* ── Title Band ── */
+.jl-doc-title-band {
+  background: #f0f4ff;
+  border-bottom: 2px solid #dde6ff;
+  padding: 14px 40px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.jl-doc-title-band h2 {
+  font-size: 20px;
+  font-weight: 800;
+  color: #0d1b3e;
+  margin: 0;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+}
+
+.jl-doc-ref {
+  font-size: 12px;
+  color: #666;
+  font-weight: 500;
+}
+
+.jl-doc-ref span {
+  color: #1a2f6b;
+  font-weight: 700;
+  font-size: 13px;
+}
+
+/* ── Doc Body ── */
+.jl-doc-body {
+  padding: 36px 40px;
+  background: #fff;
+  line-height: 1.8;
+}
+
+.jl-doc-date {
+  text-align: right;
+  font-size: 13px;
+  color: #555;
+  margin-bottom: 28px;
+}
+
+.jl-doc-subject {
+  font-size: 14px;
+  font-weight: 700;
+  color: #0d1b3e;
+  margin-bottom: 20px;
+  padding-bottom: 10px;
+  border-bottom: 2px solid #e8edf5;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.jl-doc-salutation {
+  font-size: 14px;
+  color: #222;
+  margin-bottom: 16px;
+  font-weight: 600;
+}
+
+.jl-doc-para {
+  font-size: 13.5px;
+  color: #333;
+  margin-bottom: 14px;
+  text-align: justify;
+}
+
+/* ── Details Table inside doc ── */
+.jl-details-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 20px 0 24px;
+  border: 1px solid #dde6ff;
+  border-radius: 8px;
+  overflow: hidden;
+  font-size: 13px;
+}
+
+.jl-details-table thead tr {
+  background: linear-gradient(135deg, #0d1b3e, #1a2f6b);
+}
+
+.jl-details-table th {
+  padding: 10px 16px;
+  text-align: left;
+  font-size: 10px;
+  font-weight: 700;
+  color: rgba(255,255,255,0.9);
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+}
+
+.jl-details-table td {
+  padding: 10px 16px;
+  border-bottom: 1px solid #eef1f8;
+  color: #222;
+  vertical-align: top;
+}
+
+.jl-details-table tbody tr:last-child td { border-bottom: none; }
+.jl-details-table tbody tr:nth-child(even) td { background: #fafbff; }
+
+.jl-details-table td:first-child {
+  font-weight: 600;
+  color: #1a2f6b;
+  white-space: nowrap;
+  width: 35%;
+}
+
+/* ── Signature ── */
+.jl-doc-signature {
+  margin-top: 36px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 32px;
+}
+
+.jl-sig-box { text-align: center; }
+
+.jl-sig-line {
+  border-top: 1px solid #333;
+  margin-bottom: 8px;
+  padding-top: 60px; /* space for physical signature */
+}
+
+.jl-sig-box strong { font-size: 13px; color: #333; display: block; }
+.jl-sig-box span   { font-size: 11px; color: #666; }
+
+/* ── Doc Footer ── */
+.jl-doc-footer {
+  background: linear-gradient(135deg, #0d1b3e 0%, #1a2f6b 100%);
+  padding: 18px 40px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  position: relative;
+}
+
+.jl-doc-footer::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, #4f8ef7, #a78bfa, #4f8ef7);
+}
+
+.jl-doc-footer-left h3 {
+  font-size: 12px;
+  font-weight: 700;
+  color: #fff;
+  margin: 0 0 3px;
+}
+
+.jl-doc-footer-left p {
+  font-size: 10px;
+  color: rgba(255,255,255,0.55);
+  margin: 0;
+  font-style: italic;
+}
+
+.jl-doc-footer-right { text-align: right; }
+.jl-doc-footer-right p {
+  margin: 2px 0;
+  font-size: 10.5px;
+  color: rgba(255,255,255,0.7);
+}
+
+/* ── Confidential Stamp ── */
+.jl-confidential {
+  display: inline-block;
+  border: 2px solid rgba(177,76,255,0.6);
+  color: rgba(177,76,255,0.7);
+  padding: 2px 12px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  transform: rotate(-2deg);
+  margin-top: 8px;
+}
+
+/* ==========================================
+   PRINT STYLES
+   ========================================== */
+
+@media print {
+  @page { size: A4 portrait; margin: 10mm 12mm; }
+
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  body, html { background: #fff !important; }
+
+  .no-print,
+  .jl-preview-actions { display: none !important; }
+
+  .jl-preview-page {
+    padding: 0 !important;
+    background: #fff !important;
+  }
+
+  .jl-document {
+    box-shadow: none !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    border-radius: 0 !important;
+  }
+
+  .jl-doc-header  { background: linear-gradient(135deg, #0d1b3e, #1a2f6b, #0f3460) !important; }
+  .jl-doc-footer  { background: linear-gradient(135deg, #0d1b3e, #1a2f6b) !important; }
+  .jl-doc-title-band { background: #f0f4ff !important; }
+  .jl-details-table thead tr { background: linear-gradient(135deg, #0d1b3e, #1a2f6b) !important; }
+  .jl-details-table tbody tr:nth-child(even) td { background: #fafbff !important; }
+
+  .jl-doc-body, .jl-details-table, .jl-doc-signature { page-break-inside: avoid; break-inside: avoid; }
+}
+
+/* ==========================================
+   RESPONSIVE
+   ========================================== */
+
+@media (max-width: 768px) {
+  .jl-page, .jl-form-page, .jl-preview-page { padding: 15px; }
+  .jl-header { flex-direction: column; align-items: flex-start; }
+  .jl-form-grid { grid-template-columns: 1fr; }
+  .jl-table-container { overflow-x: auto; }
+  .jl-table { min-width: 700px; }
+
+  .jl-doc-header  { flex-direction: column; align-items: flex-start; gap: 12px; padding: 20px 22px; }
+  .jl-doc-contact { text-align: left; }
+  .jl-doc-title-band { flex-direction: column; gap: 4px; padding: 12px 22px; }
+  .jl-doc-body  { padding: 24px 20px; }
+  .jl-doc-signature { grid-template-columns: 1fr; }
+  .jl-doc-footer { flex-direction: column; padding: 16px 22px; }
+  .jl-doc-footer-right { text-align: left; }
+  .jl-preview-actions { flex-direction: column; }
+  .jl-form-actions { flex-direction: column; }
+  .jl-form-actions button { width: 100%; justify-content: center; }
+}

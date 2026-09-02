@@ -213,6 +213,7 @@ export default function AdminDashboard() {
     { id: 'analytics', label: 'Analytics', icon: <BarChart2 size={17} /> },
     { id: 'broadcast', label: 'Broadcast', icon: <Radio size={17} /> },
     { id: 'quotations', label: 'Quotations', icon: <Briefcase size={17} />, isLink: true, href: '/admin/quotations' },
+    { id: 'joining-letters', label: 'Joining Letters', icon: <Users size={17} />, isLink: true, href: '/admin/joining-letters' },
   ];
 
   // fetch subscribers when broadcast tab opens
