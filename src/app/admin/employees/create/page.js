@@ -4,6 +4,8 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import '../employees.css';
 
+export const dynamic = 'force-dynamic';
+
 export default function CreateEmployeePage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);

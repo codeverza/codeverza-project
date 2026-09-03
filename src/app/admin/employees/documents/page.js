@@ -1,10 +1,13 @@
 'use client';
 
+import { Suspense } from 'react';
 import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import '../employees.css';
 
-export default function DocumentsPage() {
+export const dynamic = 'force-dynamic';
+
+function DocumentsPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const employeeFilter = searchParams.get('employee');
@@ -335,5 +338,18 @@ export default function DocumentsPage() {
         )}
       </div>
     </div>
+  );
+}
+
+
+export default function DocumentsPage() {
+  return (
+    <Suspense fallback={
+      <div className="employees-container">
+        <div className="loading-spinner">Loading...</div>
+      </div>
+    }>
+      <DocumentsPageContent />
+    </Suspense>
   );
 }

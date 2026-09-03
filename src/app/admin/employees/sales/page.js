@@ -1,10 +1,13 @@
 'use client';
 
+import { Suspense } from 'react';
 import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import '../employees.css';
 
-export default function SalesManagementPage() {
+export const dynamic = 'force-dynamic';
+
+function SalesManagementPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const employeeFilter = searchParams.get('employee');
@@ -659,5 +662,18 @@ export default function SalesManagementPage() {
         </div>
       )}
     </div>
+  );
+}
+
+
+export default function SalesManagementPage() {
+  return (
+    <Suspense fallback={
+      <div className="employees-container">
+        <div className="loading-spinner">Loading...</div>
+      </div>
+    }>
+      <SalesManagementPageContent />
+    </Suspense>
   );
 }

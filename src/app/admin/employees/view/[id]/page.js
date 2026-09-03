@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import '../../employees.css';
 
+export const dynamic = 'force-dynamic';
+
 export default function ViewEmployeePage() {
   const router = useRouter();
   const params = useParams();

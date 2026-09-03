@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import '../employees.css';
 
+export const dynamic = 'force-dynamic';
+
 export default function ProjectsTasksPage() {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState('projects');

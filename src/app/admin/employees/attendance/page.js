@@ -1,10 +1,13 @@
 'use client';
 
+import { Suspense } from 'react';
 import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import '../employees.css';
 
-export default function AttendancePage() {
+export const dynamic = 'force-dynamic';
+
+function AttendancePageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const employeeFilter = searchParams.get('employee');
@@ -133,7 +136,7 @@ export default function AttendancePage() {
 
       {showForm && (
         <div className="form-modal">
-          <form onSubmit={handleSubmit} className="attendance-form">
+          <form onSubmit={handleSubmit} className="employee-form">
             <h3>Mark Attendance</h3>
             <div className="form-grid">
               <div className="form-group">
@@ -275,5 +278,17 @@ export default function AttendancePage() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function AttendancePage() {
+  return (
+    <Suspense fallback={
+      <div className="employees-container">
+        <div className="loading-spinner">Loading...</div>
+      </div>
+    }>
+      <AttendancePageContent />
+    </Suspense>
   );
 }
