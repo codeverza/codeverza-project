@@ -214,6 +214,7 @@ export default function AdminDashboard() {
     { id: 'broadcast', label: 'Broadcast', icon: <Radio size={17} /> },
     { id: 'quotations', label: 'Quotations', icon: <Briefcase size={17} />, isLink: true, href: '/admin/quotations' },
     { id: 'joining-letters', label: 'Joining Letters', icon: <Users size={17} />, isLink: true, href: '/admin/joining-letters' },
+    { id: 'employees', label: 'Employees', icon: <Users size={17} />, isLink: true, href: '/admin/employees' },
   ];
 
   // fetch subscribers when broadcast tab opens
@@ -235,7 +236,7 @@ export default function AdminDashboard() {
           <div style={{ fontSize: 20, fontWeight: 900, color: '#fff' }}>
             Code<span style={{ color: '#b14cff' }}>Verza</span>
           </div>
-          <div style={{ fontSize: 11, color: '#555', letterSpacing: 1, textTransform: 'uppercase', marginTop: 4 }}>Admin Panel</div>
+          <div style={{ fontSize: 11, color: '#fff', letterSpacing: 1, textTransform: 'uppercase', marginTop: 4 }}>Admin Panel</div>
         </div>
 
         <nav style={{ flex: 1, padding: '20px 12px' }}>
@@ -245,7 +246,7 @@ export default function AdminDashboard() {
                 width: '100%', display: 'flex', alignItems: 'center', gap: 10,
                 padding: '11px 14px', borderRadius: 12, border: 'none', cursor: 'pointer',
                 background: 'transparent',
-                color: '#888',
+                color: '#fff',
                 fontSize: 14, fontWeight: 600, fontFamily: 'inherit',
                 marginBottom: 4, transition: 'all 0.2s',
               }}>
@@ -256,8 +257,8 @@ export default function AdminDashboard() {
                 width: '100%', display: 'flex', alignItems: 'center', gap: 10,
                 padding: '11px 14px', borderRadius: 12, border: 'none', cursor: 'pointer',
                 background: tab === n.id ? 'rgba(177,76,255,0.15)' : 'transparent',
-                color: tab === n.id ? '#e0aaff' : '#888',
-                fontSize: 14, fontWeight: 600, fontFamily: 'inherit',
+                color: tab === n.id ? '#e0aaff' : '#fff',
+                fontSize: 14, fontWeight: 600,
                 marginBottom: 4, transition: 'all 0.2s',
               }}>
                 {n.icon} {n.label}

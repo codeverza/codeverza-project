@@ -74,13 +74,158 @@ export default function JoiningLetterPreviewPage() {
     setGenerating(true);
 
     try {
+      const html2canvas = (await import('html2canvas')).default;
+      const documentElement = document.querySelector('.jl-document');
+      if (!documentElement) throw new Error('Joining letter document is not available');
+
+      const footerElement = documentElement.querySelector('.jl-doc-footer');
+      const headerElement = documentElement.querySelector('.jl-doc-header');
+      const headerPadding = headerElement?.style.padding;
+      const footerPadding = footerElement?.style.padding;
+      if (headerElement) headerElement.style.padding = '12px 40px';
+      if (footerElement) footerElement.style.padding = '10px 40px';
+      const headerCanvas = headerElement
+        ? await html2canvas(headerElement, {
+            backgroundColor: null,
+            scale: 2,
+            useCORS: true,
+            logging: false,
+          })
+        : null;
+      const footerCanvas = footerElement
+        ? await html2canvas(footerElement, {
+            backgroundColor: null,
+            scale: 2,
+            useCORS: true,
+            logging: false,
+          })
+        : null;
+      if (headerElement) headerElement.style.padding = headerPadding;
+      if (footerElement) footerElement.style.padding = footerPadding;
+      const footerDisplay = footerElement?.style.display;
+      if (footerElement) footerElement.style.display = 'none';
+
+      const canvas = await html2canvas(documentElement, {
+        backgroundColor: '#ffffff',
+        scale: 2,
+        useCORS: true,
+        logging: false,
+        windowWidth: documentElement.scrollWidth,
+        windowHeight: documentElement.scrollHeight,
+      });
+      if (footerElement) footerElement.style.display = footerDisplay;
+
+      const { jsPDF } = await import('jspdf');
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
+      const renderedPageHeight = Math.floor((pageHeight / pageWidth) * canvas.width);
+      const headerHeight = headerCanvas ? (headerCanvas.height / headerCanvas.width) * pageWidth : 0;
+      const footerHeight = footerCanvas ? (footerCanvas.height / footerCanvas.width) * pageWidth : 0;
+      const documentRect = documentElement.getBoundingClientRect();
+      const scaleRatio = canvas.width / documentElement.scrollWidth;
+      const detailsElement = documentElement.querySelector('.jl-details-table');
+      const detailsBottom = detailsElement
+        ? Math.round((detailsElement.getBoundingClientRect().bottom - documentRect.top) * scaleRatio)
+        : 0;
+      const pageBreaks = detailsBottom > 0 && detailsBottom < canvas.height
+        ? [0, detailsBottom]
+        : [0];
+      while (pageBreaks[pageBreaks.length - 1] < canvas.height) {
+        pageBreaks.push(Math.min(canvas.height, pageBreaks[pageBreaks.length - 1] + renderedPageHeight));
+      }
+      for (let pageIndex = 0; pageIndex < pageBreaks.length - 1; pageIndex += 1) {
+        if (pageIndex > 0) pdf.addPage();
+
+        const sourceY = pageBreaks[pageIndex];
+        const sourceHeight = pageBreaks[pageIndex + 1] - sourceY;
+        const topMargin = pageIndex > 0 ? headerHeight + 10 : 0;
+        const pageCanvas = document.createElement('canvas');
+        pageCanvas.width = canvas.width;
+        pageCanvas.height = sourceHeight;
+        pageCanvas.getContext('2d').drawImage(
+          canvas,
+          0, sourceY, canvas.width, sourceHeight,
+          0, 0, pageCanvas.width, pageCanvas.height,
+        );
+
+        const imageHeight = (sourceHeight / canvas.width) * pageWidth;
+        pdf.addImage(
+          pageCanvas.toDataURL('image/jpeg', 0.98),
+          'JPEG',
+          0,
+          topMargin,
+          pageWidth,
+          Math.min(pageHeight - topMargin, imageHeight),
+        );
+      }
+
+      if (footerCanvas) {
+        const footerImage = footerCanvas.toDataURL('image/png');
+        for (let pageIndex = 1; pageIndex <= pdf.internal.getNumberOfPages(); pageIndex += 1) {
+          pdf.setPage(pageIndex);
+          pdf.addImage(footerImage, 'PNG', 0, pageHeight - footerHeight, pageWidth, footerHeight);
+        }
+      }
+
+      if (headerCanvas) {
+        const headerImage = headerCanvas.toDataURL('image/png');
+        for (let pageIndex = 2; pageIndex <= pdf.internal.getNumberOfPages(); pageIndex += 1) {
+          pdf.setPage(pageIndex);
+          pdf.addImage(headerImage, 'PNG', 0, 0, pageWidth, headerHeight);
+        }
+      }
+
+      pdf.save(`JoiningLetter_${letter.letterNumber}.pdf`);
+      Swal.fire({
+        icon: 'success',
+        title: 'PDF Downloaded ✅',
+        text: 'Joining letter saved successfully.',
+        timer: 2000,
+        background: '#0d0d0d',
+        color: '#fff',
+        confirmButtonColor: '#b14cff',
+        iconColor: '#28c840',
+      });
+      return;
+
+      {
       const { jsPDF } = await import('jspdf');
       await import('jspdf-autotable');
 
       const pdf       = new jsPDF('p', 'mm', 'a4');
       const PW        = pdf.internal.pageSize.getWidth();
       const PH        = pdf.internal.pageSize.getHeight();
+      const MARGIN    = 14;
+      const FOOTER_HEIGHT = 26;
+      const MAX_Y     = PH - FOOTER_HEIGHT - 10; // Reserve space for footer + buffer
       let   y         = 20;
+
+      // Helper to check and add new page
+      const checkPageBreak = (requiredSpace) => {
+        if (y + requiredSpace > MAX_Y) {
+          addFooter();
+          pdf.addPage();
+          y = 20;
+          return true;
+        }
+        return false;
+      };
+
+      // Helper to add footer on each page
+      const addFooter = () => {
+        const fY = PH - 20;
+        pdf.setFillColor(13, 27, 62);
+        pdf.rect(0, fY - 6, PW, 26, 'F');
+        pdf.setTextColor(255, 255, 255); 
+        pdf.setFontSize(9); 
+        pdf.setFont('helvetica', 'bold');
+        pdf.text('CodeVerza – Building Digital Excellence', PW / 2, fY, { align: 'center' });
+        pdf.setFontSize(7.5); 
+        pdf.setFont('helvetica', 'normal'); 
+        pdf.setTextColor(200, 200, 200);
+        pdf.text('www.codeverza.com | info@codeverza.com | +92 325 1507557', PW / 2, fY + 5, { align: 'center' });
+      };
 
       /* ── logo ── */
       let logoLoaded = false;
@@ -141,6 +286,7 @@ export default function JoiningLetterPreviewPage() {
       y += 10;
 
       /* ── Subject ── */
+      checkPageBreak(15);
       pdf.setTextColor(13, 27, 62);
       pdf.setFontSize(11); pdf.setFont('helvetica', 'bold');
       pdf.text(`SUBJECT: APPOINTMENT LETTER – ${(letter.position || '').toUpperCase()}`, 14, y);
@@ -150,6 +296,7 @@ export default function JoiningLetterPreviewPage() {
       y += 12;
 
       /* ── Salutation ── */
+      checkPageBreak(10);
       pdf.setTextColor(40, 40, 40);
       pdf.setFontSize(10); pdf.setFont('helvetica', 'bold');
       pdf.text(`Dear ${letter.employeeName},`, 14, y);
@@ -159,120 +306,303 @@ export default function JoiningLetterPreviewPage() {
       /* ── Opening Para ── */
       pdf.setFont('helvetica', 'normal');
       const openLines = pdf.splitTextToSize(fillTemplate(letter.openingParagraph), PW - 28);
+      checkPageBreak(openLines.length * 5 + 8);
       pdf.text(openLines, 14, y);
       y += openLines.length * 5 + 8;
 
       /* ── Details Table ── */
       const tableRows = [
         ['Full Name',         letter.employeeName  || '-'],
-        ['Father\'s Name',    letter.fatherName     || '-'],
-        ['CNIC Number',       letter.cnicNumber     || '-'],
+        ...(letter.fatherName ? [['Father\'s Name', letter.fatherName]] : []),
+        ...(letter.cnicNumber ? [['CNIC Number', letter.cnicNumber]] : []),
         ['Email Address',     letter.employeeEmail  || '-'],
-        ['Phone Number',      letter.employeePhone  || '-'],
+        ...(letter.employeePhone ? [['Phone Number', letter.employeePhone]] : []),
         ['Designation',       letter.position       || '-'],
         ['Department',        letter.department     || '-'],
         ['Employment Type',   letter.employmentType || '-'],
         ['Work Location',     letter.workLocation   || '-'],
-        ['Reporting To',      letter.reportingTo    || '-'],
+        ...(letter.reportingTo ? [['Reporting To', letter.reportingTo]] : []),
         ['Date of Joining',   fmtDate(letter.joiningDate)],
-        ['Probation Period',  letter.probationPeriod || '-'],
-        ['Salary',            `${fmtSalary(letter.salary, letter.currency)} / ${letter.salaryType || 'Monthly'}`],
+        ...(letter.probationPeriod ? [['Probation Period', letter.probationPeriod]] : []),
+        ['Compensation Type', letter.compensationType || 'Fixed Salary'],
       ];
 
+      // Add compensation-specific rows
+      if (letter.compensationType === 'Fixed Salary' || !letter.compensationType) {
+        tableRows.push(['Salary', `${fmtSalary(letter.salary, letter.currency)} / ${letter.salaryType || 'Monthly'}`]);
+      } else if (letter.compensationType === 'Commission Only') {
+        tableRows.push(
+          ['Commission Structure', `${(letter.commissionSlabs||[]).length} slab(s) — see table below`],
+          ['Commission Released', letter.commissionTrigger || '—']
+        );
+        if (letter.commissionCap) {
+          tableRows.push(['Monthly Cap', fmtSalary(letter.commissionCap, letter.currency)]);
+        }
+      } else { // Salary + Commission
+        tableRows.push(
+          ['Base Salary', `${fmtSalary(letter.salary, letter.currency)} / ${letter.salaryType || 'Monthly'}`],
+          ['Commission Structure', `${(letter.commissionSlabs||[]).length} slab(s) — see table below`],
+          ['Commission Released', letter.commissionTrigger || '—']
+        );
+        if (letter.commissionCap) {
+          tableRows.push(['Monthly Cap', fmtSalary(letter.commissionCap, letter.currency)]);
+        }
+      }
+
+      checkPageBreak(50);
       if (typeof pdf.autoTable === 'function') {
         pdf.autoTable({
           startY: y,
           body: tableRows,
           theme: 'striped',
-          styles: { fontSize: 9, cellPadding: 4 },
+          styles: { fontSize: 9, cellPadding: 4, lineColor: [221, 230, 255], lineWidth: 0.1 },
           headStyles: { fillColor: [13, 27, 62], textColor: 255, fontStyle: 'bold' },
           columnStyles: {
-            0: { fontStyle: 'bold', textColor: [13, 27, 62], cellWidth: 55 },
+            0: { fontStyle: 'bold', textColor: [13, 27, 62], cellWidth: 60 },
             1: { textColor: [30, 30, 30] },
           },
-          alternateRowStyles: { fillColor: [248, 250, 255] },
+          alternateRowStyles: { fillColor: [250, 251, 255] },
+          margin: { left: MARGIN, right: MARGIN },
         });
         y = pdf.lastAutoTable.finalY + 10;
       } else {
         // Fallback manual table
         tableRows.forEach(([k, v]) => {
+          checkPageBreak(8);
           pdf.setFont('helvetica', 'bold'); pdf.setTextColor(13, 27, 62);
           pdf.text(k + ':', 14, y);
           pdf.setFont('helvetica', 'normal'); pdf.setTextColor(40, 40, 40);
           pdf.text(v, 75, y);
           y += 6;
-          if (y > PH - 40) { pdf.addPage(); y = 20; }
         });
         y += 4;
       }
 
+      /* ── Commission Slabs Table ── */
+      if ((letter.compensationType === 'Commission Only' || letter.compensationType === 'Salary + Commission') &&
+          letter.commissionSlabs && letter.commissionSlabs.length > 0) {
+        addFooter();
+        pdf.addPage();
+        y = 20;
+        
+        // Title
+        pdf.setFont('helvetica', 'bold');
+        pdf.setFontSize(10);
+        pdf.setTextColor(13, 27, 62);
+        pdf.text('Commission Slab Structure', MARGIN, y);
+        
+        if (letter.commissionTrigger) {
+          pdf.setFontSize(8);
+          pdf.setFont('helvetica', 'normal');
+          pdf.setTextColor(26, 47, 107);
+          pdf.text(`(Released on: ${letter.commissionTrigger})`, MARGIN + 55, y);
+        }
+        
+        y += 8;
+
+        // Commission slabs table
+        const commissionTableData = letter.commissionSlabs.map((slab, i) => {
+          const from = Number(slab.from || 0).toLocaleString('en-PK');
+          const to   = slab.to ? Number(slab.to).toLocaleString('en-PK') : 'No Limit';
+          const rate = slab.rateType === '%'
+            ? `${slab.rate}%`
+            : `${letter.currency || 'PKR'} ${Number(slab.rate || 0).toLocaleString('en-PK')}`;
+          const rateType = slab.rateType === '%' ? 'Percentage' : 'Flat Amount';
+          
+          return [
+            `${i + 1}`,
+            `${letter.currency || 'PKR'} ${from}`,
+            slab.to ? `${letter.currency || 'PKR'} ${to}` : 'No Limit',
+            rate,
+            rateType
+          ];
+        });
+
+        if (typeof pdf.autoTable === 'function') {
+          pdf.autoTable({
+            startY: y,
+            head: [['#', 'From', 'To', 'Rate', 'Type']],
+            body: commissionTableData,
+            theme: 'striped',
+            styles: { 
+              fontSize: 8, 
+              cellPadding: 3,
+              lineColor: [221, 230, 255],
+              lineWidth: 0.1,
+              overflow: 'linebreak',
+              cellWidth: 'wrap'
+            },
+            headStyles: { 
+              fillColor: [13, 27, 62], 
+              textColor: 255, 
+              fontStyle: 'bold',
+              halign: 'center'
+            },
+            columnStyles: {
+              0: { fontStyle: 'bold', textColor: [26, 47, 107], cellWidth: 12, halign: 'center' },
+              1: { textColor: [51, 51, 51], cellWidth: 40 },
+              2: { textColor: [51, 51, 51], cellWidth: 40 },
+              3: { textColor: [13, 27, 62], fontStyle: 'bold', cellWidth: 30, halign: 'center' },
+              4: { textColor: [100, 100, 100], cellWidth: 28, fontSize: 7, halign: 'center' },
+            },
+            alternateRowStyles: { fillColor: [250, 251, 255] },
+            margin: { left: MARGIN, right: MARGIN },
+            didDrawPage: (data) => {
+              y = data.cursor.y;
+            }
+          });
+          y = pdf.lastAutoTable.finalY + 8;
+        }
+
+        // Commission cap note
+        if (letter.commissionCap) {
+          checkPageBreak(10);
+          pdf.setFontSize(8.5);
+          pdf.setFont('helvetica', 'bold');
+          pdf.setTextColor(26, 47, 107);
+          pdf.text('Monthly Cap: ', MARGIN, y);
+          pdf.setFont('helvetica', 'normal');
+          pdf.setTextColor(85, 85, 85);
+          const capText = `${fmtSalary(letter.commissionCap, letter.currency)} - Maximum commission payable per month`;
+          pdf.text(capText, MARGIN + 25, y);
+          y += 10;
+        }
+      }
+
       /* ── Benefits ── */
       if (letter.benefits) {
-        if (y > PH - 60) { pdf.addPage(); y = 20; }
-        pdf.setFont('helvetica', 'bold'); pdf.setTextColor(13, 27, 62);
+        checkPageBreak(30);
+        pdf.setFont('helvetica', 'bold'); 
+        pdf.setTextColor(13, 27, 62);
         pdf.setFontSize(10);
-        pdf.text('Benefits & Perks:', 14, y); y += 6;
-        pdf.setFont('helvetica', 'normal'); pdf.setTextColor(50, 50, 50);
+        pdf.text('Benefits & Perks:', MARGIN, y); 
+        y += 7;
+        pdf.setFont('helvetica', 'normal'); 
+        pdf.setTextColor(50, 50, 50);
         pdf.setFontSize(9);
         const bLines = pdf.splitTextToSize(letter.benefits, PW - 28);
-        pdf.text(bLines, 14, y);
-        y += bLines.length * 4.5 + 8;
+        
+        bLines.forEach(line => {
+          checkPageBreak(5);
+          pdf.text(line, MARGIN, y);
+          y += 4.5;
+        });
+        
+        y += 8;
+      }
+
+      /* ── Commission Notes ── */
+      if ((letter.compensationType === 'Commission Only' || letter.compensationType === 'Salary + Commission') && 
+          letter.commissionNotes) {
+        checkPageBreak(30);
+        pdf.setFont('helvetica', 'bold'); 
+        pdf.setFontSize(10); 
+        pdf.setTextColor(13, 27, 62);
+        pdf.text('Commission Terms & Conditions:', MARGIN, y); 
+        y += 7;
+        pdf.setFont('helvetica', 'normal'); 
+        pdf.setFontSize(8.5); 
+        pdf.setTextColor(51, 51, 51);
+        const cnLines = pdf.splitTextToSize(letter.commissionNotes, PW - 28);
+        
+        cnLines.forEach(line => {
+          checkPageBreak(5);
+          pdf.text(line, MARGIN, y);
+          y += 4.5;
+        });
+        
+        y += 8;
       }
 
       /* ── Closing Para ── */
-      if (y > PH - 60) { pdf.addPage(); y = 20; }
-      pdf.setFont('helvetica', 'normal'); pdf.setFontSize(10); pdf.setTextColor(40, 40, 40);
+      checkPageBreak(30);
+      pdf.setFont('helvetica', 'normal'); 
+      pdf.setFontSize(10); 
+      pdf.setTextColor(40, 40, 40);
       const closeLines = pdf.splitTextToSize(fillTemplate(letter.closingParagraph), PW - 28);
-      pdf.text(closeLines, 14, y);
-      y += closeLines.length * 5 + 8;
+      
+      closeLines.forEach(line => {
+        checkPageBreak(6);
+        pdf.text(line, MARGIN, y);
+        y += 5;
+      });
+      
+      y += 8;
 
       /* ── T&C ── */
       if (letter.termsAndConditions) {
-        if (y > PH - 70) { pdf.addPage(); y = 20; }
-        pdf.setFont('helvetica', 'bold'); pdf.setFontSize(10); pdf.setTextColor(13, 27, 62);
-        pdf.text('Terms & Conditions:', 14, y); y += 6;
-        pdf.setFont('helvetica', 'normal'); pdf.setFontSize(8.5); pdf.setTextColor(60, 60, 60);
+        checkPageBreak(30);
+        pdf.setFont('helvetica', 'bold'); 
+        pdf.setFontSize(10); 
+        pdf.setTextColor(13, 27, 62);
+        pdf.text('Terms & Conditions:', MARGIN, y); 
+        y += 7;
+        pdf.setFont('helvetica', 'normal'); 
+        pdf.setFontSize(8.5); 
+        pdf.setTextColor(60, 60, 60);
         const tcLines = pdf.splitTextToSize(letter.termsAndConditions, PW - 28);
-        pdf.text(tcLines, 14, y);
-        y += tcLines.length * 4.2 + 10;
+        
+        tcLines.forEach(line => {
+          checkPageBreak(5);
+          pdf.text(line, MARGIN, y);
+          y += 4.2;
+        });
+        
+        y += 10;
       }
 
       /* ── Signatures ── */
-      if (y > PH - 55) { pdf.addPage(); y = 20; }
+      checkPageBreak(40);
       y += 6;
-      pdf.setDrawColor(100, 100, 100); pdf.setLineWidth(0.3);
-      pdf.line(14, y + 18, 75, y + 18);
-      pdf.line(PW - 75, y + 18, PW - 14, y + 18);
-      pdf.setFont('helvetica', 'bold'); pdf.setFontSize(9); pdf.setTextColor(40, 40, 40);
-      pdf.text('Authorized Signatory', 14, y + 24);
+      pdf.setDrawColor(100, 100, 100); 
+      pdf.setLineWidth(0.3);
+      pdf.line(MARGIN, y + 18, 75, y + 18);
+      pdf.line(PW - 75, y + 18, PW - MARGIN, y + 18);
+      pdf.setFont('helvetica', 'bold'); 
+      pdf.setFontSize(9); 
+      pdf.setTextColor(40, 40, 40);
+      pdf.text('Authorized Signatory', MARGIN, y + 24);
       pdf.text('Employee Acceptance', PW - 75, y + 24);
-      pdf.setFont('helvetica', 'normal'); pdf.setFontSize(8); pdf.setTextColor(100, 100, 100);
-      pdf.text('CodeVerza', 14, y + 29);
+      pdf.setFont('helvetica', 'normal'); 
+      pdf.setFontSize(8); 
+      pdf.setTextColor(100, 100, 100);
+      pdf.text('CodeVerza', MARGIN, y + 29);
       pdf.text(letter.employeeName || '', PW - 75, y + 29);
 
-      /* ── Footer ── */
-      const fY = PH - 20;
-      pdf.setFillColor(13, 27, 62);
-      pdf.rect(0, fY - 6, PW, 26, 'F');
-      pdf.setTextColor(255, 255, 255); pdf.setFontSize(9); pdf.setFont('helvetica', 'bold');
-      pdf.text('CodeVerza – Building Digital Excellence', PW / 2, fY, { align: 'center' });
-      pdf.setFontSize(7.5); pdf.setFont('helvetica', 'normal'); pdf.setTextColor(200, 200, 200);
-      pdf.text('www.codeverza.com | info@codeverza.com | +92 325 1507557', PW / 2, fY + 5, { align: 'center' });
-
-      /* ── Page numbers ── */
-      const total = pdf.internal.getNumberOfPages();
-      for (let i = 1; i <= total; i++) {
+      /* ── Add footers to all pages ── */
+      const totalPages = pdf.internal.getNumberOfPages();
+      for (let i = 1; i <= totalPages; i++) {
         pdf.setPage(i);
-        pdf.setFontSize(7.5); pdf.setTextColor(150, 150, 150);
-        pdf.text(`Page ${i} of ${total}`, PW - 14, PH - 8, { align: 'right' });
+        addFooter();
+        // Page numbers
+        pdf.setFontSize(7.5); 
+        pdf.setTextColor(150, 150, 150);
+        pdf.text(`Page ${i} of ${totalPages}`, PW - MARGIN, PH - 8, { align: 'right' });
       }
 
       pdf.save(`JoiningLetter_${letter.letterNumber}.pdf`);
+      }
 
-      Swal.fire({ icon: 'success', title: 'PDF Downloaded ✅', text: 'Joining letter saved successfully.', timer: 2000, background: '#0d0d0d', color: '#fff', confirmButtonColor: '#b14cff', iconColor: '#28c840' });
+      Swal.fire({ 
+        icon: 'success', 
+        title: 'PDF Downloaded ✅', 
+        text: 'Joining letter saved successfully.', 
+        timer: 2000, 
+        background: '#0d0d0d', 
+        color: '#fff', 
+        confirmButtonColor: '#b14cff', 
+        iconColor: '#28c840' 
+      });
     } catch (err) {
       console.error('PDF error:', err);
-      Swal.fire({ icon: 'error', title: 'PDF Error', text: 'Could not generate PDF.', background: '#0d0d0d', color: '#fff', confirmButtonColor: '#b14cff' });
+      Swal.fire({ 
+        icon: 'error', 
+        title: 'PDF Error', 
+        text: 'Could not generate PDF.', 
+        background: '#0d0d0d', 
+        color: '#fff', 
+        confirmButtonColor: '#b14cff' 
+      });
     } finally {
       setGenerating(false);
     }
@@ -472,7 +802,7 @@ export default function JoiningLetterPreviewPage() {
           {/* Commission Slabs Table */}
           {(letter.compensationType === 'Commission Only' || letter.compensationType === 'Salary + Commission') &&
             letter.commissionSlabs && letter.commissionSlabs.length > 0 && (
-            <div style={{ margin: '0 0 22px' }}>
+            <div className="jl-commission-section" style={{ margin: '0 0 22px' }}>
               <div style={{ fontWeight: 700, color: '#0d1b3e', fontSize: 11, textTransform: 'uppercase', letterSpacing: '1px', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 8 }}>
                 📊 Commission Slab Structure
                 {letter.commissionTrigger && (

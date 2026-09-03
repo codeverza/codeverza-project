@@ -1,0 +1,100 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Contacts - Public can create, Authenticated can manage
+    match /contacts/{docId} {
+      allow create: if true;
+      allow read, update, delete: if request.auth != null;
+    }
+
+    // Subscribers - Anyone can subscribe
+    match /subscribers/{docId} {
+      allow write: if true;
+      allow read: if request.auth != null;
+    }
+
+    // Quotations - Open access (for now, can be restricted later)
+    match /quotations/{docId} {
+      allow read, write: if true;
+    }
+
+    // Joining Letters - Open access (for now, can be restricted later)
+    match /joiningLetters/{docId} {
+      allow read, write: if true;
+    }
+
+    // ===== EMPLOYEE MANAGEMENT SYSTEM =====
+    
+    // Employees Collection - Open access for admin panel
+    match /employees/{employeeId} {
+      allow read, write: if true;
+    }
+    
+    // Employee Attendance
+    match /employeeAttendance/{attendanceId} {
+      allow read, write: if true;
+    }
+    
+    // Leave Requests
+    match /employeeLeaves/{leaveId} {
+      allow read, write: if true;
+    }
+    
+    // Salary Records
+    match /employeeSalary/{salaryId} {
+      allow read, write: if true;
+    }
+    
+    // Projects
+    match /employeeProjects/{projectId} {
+      allow read, write: if true;
+    }
+    
+    // Tasks
+    match /employeeTasks/{taskId} {
+      allow read, write: if true;
+    }
+    
+    // Sales Leads
+    match /salesLeads/{leadId} {
+      allow read, write: if true;
+    }
+    
+    // Sales Follow-ups
+    match /salesFollowups/{followupId} {
+      allow read, write: if true;
+    }
+    
+    // Sales Performance
+    match /salesPerformance/{performanceId} {
+      allow read, write: if true;
+    }
+    
+    // Employee Documents
+    match /employeeDocuments/{documentId} {
+      allow read, write: if true;
+    }
+    
+    // Employee Permissions
+    match /employeePermissions/{permissionId} {
+      allow read, write: if true;
+    }
+    
+    // Login History
+    match /employeeLoginHistory/{loginId} {
+      allow read, write: if true;
+    }
+    
+    // Employee Performance Reviews
+    match /employeePerformance/{performanceId} {
+      allow read, write: if true;
+    }
+    
+    // Exit Management
+    match /employeeExits/{exitId} {
+      allow read, write: if true;
+    }
+  }
+}

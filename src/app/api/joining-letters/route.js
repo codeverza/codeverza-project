@@ -15,12 +15,22 @@ import { db } from '../../../../lib/firebase';
 
 const COLLECTION = 'joiningLetters';
 
-// Generate letter number: JL-2026-0001
+// Generate letter number: CV-JL-01030926
+// Format: CV-JL-[serial][DD][MM][YY]
+// serial = globally unique number (01, 02, 03, ...)
+// DD = day, MM = month, YY = year (last 2 digits)
 async function generateLetterNumber() {
   const snap = await getDocs(collection(db, COLLECTION));
-  const count = snap.size + 1;
-  const year = new Date().getFullYear();
-  return `JL-${year}-${String(count).padStart(4, '0')}`;
+  const serial = snap.size + 1; // Globally unique serial number
+  
+  const now = new Date();
+  const day = String(now.getDate()).padStart(2, '0');
+  const month = String(now.getMonth() + 1).padStart(2, '0'); // 0-indexed
+  const year = String(now.getFullYear()).slice(-2); // Last 2 digits
+  
+  const serialStr = String(serial).padStart(2, '0'); // 01, 02, 03, etc.
+  
+  return `CV-JL-${serialStr}${day}${month}${year}`;
 }
 
 // GET  /api/joining-letters          → all letters

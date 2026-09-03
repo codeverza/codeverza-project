@@ -89,7 +89,7 @@
   justify-content: center;
   padding: 80px 20px;
   text-align: center;
-  color: #888;
+  color: #fff;
   font-size: 16px;
   gap: 16px;
 }
@@ -134,7 +134,7 @@
 }
 
 .jl-header-left p {
-  color: #666;
+  color: #fff;
   margin: 0;
   font-size: 14px;
 }
@@ -251,7 +251,7 @@
 .jl-stat-card p {
   margin: 0;
   font-size: 11px;
-  color: #666;
+  color: #fff;
   text-transform: uppercase;
   letter-spacing: 1.2px;
   font-weight: 600;
@@ -290,7 +290,7 @@
   padding: 16px 18px;
   border-bottom: 1px solid rgba(255,255,255,0.05);
   font-size: 14px;
-  color: #ddd;
+  color: #fff;
 }
 
 .jl-table tbody tr {
@@ -312,7 +312,7 @@
 }
 
 .jl-employee-info strong { color: #fff; font-size: 14px; }
-.jl-employee-info span   { color: #888; font-size: 12px; }
+.jl-employee-info span   { color: #fff; font-size: 12px; }
 .jl-employee-info .dept  { color: #b14cff; font-size: 12px; font-weight: 500; }
 
 /* ── Status Badges ── */
@@ -407,7 +407,7 @@
 
 .jl-btn-secondary {
   background: rgba(255,255,255,0.05);
-  color: #ccc;
+  color: #fff;
   border: 1px solid rgba(255,255,255,0.12);
 }
 
@@ -419,7 +419,7 @@
 
 .jl-btn-back {
   background: transparent;
-  color: #888;
+  color: #fff;
   border: none;
   padding: 8px 12px;
 }
@@ -432,7 +432,7 @@
 
 .jl-btn-icon-text {
   background: rgba(255,255,255,0.04);
-  color: #ccc;
+  color: #fff;
   border: 1px solid rgba(177,76,255,0.2);
   padding: 9px 16px;
   font-size: 13px;
@@ -502,7 +502,7 @@
 .jl-form-group label {
   font-size: 12px;
   font-weight: 600;
-  color: #888;
+  color: #fff;
   text-transform: uppercase;
   letter-spacing: 0.8px;
   margin-bottom: 8px;
@@ -620,7 +620,7 @@
 }
 
 .jl-doc-logo {
-  width: 72px; height: 72px;
+  width: 52px; height: 52px;
   background: #fff;
   border-radius: 12px;
   display: flex;
@@ -629,6 +629,11 @@
   flex-shrink: 0;
   box-shadow: 0 4px 12px rgba(0,0,0,0.3);
   overflow: hidden;
+}
+
+.jl-doc-logo img {
+  /* width: 44px !important;
+  height: 44px !important; */
 }
 
 .jl-doc-company-name {
@@ -796,6 +801,7 @@
   flex-wrap: wrap;
   gap: 12px;
   position: relative;
+  margin-top: auto;
 }
 
 .jl-doc-footer::before {
@@ -877,7 +883,19 @@
   .jl-details-table thead tr { background: linear-gradient(135deg, #0d1b3e, #1a2f6b) !important; }
   .jl-details-table tbody tr:nth-child(even) td { background: #fafbff !important; }
 
-  .jl-doc-body, .jl-details-table, .jl-doc-signature { page-break-inside: avoid; break-inside: avoid; }
+  .jl-document { min-height: 0; display: block; }
+  .jl-doc-body { padding-bottom: 32mm; }
+  .jl-commission-section { page-break-before: always; break-before: page; page-break-inside: avoid; break-inside: avoid; }
+  .jl-details-table, .jl-doc-signature { page-break-inside: avoid; break-inside: avoid; }
+  .jl-doc-footer {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    margin-top: 0;
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
 }
 
 /* ==========================================

@@ -171,7 +171,7 @@
 }
 
 .header-left p {
-  color: #888;
+  color: #fff;
   margin: 0;
   font-size: 14px;
 }
@@ -206,7 +206,7 @@
 }
 
 .search-box input::placeholder {
-  color: #666;
+  color: #aaa;
 }
 
 .filter-box select option {
@@ -362,8 +362,8 @@
 .stat-card p {
   margin: 0;
   font-size: 12px;
-  opacity: 0.6;
-  color: #ccc;
+  opacity: 0.8;
+  color: #fff;
   text-transform: uppercase;
   letter-spacing: 1.2px;
   font-weight: 600;
@@ -427,7 +427,7 @@
 
 .client-info span {
   font-size: 13px;
-  color: #888;
+  color: #fff;
 }
 
 .client-info .company {
@@ -602,7 +602,7 @@
 .form-group label {
   font-size: 14px;
   font-weight: 500;
-  color: #888;
+  color: #fff;
   margin-bottom: 8px;
 }
 
@@ -656,7 +656,7 @@
 .form-group input.readonly {
   background: rgba(255,255,255,0.02);
   cursor: not-allowed;
-  color: #666;
+  color: #aaa;
 }
 
 /* Service Items */
@@ -701,7 +701,7 @@
 .service-template label {
   font-size: 13px;
   font-weight: 500;
-  color: #888;
+  color: #fff;
   white-space: nowrap;
 }
 
@@ -855,7 +855,7 @@
 
 .empty-state p {
   font-size: 18px;
-  color: #888;
+  color: #fff;
   margin-bottom: 30px;
   font-weight: 500;
 }
@@ -1529,7 +1529,7 @@
 
 .btn-back {
   background: transparent;
-  color: #888;
+  color: #fff;
   border: none;
   padding: 8px 12px;
   transition: all 0.3s ease;
@@ -1802,5 +1802,535 @@
   .services-table th,
   .services-table td {
     padding: 8px 10px;
+  }
+}
+
+
+/* ============================================
+   EMPLOYEE MANAGEMENT SYSTEM STYLES
+   ============================================ */
+
+/* Employee Photo Styles */
+.employee-photo {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.employee-photo-placeholder {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 18px;
+}
+
+.employee-photo-large {
+  width: 120px;
+  height: 120px;
+  border-radius: 12px;
+  object-fit: cover;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.employee-photo-placeholder-large {
+  width: 120px;
+  height: 120px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 48px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* Employee Header Card */
+.employee-header-card {
+  background: white;
+  padding: 30px;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  display: flex;
+  gap: 30px;
+  align-items: center;
+  margin-bottom: 30px;
+}
+
+.employee-photo-section {
+  flex-shrink: 0;
+}
+
+.employee-header-info {
+  flex: 1;
+}
+
+.employee-header-info h2 {
+  margin: 0 0 5px 0;
+  color: #2c3e50;
+}
+
+.employee-id {
+  color: #7f8c8d;
+  font-size: 14px;
+  margin: 0 0 5px 0;
+}
+
+.employee-designation {
+  color: #34495e;
+  font-size: 16px;
+  margin: 0 0 15px 0;
+}
+
+.employee-quick-stats {
+  display: flex;
+  gap: 30px;
+  flex-wrap: wrap;
+}
+
+.quick-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.stat-label {
+  font-size: 12px;
+  color: #7f8c8d;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+.stat-value {
+  font-size: 16px;
+  color: #2c3e50;
+  font-weight: 600;
+}
+
+/* Tabs */
+.tabs-container {
+  margin-bottom: 20px;
+}
+
+.tabs {
+  display: flex;
+  gap: 10px;
+  border-bottom: 2px solid #ecf0f1;
+}
+
+.tab {
+  padding: 12px 24px;
+  background: none;
+  border: none;
+  color: #7f8c8d;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  border-bottom: 3px solid transparent;
+  transition: all 0.3s ease;
+  position: relative;
+  top: 2px;
+}
+
+.tab:hover {
+  color: #3498db;
+}
+
+.tab.active {
+  color: #3498db;
+  border-bottom-color: #3498db;
+}
+
+/* Tab Content */
+.tab-content {
+  padding: 20px 0;
+}
+
+/* Info Section */
+.info-section {
+  background: white;
+  padding: 30px;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  margin-bottom: 20px;
+}
+
+.info-section h3 {
+  margin: 0 0 20px 0;
+  color: #2c3e50;
+  font-size: 18px;
+  border-bottom: 2px solid #ecf0f1;
+  padding-bottom: 10px;
+}
+
+.info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 20px;
+}
+
+.info-item {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.info-item.full-width {
+  grid-column: 1 / -1;
+}
+
+.info-label {
+  font-size: 12px;
+  color: #7f8c8d;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+.info-value {
+  font-size: 16px;
+  color: #2c3e50;
+}
+
+/* Leave Balance Cards */
+.leave-balance-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 20px;
+}
+
+.leave-card {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 25px;
+  border-radius: 12px;
+  text-align: center;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.leave-type {
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 10px;
+  opacity: 0.9;
+}
+
+.leave-count {
+  font-size: 48px;
+  font-weight: bold;
+  margin: 10px 0;
+}
+
+.leave-label {
+  font-size: 12px;
+  opacity: 0.8;
+}
+
+/* Form Styles */
+.employee-form,
+.salary-form,
+.attendance-form,
+.leave-form,
+.project-form,
+.task-form,
+.lead-form,
+.followup-form,
+.document-form {
+  background: white;
+  padding: 30px;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.form-section {
+  margin-bottom: 30px;
+}
+
+.form-section h2 {
+  color: #2c3e50;
+  font-size: 20px;
+  margin-bottom: 20px;
+  border-bottom: 2px solid #ecf0f1;
+  padding-bottom: 10px;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 20px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.form-group.full-width {
+  grid-column: 1 / -1;
+}
+
+.form-group label {
+  font-size: 14px;
+  color: #2c3e50;
+  font-weight: 600;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+  padding: 12px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 14px;
+  font-family: inherit;
+  transition: border-color 0.3s ease;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+  outline: none;
+  border-color: #3498db;
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.checkbox-label:hover {
+  background: #f8f9fa;
+  border-color: #3498db;
+}
+
+.checkbox-label input[type="checkbox"] {
+  width: auto;
+  margin: 0;
+}
+
+.employee-selection {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 10px;
+  max-height: 300px;
+  overflow-y: auto;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+}
+
+/* Form Modal */
+.form-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+  overflow-y: auto;
+}
+
+.form-modal form {
+  max-width: 800px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  margin: auto;
+}
+
+/* Status Select */
+.status-select {
+  padding: 6px 10px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 13px;
+  background: white;
+  cursor: pointer;
+}
+
+/* Quick Actions */
+.quick-actions {
+  background: white;
+  padding: 25px;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  margin-top: 20px;
+}
+
+.quick-actions h3 {
+  margin: 0 0 20px 0;
+  color: #2c3e50;
+}
+
+.quick-actions-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 15px;
+}
+
+.quick-actions-grid button {
+  padding: 12px 20px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.quick-actions-grid button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+/* Header Actions */
+.header-actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+/* Statistics Cards */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 20px;
+  margin-bottom: 30px;
+}
+
+.stat-card {
+  background: white;
+  padding: 25px;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  text-align: center;
+}
+
+.stat-card h3 {
+  margin: 0 0 10px 0;
+  color: #7f8c8d;
+  font-size: 14px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.stat-number {
+  font-size: 36px;
+  font-weight: bold;
+  color: #2c3e50;
+  margin: 0;
+}
+
+.stat-number.stat-active {
+  color: #27ae60;
+}
+
+.stat-number.stat-warning {
+  color: #f39c12;
+}
+
+.stat-number.stat-danger {
+  color: #e74c3c;
+}
+
+/* Filters Section */
+.filters-section {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.search-input {
+  flex: 1;
+  min-width: 250px;
+  padding: 12px 20px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 14px;
+}
+
+.filter-select {
+  padding: 12px 20px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 14px;
+  background: white;
+  cursor: pointer;
+  min-width: 150px;
+}
+
+/* Results Info */
+.results-info {
+  color: #7f8c8d;
+  font-size: 14px;
+  margin-bottom: 15px;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .employee-header-card {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .employee-quick-stats {
+    justify-content: center;
+  }
+
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .filters-section {
+    flex-direction: column;
+  }
+
+  .search-input,
+  .filter-select {
+    width: 100%;
+  }
+
+  .stats-grid,
+  .quick-actions-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .tabs {
+    overflow-x: auto;
+  }
+
+  .tab {
+    white-space: nowrap;
+  }
+
+  .employee-selection {
+    grid-template-columns: 1fr;
   }
 }
