@@ -17,11 +17,11 @@ import {
 
 const COLLECTION_NAME = 'quotations';
 
-// Generate quotation number: QT-SSDDMMYY
-// SS = 2-digit global serial (01, 02, 03...)
-// DD = day, MM = month, YY = year
-async function generateQuotationNumber() {
-  // Fetch all quotations to find the highest serial number used so far
+// Generate quotation number
+// Client:   QT-SSDDMMYY   (e.g. QT-0108092026)
+// Employee: QT-EMP-SSDDMMYY (e.g. QT-EMP-0108092026)
+// Each type has its own independent serial counter — they never mix.
+async function generateQuotationNumber(isEmployee = false) {
   const quotationsRef = collection(db, COLLECTION_NAME);
   const q = query(quotationsRef, orderBy('createdAt', 'desc'));
   const snapshot = await getDocs(q);
@@ -31,11 +31,21 @@ async function generateQuotationNumber() {
   snapshot.forEach((docSnap) => {
     const data = docSnap.data();
     const num = data.quotationNumber || '';
-    // Match new format: QT-SSDDMMYY  (SS = first 2 chars after QT-)
-    const match = num.match(/^QT-(\d{2})\d{6}$/);
-    if (match) {
-      const serial = parseInt(match[1], 10);
-      if (serial > maxSerial) maxSerial = serial;
+
+    if (isEmployee) {
+      // Match employee format: QT-EMP-SSDDMMYY
+      const match = num.match(/^QT-EMP-(\d{2})\d{6}$/);
+      if (match) {
+        const serial = parseInt(match[1], 10);
+        if (serial > maxSerial) maxSerial = serial;
+      }
+    } else {
+      // Match client format: QT-SSDDMMYY (must NOT have EMP)
+      const match = num.match(/^QT-(\d{2})\d{6}$/);
+      if (match) {
+        const serial = parseInt(match[1], 10);
+        if (serial > maxSerial) maxSerial = serial;
+      }
     }
   });
 
@@ -46,7 +56,9 @@ async function generateQuotationNumber() {
   const mm = String(now.getMonth() + 1).padStart(2, '0');
   const yy = String(now.getFullYear()).slice(-2);
 
-  return `QT-${nextSerial}${dd}${mm}${yy}`;
+  return isEmployee
+    ? `QT-EMP-${nextSerial}${dd}${mm}${yy}`
+    : `QT-${nextSerial}${dd}${mm}${yy}`;
 }
 
 // GET - Fetch all quotations or a single quotation by ID
@@ -123,8 +135,8 @@ export async function POST(request) {
       }, { status: 400 });
     }
 
-    // Generate quotation number: QT-SSDDMMYY (globally unique, never repeats)
-    const quotationNumber = await generateQuotationNumber();
+    // Generate quotation number — separate counter for client vs employee
+    const quotationNumber = await generateQuotationNumber(data.isEmployeeQuotation === true);
 
     // Calculate totals
     const subtotal = data.services.reduce((sum, service) => {
@@ -139,12 +151,20 @@ export async function POST(request) {
     const quotationData = {
       quotationNumber,
       
+      // Type flag
+      isEmployeeQuotation: data.isEmployeeQuotation || false,
+
       // Client Details
       clientName: data.clientName,
       clientEmail: data.clientEmail,
       clientPhone: data.clientPhone || '',
       clientCompany: data.clientCompany || '',
       clientAddress: data.clientAddress || '',
+
+      // Company contact (used in header/footer of employee quotations)
+      companyEmail: data.companyEmail || 'info@codeverza.com',
+      companyPhone: data.companyPhone || '+92 325 1507557',
+      companyWebsite: data.companyWebsite || 'www.codeverza.com',
       
       // Services
       services: data.services,

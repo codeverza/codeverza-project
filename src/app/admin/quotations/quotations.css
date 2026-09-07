@@ -2218,7 +2218,7 @@
   margin-bottom: 30px;
 }
 
-.stat-card {
+.stats-grid .stat-card {
   background: white;
   padding: 25px;
   border-radius: 12px;
@@ -2226,7 +2226,7 @@
   text-align: center;
 }
 
-.stat-card h3 {
+.stats-grid .stat-card h3 {
   margin: 0 0 10px 0;
   color: #7f8c8d;
   font-size: 14px;
@@ -2333,4 +2333,68 @@
   .employee-selection {
     grid-template-columns: 1fr;
   }
+}
+
+/* ==========================================
+   SHARE WITH EMPLOYEE BUTTON
+   ========================================== */
+
+.btn-share-employee {
+  background: rgba(40, 200, 120, 0.08) !important;
+  border-color: rgba(40, 200, 120, 0.35) !important;
+  color: #28c878 !important;
+}
+
+.btn-share-employee:hover {
+  background: rgba(40, 200, 120, 0.18) !important;
+  border-color: #28c878 !important;
+  color: #2edb86 !important;
+  box-shadow: 0 4px 16px rgba(40, 200, 120, 0.28) !important;
+  transform: translateY(-1px);
+}
+
+/* ==========================================
+   QUOTATION TYPE TOGGLE (Create Page)
+   ========================================== */
+
+.quotation-type-toggle {
+  display: flex;
+  gap: 10px;
+  margin-top: 16px;
+  flex-wrap: wrap;
+}
+
+.type-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 22px;
+  border-radius: 10px;
+  border: 1px solid rgba(177, 76, 255, 0.25);
+  background: rgba(255, 255, 255, 0.03);
+  color: #aaa;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  font-family: inherit;
+}
+
+.type-btn:hover {
+  border-color: rgba(177, 76, 255, 0.5);
+  color: #e0aaff;
+  background: rgba(177, 76, 255, 0.08);
+}
+
+.type-btn.active {
+  background: linear-gradient(135deg, rgba(177, 76, 255, 0.2), rgba(106, 0, 255, 0.15));
+  border-color: #b14cff;
+  color: #e0aaff;
+  box-shadow: 0 0 16px rgba(177, 76, 255, 0.25);
+}
+
+/* Employee quotation — single column details (no client box) */
+.details-section.single-col {
+  grid-template-columns: 1fr;
+  max-width: 50%;
 }

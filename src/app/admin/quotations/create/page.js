@@ -1,42 +1,73 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import Swal from 'sweetalert2';
-import { FiPlus, FiTrash2, FiSave, FiArrowLeft } from 'react-icons/fi';
+import { FiPlus, FiTrash2, FiSave, FiArrowLeft, FiUsers, FiBriefcase } from 'react-icons/fi';
 import '../quotations.css';
+
+const STORAGE_KEY = 'quotation_create_draft';
+
+const defaultFormData = {
+  clientName: '',
+  clientEmail: '',
+  clientPhone: '',
+  clientCompany: '',
+  clientAddress: '',
+  issueDate: new Date().toISOString().split('T')[0],
+  validityDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+  companyEmail: 'info@codeverza.com',
+  companyPhone: '+92 325 1507557',
+  companyWebsite: 'www.codeverza.com',
+  services: [
+    {
+      name: '',
+      description: '',
+      quantity: 1,
+      price: 0,
+      billingCycle: 'One-Time',
+      total: 0
+    }
+  ],
+  discount: 0,
+  tax: 0,
+  currency: 'PKR',
+  paymentTerms: '50% advance, 50% on completion',
+  projectTimeline: '2-4 weeks',
+  notes: '',
+  termsAndConditions: 'This quotation is valid for 30 days from the issue date.\nPayment terms must be agreed upon before project commencement.\nPrices are subject to change without notice after validity period.',
+  status: 'Draft',
+  isEmployeeQuotation: false,
+};
+
+function loadDraft() {
+  try {
+    const raw = sessionStorage.getItem(STORAGE_KEY);
+    if (!raw) return null;
+    return JSON.parse(raw);
+  } catch {
+    return null;
+  }
+}
+
+function saveDraft(data, isEmp) {
+  try {
+    sessionStorage.setItem(STORAGE_KEY, JSON.stringify({ ...data, isEmployeeQuotation: isEmp }));
+  } catch {}
+}
+
+function clearDraft() {
+  try { sessionStorage.removeItem(STORAGE_KEY); } catch {}
+}
 
 export default function CreateQuotationPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
-  
-  const [formData, setFormData] = useState({
-    clientName: '',
-    clientEmail: '',
-    clientPhone: '',
-    clientCompany: '',
-    clientAddress: '',
-    issueDate: new Date().toISOString().split('T')[0],
-    validityDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-    services: [
-      { 
-        name: '', 
-        description: '', 
-        quantity: 1, 
-        price: 0, 
-        billingCycle: 'One-Time',
-        total: 0 
-      }
-    ],
-    discount: 0,
-    tax: 0,
-    currency: 'PKR',
-    paymentTerms: '50% advance, 50% on completion',
-    projectTimeline: '2-4 weeks',
-    notes: '',
-    termsAndConditions: 'This quotation is valid for 30 days from the issue date.\nPayment terms must be agreed upon before project commencement.\nPrices are subject to change without notice after validity period.',
-    status: 'Draft'
-  });
+
+  // Always start with server-safe defaults — sessionStorage causes hydration mismatch
+  const [formData, setFormData] = useState({ ...defaultFormData });
+  const [isEmployeeQuotation, setIsEmployeeQuotation] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
   const serviceTemplates = [
     { 
@@ -79,11 +110,52 @@ export default function CreateQuotationPage() {
 
   const billingCycles = ['One-Time', 'Monthly', 'Half-Yearly', 'Annually'];
 
+  // After mount (client only) — restore draft, then enable auto-save
+  useEffect(() => {
+    const draft = loadDraft();
+    if (draft) {
+      setFormData(draft);
+      setIsEmployeeQuotation(draft.isEmployeeQuotation ?? false);
+    }
+    setMounted(true);
+  }, []);
+
+  // Auto-save only after mount — prevents overwriting draft with server defaults
+  useEffect(() => {
+    if (!mounted) return;
+    saveDraft(formData, isEmployeeQuotation);
+  }, [formData, isEmployeeQuotation, mounted]);
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleToggleType = (type) => {
+    const emp = type === 'employee';
+    setIsEmployeeQuotation(emp);
     setFormData(prev => ({
       ...prev,
-      [name]: value
+      isEmployeeQuotation: emp,
+      ...(emp ? {
+        clientName: 'Employee Quotation',
+        clientEmail: 'employee@codeverza.com',
+        clientPhone: '',
+        clientCompany: '',
+        clientAddress: '',
+        // Clear dates for employee mode — they are optional
+        issueDate: '',
+        validityDate: '',
+      } : {
+        clientName: '',
+        clientEmail: '',
+        clientPhone: '',
+        clientCompany: '',
+        clientAddress: '',
+        // Restore default dates for client mode
+        issueDate: new Date().toISOString().split('T')[0],
+        validityDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+      })
     }));
   };
 
@@ -168,43 +240,44 @@ export default function CreateQuotationPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    // Enhanced Validation with detailed messages
-    if (!formData.clientName?.trim()) {
-      Swal.fire({
-        icon: 'warning',
-        title: 'Missing Client Name',
-        text: 'Please enter the client name',
-        background: '#0d0d0d',
-        color: '#fff',
-        confirmButtonColor: '#b14cff'
-      });
-      return;
-    }
+    // Client validation only for non-employee quotations
+    if (!isEmployeeQuotation) {
+      if (!formData.clientName?.trim()) {
+        Swal.fire({
+          icon: 'warning',
+          title: 'Missing Client Name',
+          text: 'Please enter the client name',
+          background: '#0d0d0d',
+          color: '#fff',
+          confirmButtonColor: '#b14cff'
+        });
+        return;
+      }
 
-    if (!formData.clientEmail?.trim()) {
-      Swal.fire({
-        icon: 'warning',
-        title: 'Missing Client Email',
-        text: 'Please enter the client email address',
-        background: '#0d0d0d',
-        color: '#fff',
-        confirmButtonColor: '#b14cff'
-      });
-      return;
-    }
+      if (!formData.clientEmail?.trim()) {
+        Swal.fire({
+          icon: 'warning',
+          title: 'Missing Client Email',
+          text: 'Please enter the client email address',
+          background: '#0d0d0d',
+          color: '#fff',
+          confirmButtonColor: '#b14cff'
+        });
+        return;
+      }
 
-    // Email validation
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(formData.clientEmail)) {
-      Swal.fire({
-        icon: 'warning',
-        title: 'Invalid Email',
-        text: 'Please enter a valid email address',
-        background: '#0d0d0d',
-        color: '#fff',
-        confirmButtonColor: '#b14cff'
-      });
-      return;
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(formData.clientEmail)) {
+        Swal.fire({
+          icon: 'warning',
+          title: 'Invalid Email',
+          text: 'Please enter a valid email address',
+          background: '#0d0d0d',
+          color: '#fff',
+          confirmButtonColor: '#b14cff'
+        });
+        return;
+      }
     }
 
     // Check if at least one service is properly filled
@@ -263,6 +336,7 @@ export default function CreateQuotationPage() {
       const result = await response.json();
 
       if (result.success) {
+        clearDraft(); // Remove saved draft after successful submit
         Swal.fire({
           icon: 'success',
           title: 'Success! ✅',
@@ -294,103 +368,173 @@ export default function CreateQuotationPage() {
 
   return (
     <div className="quotation-form-page">
-      <div className="form-header">
-        <button 
-          className="btn-back"
-          onClick={() => router.push('/admin/quotations')}
-        >
-          <FiArrowLeft /> Back to Quotations
-        </button>
-        <h1>Create New Quotation</h1>
-      </div>
+      {/* Wait for client-side mount before rendering form to avoid hydration/toggle mismatch */}
+      {!mounted && (
+        <div className="loading-container">
+          <div className="spinner"></div>
+          <p>Loading...</p>
+        </div>
+      )}
+      {mounted && (
+        <>
+          <div className="form-header">
+            <button
+              className="btn-back"
+              onClick={() => router.push('/admin/quotations')}
+            >
+              <FiArrowLeft /> Back to Quotations
+            </button>
+            <h1>Create New Quotation</h1>
 
-      <form onSubmit={handleSubmit} className="quotation-form">
-        {/* Client Details Section */}
-        <div className="form-section">
-          <h2>Client Details</h2>
-          <div className="form-grid">
-            <div className="form-group">
-              <label>Client Name *</label>
-              <input
-                type="text"
-                name="clientName"
-                value={formData.clientName}
-                onChange={handleInputChange}
-                required
-                placeholder="Enter client name"
-              />
-            </div>
-
-            <div className="form-group">
-              <label>Client Email *</label>
-              <input
-                type="email"
-                name="clientEmail"
-                value={formData.clientEmail}
-                onChange={handleInputChange}
-                required
-                placeholder="client@example.com"
-              />
-            </div>
-
-            <div className="form-group">
-              <label>Client Phone</label>
-              <input
-                type="tel"
-                name="clientPhone"
-                value={formData.clientPhone}
-                onChange={handleInputChange}
-                placeholder="+92 300 1234567"
-              />
-            </div>
-
-            <div className="form-group">
-              <label>Company Name</label>
-              <input
-                type="text"
-                name="clientCompany"
-                value={formData.clientCompany}
-                onChange={handleInputChange}
-                placeholder="Company name (optional)"
-              />
-            </div>
-
-            <div className="form-group full-width">
-              <label>Client Address</label>
-              <textarea
-                name="clientAddress"
-                value={formData.clientAddress}
-                onChange={handleInputChange}
-                rows="2"
-                placeholder="Full address (optional)"
-              />
+            {/* Quotation Type Toggle */}
+            <div className="quotation-type-toggle">
+              <button
+                type="button"
+                className={`type-btn ${!isEmployeeQuotation ? 'active' : ''}`}
+                onClick={() => handleToggleType('client')}
+              >
+                <FiBriefcase /> Client Quotation
+              </button>
+              <button
+                type="button"
+                className={`type-btn ${isEmployeeQuotation ? 'active' : ''}`}
+                onClick={() => handleToggleType('employee')}
+              >
+                <FiUsers /> Employee Quotation
+              </button>
             </div>
           </div>
-        </div>
+
+          <form onSubmit={handleSubmit} className="quotation-form">
+        {/* Company Info Section — only for Employee Quotation */}
+        {isEmployeeQuotation && (
+          <div className="form-section">
+            <h2>Company Info (Header &amp; Footer mein ayega)</h2>
+            <div className="form-grid">
+              <div className="form-group">
+                <label>Company Email</label>
+                <input
+                  type="email"
+                  name="companyEmail"
+                  value={formData.companyEmail}
+                  onChange={handleInputChange}
+                  placeholder="info@codeverza.com"
+                />
+              </div>
+
+              <div className="form-group">
+                <label>Company Phone</label>
+                <input
+                  type="tel"
+                  name="companyPhone"
+                  value={formData.companyPhone}
+                  onChange={handleInputChange}
+                  placeholder="+92 325 1507557"
+                />
+              </div>
+
+              <div className="form-group">
+                <label>Website</label>
+                <input
+                  type="text"
+                  name="companyWebsite"
+                  value={formData.companyWebsite}
+                  onChange={handleInputChange}
+                  placeholder="www.codeverza.com"
+                />
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Client Details Section — only for Client Quotation */}
+        {!isEmployeeQuotation && (
+          <div className="form-section">
+            <h2>Client Details</h2>
+            <div className="form-grid">
+              <div className="form-group">
+                <label>Client Name *</label>
+                <input
+                  type="text"
+                  name="clientName"
+                  value={formData.clientName}
+                  onChange={handleInputChange}
+                  required
+                  placeholder="Enter client name"
+                />
+              </div>
+
+              <div className="form-group">
+                <label>Client Email *</label>
+                <input
+                  type="email"
+                  name="clientEmail"
+                  value={formData.clientEmail}
+                  onChange={handleInputChange}
+                  required
+                  placeholder="client@example.com"
+                />
+              </div>
+
+              <div className="form-group">
+                <label>Client Phone</label>
+                <input
+                  type="tel"
+                  name="clientPhone"
+                  value={formData.clientPhone}
+                  onChange={handleInputChange}
+                  placeholder="+92 300 1234567"
+                />
+              </div>
+
+              <div className="form-group">
+                <label>Company Name</label>
+                <input
+                  type="text"
+                  name="clientCompany"
+                  value={formData.clientCompany}
+                  onChange={handleInputChange}
+                  placeholder="Company name (optional)"
+                />
+              </div>
+
+              <div className="form-group full-width">
+                <label>Client Address</label>
+                <textarea
+                  name="clientAddress"
+                  value={formData.clientAddress}
+                  onChange={handleInputChange}
+                  rows="2"
+                  placeholder="Full address (optional)"
+                />
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Quotation Details Section */}
         <div className="form-section">
           <h2>Quotation Details</h2>
           <div className="form-grid">
             <div className="form-group">
-              <label>Issue Date *</label>
+              <label>Issue Date{!isEmployeeQuotation ? ' *' : <span style={{fontSize:'11px',color:'#aaa'}}> (optional)</span>}</label>
               <input
                 type="date"
                 name="issueDate"
                 value={formData.issueDate}
                 onChange={handleInputChange}
-                required
+                required={!isEmployeeQuotation}
               />
             </div>
 
             <div className="form-group">
-              <label>Valid Until *</label>
+              <label>Valid Until{!isEmployeeQuotation ? ' *' : <span style={{fontSize:'11px',color:'#aaa'}}> (optional)</span>}</label>
               <input
                 type="date"
                 name="validityDate"
                 value={formData.validityDate}
                 onChange={handleInputChange}
-                required
+                required={!isEmployeeQuotation}
               />
             </div>
 
@@ -541,7 +685,8 @@ export default function CreateQuotationPage() {
           ))}
         </div>
 
-        {/* Pricing Summary */}
+        {/* Pricing Summary — hidden for Employee Quotation */}
+        {!isEmployeeQuotation && (
         <div className="form-section pricing-summary">
           <h2>Pricing Summary</h2>
           <div className="pricing-grid">
@@ -595,6 +740,7 @@ export default function CreateQuotationPage() {
             </div>
           </div>
         </div>
+        )}
 
         {/* Additional Information */}
         <div className="form-section">
@@ -613,12 +759,12 @@ export default function CreateQuotationPage() {
 
             <div className="form-group full-width">
               <label>Project Timeline</label>
-              <input
-                type="text"
+              <textarea
                 name="projectTimeline"
                 value={formData.projectTimeline}
                 onChange={handleInputChange}
-                placeholder="e.g., 2-4 weeks"
+                rows="3"
+                placeholder="e.g., 2-4 weeks&#10;Week 1-2: Design&#10;Week 3-4: Development"
               />
             </div>
 
@@ -648,10 +794,10 @@ export default function CreateQuotationPage() {
 
         {/* Submit Button */}
         <div className="form-actions">
-          <button 
-            type="button" 
+          <button
+            type="button"
             className="btn-secondary"
-            onClick={() => router.push('/admin/quotations')}
+            onClick={() => { clearDraft(); router.push('/admin/quotations'); }}
           >
             Cancel
           </button>
@@ -671,7 +817,9 @@ export default function CreateQuotationPage() {
             )}
           </button>
         </div>
-      </form>
+          </form>
+        </>
+      )}
     </div>
   );
 }

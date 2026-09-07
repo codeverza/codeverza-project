@@ -11,7 +11,8 @@ import {
   FiMail, 
   FiMessageCircle,
   FiEdit,
-  FiCopy
+  FiCopy,
+  FiShare2
 } from 'react-icons/fi';
 import '../../quotations.css';
 
@@ -150,12 +151,12 @@ export default function QuotationPreviewPage() {
       pdf.setFont('helvetica', 'normal');
       pdf.text('Professional Web Development Solutions', 35, 25);
       
-      // Contact info (right side)
+      // Contact info (right side) — dynamic for employee quotations
       pdf.setFontSize(8);
       const contactInfo = [
-        'www.codeverza.com',
-        'info@codeverza.com',
-        '+92 325 1507557'
+        quotation.companyWebsite || 'www.codeverza.com',
+        quotation.companyEmail || 'info@codeverza.com',
+        quotation.companyPhone || '+92 325 1507557'
       ];
       contactInfo.forEach((line, i) => {
         pdf.text(line, pageWidth - 15, 15 + (i * 5), { align: 'right' });
@@ -179,20 +180,29 @@ export default function QuotationPreviewPage() {
       pdf.text('Quotation Details:', 15, yPosition);
       pdf.setFont('helvetica', 'normal');
       pdf.text(`Number: ${quotation.quotationNumber}`, 15, yPosition + 6);
-      pdf.text(`Issue Date: ${formatDate(quotation.issueDate)}`, 15, yPosition + 12);
-      pdf.text(`Valid Until: ${formatDate(quotation.validityDate)}`, 15, yPosition + 18);
-      pdf.text(`Status: ${quotation.status}`, 15, yPosition + 24);
-
-      // Right Column - Client Details
-      pdf.setFont('helvetica', 'bold');
-      pdf.text('Client Details:', pageWidth / 2 + 10, yPosition);
-      pdf.setFont('helvetica', 'normal');
-      pdf.text(quotation.clientName, pageWidth / 2 + 10, yPosition + 6);
-      if (quotation.clientCompany) {
-        pdf.text(quotation.clientCompany, pageWidth / 2 + 10, yPosition + 12);
+      let detailY = yPosition + 12;
+      if (quotation.issueDate) {
+        pdf.text(`Issue Date: ${formatDate(quotation.issueDate)}`, 15, detailY);
+        detailY += 6;
       }
-      pdf.text(quotation.clientEmail, pageWidth / 2 + 10, yPosition + 18);
-      pdf.text(quotation.clientPhone || '', pageWidth / 2 + 10, yPosition + 24);
+      if (quotation.validityDate) {
+        pdf.text(`Valid Until: ${formatDate(quotation.validityDate)}`, 15, detailY);
+        detailY += 6;
+      }
+      pdf.text(`Status: ${quotation.status}`, 15, detailY);
+
+      // Right Column - Client Details (skip for employee quotation)
+      if (!quotation.isEmployeeQuotation) {
+        pdf.setFont('helvetica', 'bold');
+        pdf.text('Client Details:', pageWidth / 2 + 10, yPosition);
+        pdf.setFont('helvetica', 'normal');
+        pdf.text(quotation.clientName, pageWidth / 2 + 10, yPosition + 6);
+        if (quotation.clientCompany) {
+          pdf.text(quotation.clientCompany, pageWidth / 2 + 10, yPosition + 12);
+        }
+        pdf.text(quotation.clientEmail, pageWidth / 2 + 10, yPosition + 18);
+        pdf.text(quotation.clientPhone || '', pageWidth / 2 + 10, yPosition + 24);
+      }
 
       yPosition += 35;
 
@@ -352,38 +362,40 @@ export default function QuotationPreviewPage() {
         yPosition += 5;
       }
 
-      // Pricing Summary (Right aligned)
-      const summaryX = pageWidth - 70;
-      pdf.setFont('helvetica', 'normal');
-      pdf.setFontSize(10);
-      
-      pdf.text('Subtotal:', summaryX, yPosition);
-      pdf.text(formatCurrency(quotation.subtotal, quotation.currency), pageWidth - 15, yPosition, { align: 'right' });
-      yPosition += 6;
+      // Pricing Summary — skip for employee quotation
+      if (!quotation.isEmployeeQuotation) {
+        const summaryX = pageWidth - 70;
+        pdf.setFont('helvetica', 'normal');
+        pdf.setFontSize(10);
 
-      if (quotation.discount > 0) {
-        pdf.text(`Discount (${quotation.discount}%):`, summaryX, yPosition);
-        pdf.text(`- ${formatCurrency(quotation.discountAmount, quotation.currency)}`, pageWidth - 15, yPosition, { align: 'right' });
+        pdf.text('Subtotal:', summaryX, yPosition);
+        pdf.text(formatCurrency(quotation.subtotal, quotation.currency), pageWidth - 15, yPosition, { align: 'right' });
         yPosition += 6;
-      }
 
-      if (quotation.tax > 0) {
-        pdf.text(`Tax (${quotation.tax}%):`, summaryX, yPosition);
-        pdf.text(formatCurrency(quotation.taxAmount, quotation.currency), pageWidth - 15, yPosition, { align: 'right' });
+        if (quotation.discount > 0) {
+          pdf.text(`Discount (${quotation.discount}%):`, summaryX, yPosition);
+          pdf.text(`- ${formatCurrency(quotation.discountAmount, quotation.currency)}`, pageWidth - 15, yPosition, { align: 'right' });
+          yPosition += 6;
+        }
+
+        if (quotation.tax > 0) {
+          pdf.text(`Tax (${quotation.tax}%):`, summaryX, yPosition);
+          pdf.text(formatCurrency(quotation.taxAmount, quotation.currency), pageWidth - 15, yPosition, { align: 'right' });
+          yPosition += 6;
+        }
+
+        // Grand Total
+        pdf.setFont('helvetica', 'bold');
+        pdf.setFontSize(12);
+        pdf.setDrawColor(15, 52, 96);
+        pdf.setLineWidth(0.5);
+        pdf.line(summaryX, yPosition, pageWidth - 15, yPosition);
         yPosition += 6;
-      }
+        pdf.text('Grand Total:', summaryX, yPosition);
+        pdf.text(formatCurrency(quotation.grandTotal, quotation.currency), pageWidth - 15, yPosition, { align: 'right' });
 
-      // Grand Total
-      pdf.setFont('helvetica', 'bold');
-      pdf.setFontSize(12);
-      pdf.setDrawColor(15, 52, 96);
-      pdf.setLineWidth(0.5);
-      pdf.line(summaryX, yPosition, pageWidth - 15, yPosition);
-      yPosition += 6;
-      pdf.text('Grand Total:', summaryX, yPosition);
-      pdf.text(formatCurrency(quotation.grandTotal, quotation.currency), pageWidth - 15, yPosition, { align: 'right' });
-      
-      yPosition += 15;
+        yPosition += 15;
+      }
 
       // Check if we need a new page for additional info
       if (yPosition > pageHeight - 100) {
@@ -478,7 +490,8 @@ export default function QuotationPreviewPage() {
       pdf.setFont('helvetica', 'normal');
       pdf.setFontSize(8);
       pdf.setTextColor(224, 224, 224);
-      pdf.text('www.codeverza.com | info@codeverza.com | +92 325 1507557', pageWidth / 2, footerY + 5, { align: 'center' });
+      const pdfFooterContact = `${quotation.companyWebsite || 'www.codeverza.com'} | ${quotation.companyEmail || 'info@codeverza.com'} | ${quotation.companyPhone || '+92 325 1507557'}`;
+      pdf.text(pdfFooterContact, pageWidth / 2, footerY + 5, { align: 'center' });
       pdf.text('Delivering excellence in web development since 2020', pageWidth / 2, footerY + 10, { align: 'center' });
 
       // Page numbers
@@ -583,6 +596,14 @@ export default function QuotationPreviewPage() {
           >
             <FiEdit /> Edit
           </button>
+
+          <button
+            className="btn-icon-text btn-share-employee"
+            onClick={() => router.push(`/admin/quotations/share/${quotation.id}`)}
+            title="Employee ke liye clean view"
+          >
+            <FiShare2 /> Share with Employee
+          </button>
           
           <button 
             className="btn-icon-text"
@@ -652,9 +673,9 @@ export default function QuotationPreviewPage() {
             </div>
           </div>
           <div className="company-contact">
-            <p>www.codeverza.com</p>
-            <p>info@codeverza.com</p>
-            <p>+92 325 1507557</p>
+            <p>{quotation.companyWebsite || 'www.codeverza.com'}</p>
+            <p>{quotation.companyEmail || 'info@codeverza.com'}</p>
+            <p>{quotation.companyPhone || '+92 325 1507557'}</p>
           </div>
         </div>
 
@@ -670,14 +691,18 @@ export default function QuotationPreviewPage() {
         <div className="document-body">
 
           {/* Details: Quotation Info + Client Info */}
-          <div className="details-section">
+          <div className={`details-section ${quotation.isEmployeeQuotation ? 'single-col' : ''}`}>
             <div className="details-box">
               <div className="details-box-header">
                 <h3>Quotation Details</h3>
               </div>
               <div className="details-box-body">
-                <p><strong>Issue Date</strong>{formatDate(quotation.issueDate)}</p>
-                <p><strong>Valid Until</strong>{formatDate(quotation.validityDate)}</p>
+                {quotation.issueDate && (
+                  <p><strong>Issue Date</strong>{formatDate(quotation.issueDate)}</p>
+                )}
+                {quotation.validityDate && (
+                  <p><strong>Valid Until</strong>{formatDate(quotation.validityDate)}</p>
+                )}
                 <p>
                   <strong>Status</strong>
                   <span className={`status-badge ${quotation.status.toLowerCase()}`}>
@@ -690,6 +715,8 @@ export default function QuotationPreviewPage() {
               </div>
             </div>
 
+            {/* Client box — hidden for employee quotation */}
+            {!quotation.isEmployeeQuotation && (
             <div className="details-box">
               <div className="details-box-header">
                 <h3>Billed To</h3>
@@ -708,6 +735,7 @@ export default function QuotationPreviewPage() {
                 )}
               </div>
             </div>
+            )}
           </div>
 
           {/* Services Table */}
@@ -747,7 +775,8 @@ export default function QuotationPreviewPage() {
             </table>
           </div>
 
-          {/* Totals */}
+          {/* Totals — hidden for employee quotation */}
+          {!quotation.isEmployeeQuotation && (
           <div className="totals-wrapper">
             <div className="pricing-summary-section">
               <div className="sum-row">
@@ -772,6 +801,7 @@ export default function QuotationPreviewPage() {
               </div>
             </div>
           </div>
+          )}
 
           {/* Payment Terms + Project Timeline side by side */}
           {(quotation.paymentTerms || quotation.projectTimeline) && (
@@ -846,9 +876,9 @@ export default function QuotationPreviewPage() {
             <p>Delivering excellence in web development since 2020</p>
           </div>
           <div className="footer-right">
-            <p>www.codeverza.com</p>
-            <p>info@codeverza.com</p>
-            <p>+92 325 1507557</p>
+            <p>{quotation.companyWebsite || 'www.codeverza.com'}</p>
+            <p>{quotation.companyEmail || 'info@codeverza.com'}</p>
+            <p>{quotation.companyPhone || '+92 325 1507557'}</p>
           </div>
         </div>
 

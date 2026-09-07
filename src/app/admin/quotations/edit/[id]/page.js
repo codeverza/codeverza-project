@@ -174,42 +174,44 @@ export default function EditQuotationPage() {
     e.preventDefault();
     
     // Enhanced Validation
-    if (!formData.clientName?.trim()) {
-      Swal.fire({
-        icon: 'warning',
-        title: 'Missing Client Name',
-        text: 'Please enter the client name',
-        background: '#0d0d0d',
-        color: '#fff',
-        confirmButtonColor: '#b14cff'
-      });
-      return;
-    }
+    if (!formData.isEmployeeQuotation) {
+      if (!formData.clientName?.trim()) {
+        Swal.fire({
+          icon: 'warning',
+          title: 'Missing Client Name',
+          text: 'Please enter the client name',
+          background: '#0d0d0d',
+          color: '#fff',
+          confirmButtonColor: '#b14cff'
+        });
+        return;
+      }
 
-    if (!formData.clientEmail?.trim()) {
-      Swal.fire({
-        icon: 'warning',
-        title: 'Missing Client Email',
-        text: 'Please enter the client email address',
-        background: '#0d0d0d',
-        color: '#fff',
-        confirmButtonColor: '#b14cff'
-      });
-      return;
-    }
+      if (!formData.clientEmail?.trim()) {
+        Swal.fire({
+          icon: 'warning',
+          title: 'Missing Client Email',
+          text: 'Please enter the client email address',
+          background: '#0d0d0d',
+          color: '#fff',
+          confirmButtonColor: '#b14cff'
+        });
+        return;
+      }
 
-    // Email validation
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(formData.clientEmail)) {
-      Swal.fire({
-        icon: 'warning',
-        title: 'Invalid Email',
-        text: 'Please enter a valid email address',
-        background: '#0d0d0d',
-        color: '#fff',
-        confirmButtonColor: '#b14cff'
-      });
-      return;
+      // Email validation
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(formData.clientEmail)) {
+        Swal.fire({
+          icon: 'warning',
+          title: 'Invalid Email',
+          text: 'Please enter a valid email address',
+          background: '#0d0d0d',
+          color: '#fff',
+          confirmButtonColor: '#b14cff'
+        });
+        return;
+      }
     }
 
     const validServices = formData.services.filter(s => s.name?.trim() && s.price >= 0);
@@ -304,11 +306,63 @@ export default function EditQuotationPage() {
         >
           <FiArrowLeft /> Back to Quotations
         </button>
-        <h1>Edit Quotation - {formData.quotationNumber}</h1>
+        <h1>
+          {formData.isEmployeeQuotation ? 'Edit Employee Quotation' : 'Edit Quotation'} — {formData.quotationNumber}
+        </h1>
+        {/* Read-only type badge — cannot change type on edit */}
+        <div className="quotation-type-toggle">
+          <span className={`type-btn ${!formData.isEmployeeQuotation ? 'active' : ''}`} style={{cursor:'default'}}>
+            Client Quotation
+          </span>
+          <span className={`type-btn ${formData.isEmployeeQuotation ? 'active' : ''}`} style={{cursor:'default'}}>
+            Employee Quotation
+          </span>
+        </div>
       </div>
 
       <form onSubmit={handleSubmit} className="quotation-form">
-        {/* Client Details Section */}
+
+        {/* Company Info — only for Employee Quotation */}
+        {formData.isEmployeeQuotation && (
+          <div className="form-section">
+            <h2>Company Info (Header &amp; Footer mein ayega)</h2>
+            <div className="form-grid">
+              <div className="form-group">
+                <label>Company Email</label>
+                <input
+                  type="email"
+                  name="companyEmail"
+                  value={formData.companyEmail || ''}
+                  onChange={handleInputChange}
+                  placeholder="info@codeverza.com"
+                />
+              </div>
+              <div className="form-group">
+                <label>Company Phone</label>
+                <input
+                  type="tel"
+                  name="companyPhone"
+                  value={formData.companyPhone || ''}
+                  onChange={handleInputChange}
+                  placeholder="+92 325 1507557"
+                />
+              </div>
+              <div className="form-group">
+                <label>Website</label>
+                <input
+                  type="text"
+                  name="companyWebsite"
+                  value={formData.companyWebsite || ''}
+                  onChange={handleInputChange}
+                  placeholder="www.codeverza.com"
+                />
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Client Details — only for Client Quotation */}
+        {!formData.isEmployeeQuotation && (
         <div className="form-section">
           <h2>Client Details</h2>
           <div className="form-grid">
@@ -370,30 +424,31 @@ export default function EditQuotationPage() {
             </div>
           </div>
         </div>
+        )}
 
         {/* Quotation Details Section */}
         <div className="form-section">
           <h2>Quotation Details</h2>
           <div className="form-grid">
             <div className="form-group">
-              <label>Issue Date *</label>
+              <label>Issue Date{!formData.isEmployeeQuotation ? ' *' : <span style={{fontSize:'11px',color:'#aaa'}}> (optional)</span>}</label>
               <input
                 type="date"
                 name="issueDate"
-                value={formData.issueDate}
+                value={formData.issueDate || ''}
                 onChange={handleInputChange}
-                required
+                required={!formData.isEmployeeQuotation}
               />
             </div>
 
             <div className="form-group">
-              <label>Valid Until *</label>
+              <label>Valid Until{!formData.isEmployeeQuotation ? ' *' : <span style={{fontSize:'11px',color:'#aaa'}}> (optional)</span>}</label>
               <input
                 type="date"
                 name="validityDate"
-                value={formData.validityDate}
+                value={formData.validityDate || ''}
                 onChange={handleInputChange}
-                required
+                required={!formData.isEmployeeQuotation}
               />
             </div>
 
@@ -544,7 +599,8 @@ export default function EditQuotationPage() {
           ))}
         </div>
 
-        {/* Pricing Summary */}
+        {/* Pricing Summary — hidden for Employee Quotation */}
+        {!formData.isEmployeeQuotation && (
         <div className="form-section pricing-summary">
           <h2>Pricing Summary</h2>
           <div className="pricing-grid">
@@ -598,6 +654,7 @@ export default function EditQuotationPage() {
             </div>
           </div>
         </div>
+        )}
 
         {/* Additional Information */}
         <div className="form-section">
@@ -616,12 +673,12 @@ export default function EditQuotationPage() {
 
             <div className="form-group full-width">
               <label>Project Timeline</label>
-              <input
-                type="text"
+              <textarea
                 name="projectTimeline"
                 value={formData.projectTimeline || ''}
                 onChange={handleInputChange}
-                placeholder="e.g., 2-4 weeks"
+                rows="3"
+                placeholder="e.g., 2-4 weeks&#10;Week 1-2: Design&#10;Week 3-4: Development"
               />
             </div>
 

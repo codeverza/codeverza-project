@@ -1,0 +1,41 @@
+/* ==========================================
+   EMPLOYEE SHARE VIEW — extra overrides
+   ========================================== */
+
+/* Slightly wider document on large screens */
+.share-document {
+  max-width: 900px;
+}
+
+/* ==========================================
+   PRINT STYLES
+   ========================================== */
+@media print {
+  /* Hide everything except the document */
+  body > * { display: none !important; }
+
+  .quotation-preview-page { display: block !important; background: #fff !important; padding: 0 !important; }
+
+  .no-print { display: none !important; }
+
+  .quotation-document {
+    display: block !important;
+    box-shadow: none !important;
+    margin: 0 !important;
+    max-width: 100% !important;
+    border-radius: 0 !important;
+  }
+
+  /* Keep header/footer colors in print */
+  .quotation-header,
+  .quotation-footer {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .services-table thead tr,
+  .pricing-summary-section .sum-row.grand-total {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}
