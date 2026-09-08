@@ -14,6 +14,7 @@ const defaultFormData = {
   clientPhone: '',
   clientCompany: '',
   clientAddress: '',
+  quotationTitle: '', // Internal reference name
   issueDate: new Date().toISOString().split('T')[0],
   validityDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
   companyEmail: 'info@codeverza.com',
@@ -108,7 +109,7 @@ export default function CreateQuotationPage() {
     }
   ];
 
-  const billingCycles = ['One-Time', 'Monthly', 'Half-Yearly', 'Annually'];
+  const billingCycles = ['One-Time', 'Monthly', 'Half-Yearly', 'Annually', '2 Years'];
 
   // After mount (client only) — restore draft, then enable auto-save
   useEffect(() => {
@@ -516,6 +517,17 @@ export default function CreateQuotationPage() {
         <div className="form-section">
           <h2>Quotation Details</h2>
           <div className="form-grid">
+            <div className="form-group full-width">
+              <label>Quotation Title <span style={{fontSize:'11px',color:'#aaa'}}>(for internal reference only)</span></label>
+              <input
+                type="text"
+                name="quotationTitle"
+                value={formData.quotationTitle}
+                onChange={handleInputChange}
+                placeholder="e.g., HMS Visuals & Co., ABC Company Project, etc."
+              />
+            </div>
+
             <div className="form-group">
               <label>Issue Date{!isEmployeeQuotation ? ' *' : <span style={{fontSize:'11px',color:'#aaa'}}> (optional)</span>}</label>
               <input

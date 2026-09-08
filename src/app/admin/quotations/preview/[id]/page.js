@@ -24,6 +24,7 @@ export default function QuotationPreviewPage() {
   const [quotation, setQuotation] = useState(null);
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
+  const [pdfBlob, setPdfBlob] = useState(null);
 
   useEffect(() => {
     if (params.id) {
@@ -77,7 +78,7 @@ export default function QuotationPreviewPage() {
     window.print();
   };
 
-  const generatePDF = async () => {
+  const generatePDFDocument = async () => {
     if (!quotation) return;
     
     setGenerating(true);
@@ -117,249 +118,493 @@ export default function QuotationPreviewPage() {
         }
       }
 
-      // Header - Company Info
-      pdf.setFillColor(26, 26, 46); // Dark blue color
-      pdf.rect(0, 0, pageWidth, 45, 'F');
-      
-      // Add Company Logo (if loaded successfully)
-      if (logoLoaded && logoImg) {
-        try {
-          pdf.addImage(logoImg, 'PNG', 12, 10, 20, 20);
-        } catch (err) {
-          console.log('Failed to add logo to PDF:', err);
-          logoLoaded = false;
+      // Function to add header on each page
+      const addHeader = (pdf) => {
+        // Thin header bar
+        pdf.setFillColor(13, 27, 62);
+        pdf.rect(0, 0, pageWidth, 28, 'F');
+        
+        // Accent line
+        pdf.setFillColor(79, 142, 247);
+        pdf.rect(0, 28, pageWidth, 1.5, 'F');
+        
+        // Company Logo (small, left side)
+        if (logoLoaded && logoImg) {
+          try {
+            pdf.addImage(logoImg, 'PNG', 12, 8, 12, 12);
+          } catch (err) {
+            console.log('Failed to add logo');
+          }
         }
-      }
-      
-      // Fallback: Company Logo Box with letter (if logo didn't load)
-      if (!logoLoaded) {
-        pdf.setFillColor(255, 255, 255);
-        pdf.roundedRect(12, 12, 12, 12, 2, 2, 'F');
-        pdf.setTextColor(15, 52, 96);
-        pdf.setFontSize(16);
+        
+        // Company Name
+        pdf.setTextColor(255, 255, 255);
+        pdf.setFontSize(14);
         pdf.setFont('helvetica', 'bold');
-        pdf.text('C', 18, 21, { align: 'center' });
-      }
+        pdf.text('CODEVERZA', 28, 16);
+        
+        // Tagline
+        pdf.setFontSize(7);
+        pdf.setFont('helvetica', 'normal');
+        pdf.text('Professional Web Development Solutions', 28, 20);
+        
+        // Contact info (right side, compact)
+        pdf.setFontSize(7);
+        const contactX = pageWidth - 12;
+        pdf.text(quotation.companyWebsite || 'www.codeverza.com', contactX, 12, { align: 'right' });
+        pdf.text(quotation.companyEmail || 'info@codeverza.com', contactX, 16, { align: 'right' });
+        pdf.text(quotation.companyPhone || '+92 325 1507557', contactX, 20, { align: 'right' });
+      };
+
+      // Function to add footer on each page
+      const addFooter = (pdf, pageNum, totalPages) => {
+        const footerY = pageHeight - 18;
+        
+        // Accent line
+        pdf.setFillColor(79, 142, 247);
+        pdf.rect(0, footerY - 1, pageWidth, 1, 'F');
+        
+        // Footer background
+        pdf.setFillColor(13, 27, 62);
+        pdf.rect(0, footerY, pageWidth, 18, 'F');
+        
+        // Left side - Thank you message
+        pdf.setTextColor(255, 255, 255);
+        pdf.setFontSize(8);
+        pdf.setFont('helvetica', 'bold');
+        pdf.text('Thank you for choosing Codeverza!', 12, footerY + 7);
+        
+        pdf.setFontSize(6.5);
+        pdf.setFont('helvetica', 'normal');
+        pdf.setTextColor(200, 200, 200);
+        pdf.text('Delivering excellence in web development since 2020', 12, footerY + 12);
+        
+        // Right side - Page number
+        pdf.setFontSize(7);
+        pdf.setTextColor(200, 200, 200);
+        pdf.text(`Page ${pageNum} of ${totalPages}`, pageWidth - 12, footerY + 10, { align: 'right' });
+      };
+
+      // Add header on first page
+      addHeader(pdf);
+
+      yPosition = 35;
+
+      // Quotation Title Band (directly after header, no gap)
+      pdf.setFillColor(240, 244, 255);
+      pdf.rect(0, yPosition, pageWidth, 14, 'F');
       
-      // Company Name and Tagline
-      pdf.setTextColor(255, 255, 255);
-      pdf.setFontSize(22);
+      // Border line
+      pdf.setDrawColor(221, 230, 255);
+      pdf.setLineWidth(0.3);
+      pdf.line(0, yPosition + 14, pageWidth, yPosition + 14);
+      
+      pdf.setTextColor(13, 27, 62);
+      pdf.setFontSize(16);
       pdf.setFont('helvetica', 'bold');
-      pdf.text('CODEVERZA', 35, 18);
+      pdf.text('QUOTATION', 15, yPosition + 9);
       
+      // Quotation number (right side)
       pdf.setFontSize(9);
       pdf.setFont('helvetica', 'normal');
-      pdf.text('Professional Web Development Solutions', 35, 25);
-      
-      // Contact info (right side) — dynamic for employee quotations
-      pdf.setFontSize(8);
-      const contactInfo = [
-        quotation.companyWebsite || 'www.codeverza.com',
-        quotation.companyEmail || 'info@codeverza.com',
-        quotation.companyPhone || '+92 325 1507557'
-      ];
-      contactInfo.forEach((line, i) => {
-        pdf.text(line, pageWidth - 15, 15 + (i * 5), { align: 'right' });
-      });
-
-      yPosition = 55;
-
-      // Quotation Title
-      pdf.setTextColor(0, 0, 0);
-      pdf.setFontSize(18);
+      pdf.setTextColor(100, 100, 100);
+      const refLabel = 'Ref No: ';
+      const refWidth = pdf.getTextWidth(refLabel);
+      pdf.text(refLabel, pageWidth - 15 - pdf.getTextWidth(quotation.quotationNumber) - refWidth, yPosition + 9, { align: 'left' });
       pdf.setFont('helvetica', 'bold');
-      pdf.text('QUOTATION', 15, yPosition);
+      pdf.setTextColor(13, 27, 62);
+      pdf.text(quotation.quotationNumber, pageWidth - 15, yPosition + 9, { align: 'right' });
       
-      yPosition += 10;
+      yPosition += 22;
 
-      // Quotation Details and Client Details (Two columns)
-      pdf.setFontSize(10);
-      pdf.setFont('helvetica', 'bold');
-      
-      // Left Column - Quotation Details
-      pdf.text('Quotation Details:', 15, yPosition);
-      pdf.setFont('helvetica', 'normal');
-      pdf.text(`Number: ${quotation.quotationNumber}`, 15, yPosition + 6);
-      let detailY = yPosition + 12;
+      // Two-column layout for Quotation Details and Client Details (with styled boxes like preview)
+      const boxMargin = 15;
+      const boxWidth = quotation.isEmployeeQuotation ? (pageWidth - 2 * boxMargin) : ((pageWidth - 3 * boxMargin) / 2);
+      const leftBoxX = boxMargin;
+      const rightBoxX = pageWidth - boxMargin - boxWidth;
+      let currentY = yPosition;
+
+      // Left Box - Quotation Details (styled box with header)
+      const quotationDetailsLines = [];
       if (quotation.issueDate) {
-        pdf.text(`Issue Date: ${formatDate(quotation.issueDate)}`, 15, detailY);
-        detailY += 6;
+        quotationDetailsLines.push({ label: 'Issue Date', value: formatDate(quotation.issueDate) });
       }
       if (quotation.validityDate) {
-        pdf.text(`Valid Until: ${formatDate(quotation.validityDate)}`, 15, detailY);
-        detailY += 6;
+        quotationDetailsLines.push({ label: 'Valid Until', value: formatDate(quotation.validityDate) });
       }
-      pdf.text(`Status: ${quotation.status}`, 15, detailY);
+      quotationDetailsLines.push({ label: 'Status', value: quotation.status });
+      if (quotation.currency) {
+        quotationDetailsLines.push({ label: 'Currency', value: quotation.currency });
+      }
 
-      // Right Column - Client Details (skip for employee quotation)
-      if (!quotation.isEmployeeQuotation) {
+      const detailsBoxHeight = 10 + (quotationDetailsLines.length * 7) + 6;
+
+      // Border
+      pdf.setDrawColor(232, 237, 245);
+      pdf.setLineWidth(0.5);
+      pdf.roundedRect(leftBoxX, currentY, boxWidth, detailsBoxHeight, 2, 2, 'S');
+
+      // Header background
+      pdf.setFillColor(13, 27, 62);
+      pdf.rect(leftBoxX, currentY, boxWidth, 10, 'F');
+
+      // Header text
+      pdf.setTextColor(255, 255, 255);
+      pdf.setFontSize(10);
+      pdf.setFont('helvetica', 'bold');
+      pdf.text('QUOTATION DETAILS', leftBoxX + 4, currentY + 6.5);
+
+      // Body background
+      pdf.setFillColor(250, 251, 255);
+      pdf.rect(leftBoxX, currentY + 10, boxWidth, detailsBoxHeight - 10, 'F');
+
+      // Body content
+      pdf.setTextColor(0, 0, 0);
+      pdf.setFontSize(9);
+      let detailY = currentY + 17;
+      quotationDetailsLines.forEach(item => {
         pdf.setFont('helvetica', 'bold');
-        pdf.text('Client Details:', pageWidth / 2 + 10, yPosition);
+        pdf.text(item.label + ':', leftBoxX + 4, detailY);
         pdf.setFont('helvetica', 'normal');
-        pdf.text(quotation.clientName, pageWidth / 2 + 10, yPosition + 6);
+        pdf.text(item.value, leftBoxX + 35, detailY);
+        detailY += 7;
+      });
+
+      // Right Box - Client Details (only if not employee quotation)
+      if (!quotation.isEmployeeQuotation) {
+        const clientDetailsLines = [];
+        clientDetailsLines.push({ type: 'name', value: quotation.clientName });
         if (quotation.clientCompany) {
-          pdf.text(quotation.clientCompany, pageWidth / 2 + 10, yPosition + 12);
+          clientDetailsLines.push({ type: 'company', value: quotation.clientCompany });
         }
-        pdf.text(quotation.clientEmail, pageWidth / 2 + 10, yPosition + 18);
-        pdf.text(quotation.clientPhone || '', pageWidth / 2 + 10, yPosition + 24);
+        clientDetailsLines.push({ type: 'contact', value: quotation.clientEmail });
+        if (quotation.clientPhone) {
+          clientDetailsLines.push({ type: 'contact', value: quotation.clientPhone });
+        }
+        if (quotation.clientAddress) {
+          clientDetailsLines.push({ type: 'address', value: quotation.clientAddress });
+        }
+
+        const clientBoxHeight = 10 + (clientDetailsLines.length * 7) + 6;
+
+        // Border
+        pdf.setDrawColor(232, 237, 245);
+        pdf.setLineWidth(0.5);
+        pdf.roundedRect(rightBoxX, currentY, boxWidth, clientBoxHeight, 2, 2, 'S');
+
+        // Header background
+        pdf.setFillColor(13, 27, 62);
+        pdf.rect(rightBoxX, currentY, boxWidth, 10, 'F');
+
+        // Header text
+        pdf.setTextColor(255, 255, 255);
+        pdf.setFontSize(10);
+        pdf.setFont('helvetica', 'bold');
+        pdf.text('BILLED TO', rightBoxX + 4, currentY + 6.5);
+
+        // Body background
+        pdf.setFillColor(255, 255, 255);
+        pdf.rect(rightBoxX, currentY + 10, boxWidth, clientBoxHeight - 10, 'F');
+
+        // Body content
+        pdf.setTextColor(0, 0, 0);
+        pdf.setFontSize(9);
+        let clientY = currentY + 17;
+        clientDetailsLines.forEach(item => {
+          if (item.type === 'name') {
+            pdf.setFont('helvetica', 'bold');
+            pdf.setFontSize(10);
+          } else if (item.type === 'company') {
+            pdf.setFont('helvetica', 'normal');
+            pdf.setFontSize(9);
+          } else {
+            pdf.setFont('helvetica', 'normal');
+            pdf.setFontSize(8.5);
+          }
+          pdf.text(item.value, rightBoxX + 4, clientY);
+          clientY += 7;
+        });
+
+        yPosition = currentY + Math.max(detailsBoxHeight, clientBoxHeight) + 10;
+      } else {
+        yPosition = currentY + detailsBoxHeight + 10;
       }
 
-      yPosition += 35;
+      // Add spacing before table
+      yPosition += 5;
 
-      // Services Table - Try autoTable first, fallback to manual drawing
-      try {
-        const tableData = quotation.services.map(service => [
+      // IMPORTANT: Ensure table starts on page 1 by capping the Y position
+      // If yPosition is too high (close to bottom), autoTable will skip to page 2
+      // For employee quotations, yPosition might be around 90-100mm
+      // We need to ensure it's not too close to page bottom (297mm)
+      const MAX_START_Y_FOR_TABLE = 180; // If starting position > 180mm, table will go to page 2
+      if (yPosition > MAX_START_Y_FOR_TABLE) {
+        console.warn(`Table starting Y (${yPosition}) is too high, autoTable might skip to page 2`);
+      }
+
+      // Check if we have reasonable space on first page for table
+      // If not enough space, it's better to add content on same page anyway
+      const availableSpaceOnFirstPage = pageHeight - yPosition - 25; // 25 for footer
+      console.log('Available space for table:', availableSpaceOnFirstPage, 'Starting Y:', yPosition);
+
+      // Services Table with proper formatting
+      const tableData = quotation.services.map(service => {
+        // Format description with proper line breaks for numbered lists
+        const formattedDesc = service.description || '-';
+        
+        return [
           service.name,
-          service.description || '-',
+          formattedDesc,
           service.quantity.toString(),
           formatCurrency(service.price, quotation.currency),
           service.billingCycle,
           formatCurrency(service.quantity * service.price, quotation.currency)
-        ]);
+        ];
+      });
 
-        if (typeof pdf.autoTable === 'function') {
-          pdf.autoTable({
-            startY: yPosition,
-            head: [['Service', 'Description', 'Qty', 'Price', 'Billing', 'Total']],
-            body: tableData,
-            theme: 'striped',
-            headStyles: {
-              fillColor: [26, 26, 46],
-              textColor: 255,
-              fontStyle: 'bold',
-              fontSize: 10,
-              halign: 'left',
-              valign: 'middle'
-            },
-            styles: {
-              fontSize: 9,
-              cellPadding: 4,
-              lineColor: [224, 224, 224],
-              lineWidth: 0.1,
-              valign: 'top',
-              overflow: 'linebreak',
-              cellWidth: 'wrap',
-              minCellHeight: 10
-            },
-            alternateRowStyles: {
-              fillColor: [250, 250, 250]
-            },
-            columnStyles: {
-              0: { cellWidth: 32, overflow: 'linebreak', halign: 'left' },
-              1: { cellWidth: 60, overflow: 'linebreak', halign: 'left' },
-              2: { cellWidth: 12, halign: 'center' },
-              3: { cellWidth: 22, halign: 'right' },
-              4: { cellWidth: 20, overflow: 'linebreak', halign: 'left' },
-              5: { cellWidth: 24, halign: 'right', fontStyle: 'bold' }
-            },
-            didParseCell: function(data) {
-              // Ensure text wrapping for all cells
-              if (data.cell.text && data.cell.text.length > 0) {
-                data.cell.styles.overflow = 'linebreak';
-              }
-            }
-          });
-          yPosition = pdf.lastAutoTable.finalY + 10;
-        } else {
-          throw new Error('autoTable not available');
-        }
-      } catch (tableError) {
-        // Fallback: Manual table drawing with multi-line text support
-        console.warn('autoTable failed, using manual table drawing', tableError);
+      if (typeof pdf.autoTable === 'function') {
+        // Prevent autoTable from creating a blank first page
+        const currentPage = pdf.internal.getCurrentPageInfo().pageNumber;
         
-        // Table header
-        pdf.setFillColor(26, 26, 46);
-        pdf.rect(15, yPosition, pageWidth - 30, 8, 'F');
+        pdf.autoTable({
+          startY: yPosition,
+          head: [['Service', 'Description', 'Qty', 'Price', 'Billing', 'Total']],
+          body: tableData,
+          theme: 'grid',
+          headStyles: {
+            fillColor: [13, 27, 62],
+            textColor: [255, 255, 255],
+            fontStyle: 'bold',
+            fontSize: 10,
+            halign: 'left',
+            valign: 'middle',
+            cellPadding: { top: 5, right: 4, bottom: 5, left: 4 }
+          },
+          bodyStyles: {
+            fontSize: 9.5,
+            cellPadding: { top: 7, right: 4, bottom: 7, left: 4 },
+            lineColor: [221, 230, 255],
+            lineWidth: 0.1,
+            valign: 'top',
+            textColor: [0, 0, 0],
+            minCellHeight: 16,
+            lineHeight: 1.6
+          },
+          alternateRowStyles: {
+            fillColor: [250, 251, 255]
+          },
+          columnStyles: {
+            0: { 
+              cellWidth: 40, 
+              overflow: 'linebreak', 
+              halign: 'left',
+              fontStyle: 'bold',
+              textColor: [13, 27, 62],
+              minCellHeight: 16,
+              fontSize: 9.5
+            },
+            1: { 
+              cellWidth: 52,
+              overflow: 'linebreak',
+              halign: 'left',
+              minCellHeight: 16,
+              fontSize: 8.5,
+              textColor: [0, 0, 0],
+              cellPadding: { top: 7, right: 3, bottom: 7, left: 3 },
+              lineHeight: 1.6
+            },
+            2: { 
+              cellWidth: 12, 
+              halign: 'center',
+              overflow: 'visible',
+              fontSize: 9
+            },
+            3: { 
+              cellWidth: 28, 
+              halign: 'right',
+              overflow: 'linebreak',
+              fontSize: 9
+            },
+            4: { 
+              cellWidth: 22, 
+              overflow: 'linebreak', 
+              halign: 'left',
+              fontSize: 8
+            },
+            5: { 
+              cellWidth: 26, 
+              halign: 'right',
+              fontStyle: 'bold',
+              textColor: [13, 27, 62],
+              overflow: 'linebreak',
+              fontSize: 9.5
+            }
+          },
+          tableLineColor: [221, 230, 255],
+          tableLineWidth: 0.1,
+          didParseCell: function(data) {
+            // Make service name bold
+            if (data.column.index === 0 && data.section === 'body') {
+              data.cell.styles.fontStyle = 'bold';
+              data.cell.styles.fontSize = 9.5;
+            }
+            // Ensure description has proper wrapping and height
+            if (data.column.index === 1 && data.section === 'body') {
+              data.cell.styles.overflow = 'linebreak';
+              data.cell.styles.minCellHeight = 16;
+              data.cell.styles.fontSize = 8.5;
+            }
+          },
+          willDrawPage: function(data) {
+            // Force table to render on current page (page 1) if it's the initial render
+            // AutoTable sometimes skips to page 2 thinking there's not enough space
+            // But we want at least the header row on page 1
+          },
+          didDrawPage: function(data) {
+            // Add header on new pages only (first page already has content)
+            if (data.pageNumber > 1) {
+              addHeader(pdf);
+            }
+          },
+          margin: { left: 15, right: 15 },
+          pageBreak: 'auto',
+          tableWidth: 'auto'
+        });
+        
+        // Check if autoTable created a blank first page and remove it
+        const totalPages = pdf.internal.getNumberOfPages();
+        if (totalPages > 1) {
+          // Check if page 1 has only header/details but no table
+          // If table started on page 2, delete page 1 and shift everything
+          const firstPageData = pdf.internal.pages[1];
+          // AutoTable stores its final Y position
+          const tableFinalY = pdf.lastAutoTable.finalY;
+          const tableStartPage = pdf.lastAutoTable.startPageNumber || 1;
+          
+          console.log('Table started on page:', tableStartPage, 'Total pages:', totalPages);
+          
+          // If table started on page 2, that means page 1 was skipped
+          if (tableStartPage === 2) {
+            console.warn('AutoTable skipped to page 2, this should not happen');
+            // Unfortunately we cannot easily fix this after the fact
+            // The table is already rendered on page 2
+          }
+        }
+        
+        yPosition = pdf.lastAutoTable.finalY + 10;
+      } else {
+        // Fallback: Manual table drawing
+        console.warn('autoTable not available, using fallback');
+        
+        pdf.setFillColor(13, 27, 62);
+        pdf.rect(15, yPosition, pageWidth - 30, 10, 'F');
         pdf.setTextColor(255, 255, 255);
-        pdf.setFontSize(9);
+        pdf.setFontSize(10);
         pdf.setFont('helvetica', 'bold');
         
         const headers = ['Service', 'Description', 'Qty', 'Price', 'Billing', 'Total'];
-        const colWidths = [32, 60, 12, 22, 20, 24];
-        let xPos = 17;
+        const colWidths = [40, 52, 12, 28, 22, 26]; // Total = 180mm
+        const colX = [15, 55, 107, 119, 147, 169];
+        
         headers.forEach((header, i) => {
-          pdf.text(header, xPos, yPosition + 5);
-          xPos += colWidths[i];
+          const align = i === 2 ? 'center' : i > 2 ? 'right' : 'left';
+          const x = align === 'right' ? colX[i] + colWidths[i] - 3 : (align === 'center' ? colX[i] + colWidths[i]/2 : colX[i] + 4);
+          pdf.text(header, x, yPosition + 6, { align });
         });
         
-        yPosition += 10;
-        pdf.setTextColor(0, 0, 0);
-        pdf.setFont('helvetica', 'normal');
-        pdf.setFontSize(8);
+        yPosition += 12;
         
-        // Table rows with proper word wrapping
         quotation.services.forEach((service, index) => {
-          xPos = 17;
+          pdf.setTextColor(0, 0, 0);
+          pdf.setFont('helvetica', 'normal');
+          pdf.setFontSize(9.5);
           
-          // Calculate lines for each column with proper width
-          const serviceName = pdf.splitTextToSize(service.name, colWidths[0] - 3);
+          const serviceName = pdf.splitTextToSize(service.name, colWidths[0] - 5);
           const descText = service.description || '-';
-          const descLines = pdf.splitTextToSize(descText, colWidths[1] - 3);
-          const billingText = pdf.splitTextToSize(service.billingCycle, colWidths[4] - 3);
+          const descLines = pdf.splitTextToSize(descText, colWidths[1] - 5);
+          const billingLines = pdf.splitTextToSize(service.billingCycle, colWidths[4] - 5);
           
-          // Calculate row height based on maximum lines
-          const maxLines = Math.max(serviceName.length, descLines.length, billingText.length);
-          const rowHeight = Math.max(12, maxLines * 4 + 6);
+          // Calculate proper row height with more padding for multi-line content
+          const maxLines = Math.max(serviceName.length, descLines.length, billingLines.length);
+          const lineHeight = 5;
+          const paddingTop = 7;
+          const paddingBottom = 7;
+          const rowHeight = Math.max(18, (maxLines * lineHeight) + paddingTop + paddingBottom);
           
-          // Draw alternating row background
-          if (index % 2 === 0) {
-            pdf.setFillColor(250, 250, 250);
-            pdf.rect(15, yPosition - 2, pageWidth - 30, rowHeight, 'F');
+          // Check if row will fit on current page, if not start new page
+          if (yPosition + rowHeight > pageHeight - 30) {
+            pdf.addPage();
+            addHeader(pdf);
+            yPosition = 35;
+            
+            // Re-draw header on new page
+            pdf.setFillColor(13, 27, 62);
+            pdf.rect(15, yPosition, pageWidth - 30, 10, 'F');
+            pdf.setTextColor(255, 255, 255);
+            pdf.setFontSize(10);
+            pdf.setFont('helvetica', 'bold');
+            
+            headers.forEach((header, i) => {
+              const align = i === 2 ? 'center' : i > 2 ? 'right' : 'left';
+              const x = align === 'right' ? colX[i] + colWidths[i] - 3 : (align === 'center' ? colX[i] + colWidths[i]/2 : colX[i] + 4);
+              pdf.text(header, x, yPosition + 6, { align });
+            });
+            
+            yPosition += 12;
+            pdf.setTextColor(0, 0, 0);
+            pdf.setFont('helvetica', 'normal');
           }
           
-          // Service name (multi-line support)
-          pdf.text(serviceName, xPos, yPosition + 4);
-          xPos += colWidths[0];
+          // Background
+          if (index % 2 === 0) {
+            pdf.setFillColor(250, 251, 255);
+            pdf.rect(15, yPosition, pageWidth - 30, rowHeight, 'F');
+          }
           
-          // Description (complete multi-line text with word wrap)
-          pdf.text(descLines, xPos, yPosition + 4);
-          xPos += colWidths[1];
+          // Borders
+          pdf.setDrawColor(221, 230, 255);
+          pdf.setLineWidth(0.1);
+          colX.forEach((x, i) => {
+            pdf.line(x, yPosition, x, yPosition + rowHeight);
+          });
+          pdf.line(colX[colX.length - 1] + colWidths[colWidths.length - 1], yPosition, colX[colX.length - 1] + colWidths[colWidths.length - 1], yPosition + rowHeight);
+          pdf.line(15, yPosition + rowHeight, pageWidth - 15, yPosition + rowHeight);
+          
+          // Calculate text Y position (centered vertically in cell)
+          const textStartY = yPosition + paddingTop + 4;
+          
+          // Service name (bold, larger)
+          pdf.setFont('helvetica', 'bold');
+          pdf.setFontSize(10);
+          pdf.text(serviceName, colX[0] + 4, textStartY);
+          
+          // Description (smaller font, multi-line)
+          pdf.setFont('helvetica', 'normal');
+          pdf.setFontSize(8.5);
+          pdf.text(descLines, colX[1] + 4, textStartY);
           
           // Quantity (centered)
-          pdf.text(service.quantity.toString(), xPos + 4, yPosition + 4);
-          xPos += colWidths[2];
+          pdf.setFontSize(9.5);
+          pdf.text(service.quantity.toString(), colX[2] + colWidths[2]/2, textStartY, { align: 'center' });
           
-          // Price (right aligned)
-          pdf.text(formatCurrency(service.price, quotation.currency), xPos + colWidths[3] - 3, yPosition + 4, { align: 'right' });
-          xPos += colWidths[3];
+          // Price (right)
+          pdf.text(formatCurrency(service.price, quotation.currency), colX[3] + colWidths[3] - 4, textStartY, { align: 'right' });
           
-          // Billing Cycle (multi-line support)
-          pdf.text(billingText, xPos, yPosition + 4);
-          xPos += colWidths[4];
+          // Billing
+          pdf.setFontSize(8.5);
+          pdf.text(billingLines, colX[4] + 4, textStartY);
           
-          // Total (right aligned, bold)
+          // Total (right, bold, larger)
           pdf.setFont('helvetica', 'bold');
-          pdf.text(formatCurrency(service.quantity * service.price, quotation.currency), xPos + colWidths[5] - 3, yPosition + 4, { align: 'right' });
-          pdf.setFont('helvetica', 'normal');
+          pdf.setFontSize(10);
+          pdf.text(formatCurrency(service.quantity * service.price, quotation.currency), colX[5] + colWidths[5] - 4, textStartY, { align: 'right' });
           
           yPosition += rowHeight;
           
-          // Check if we need a new page
-          if (yPosition > pageHeight - 70) {
-            pdf.addPage();
-            yPosition = 20;
-            
-            // Repeat table header on new page
-            pdf.setFillColor(26, 26, 46);
-            pdf.rect(15, yPosition, pageWidth - 30, 8, 'F');
-            pdf.setTextColor(255, 255, 255);
-            pdf.setFontSize(9);
-            pdf.setFont('helvetica', 'bold');
-            
-            xPos = 17;
-            headers.forEach((header, i) => {
-              pdf.text(header, xPos, yPosition + 5);
-              xPos += colWidths[i];
-            });
-            
-            yPosition += 10;
-            pdf.setTextColor(0, 0, 0);
-            pdf.setFont('helvetica', 'normal');
-            pdf.setFontSize(8);
-          }
+          // Removed old page break check since we now check before drawing row
         });
         
-        yPosition += 5;
+        yPosition += 10;
       }
 
       // Pricing Summary — skip for employee quotation
@@ -398,111 +643,273 @@ export default function QuotationPreviewPage() {
       }
 
       // Check if we need a new page for additional info
-      if (yPosition > pageHeight - 100) {
+      if (yPosition > pageHeight - 90) {
         pdf.addPage();
-        yPosition = 20;
+        addHeader(pdf);
+        yPosition = 35;
       }
 
-      // Two-column layout for Payment Terms and Terms & Conditions
-      const leftColX = 15;
-      const rightColX = pageWidth / 2 + 5;
-      const colWidth = (pageWidth / 2) - 20;
-      const startY = yPosition;
+      // Add some spacing before additional sections
+      yPosition += 5;
 
-      // Left Column - Payment Terms and Project Timeline
-      let leftY = startY;
+      // Single column layout for all additional info (Payment Terms, Timeline, Notes, Terms)
+      const fullColX = 15;
+      const fullColWidth = pageWidth - 30;
       
       if (quotation.paymentTerms) {
-        pdf.setFont('helvetica', 'bold');
-        pdf.setFontSize(11);
-        pdf.text('Payment Terms:', leftColX, leftY);
-        pdf.setFont('helvetica', 'normal');
+        // Check if we need new page before adding this section
+        if (yPosition > pageHeight - 50) {
+          pdf.addPage();
+          addHeader(pdf);
+          yPosition = 35;
+        }
+        
+        // Calculate proper box height based on content with proper text wrapping
+        const paymentLines = pdf.splitTextToSize(quotation.paymentTerms, fullColWidth - 8);
+        const lineCount = Array.isArray(paymentLines) ? paymentLines.length : 1;
+        const boxHeight = 10 + (lineCount * 4.5) + 6;
+        
+        // Border
+        pdf.setDrawColor(232, 237, 245);
+        pdf.setLineWidth(0.5);
+        pdf.roundedRect(fullColX, yPosition, fullColWidth, boxHeight, 2, 2, 'S');
+        
+        // Header background
+        pdf.setFillColor(13, 27, 62);
+        pdf.rect(fullColX, yPosition, fullColWidth, 10, 'F');
+        
+        // Header text
+        pdf.setTextColor(255, 255, 255);
         pdf.setFontSize(9);
-        leftY += 6;
-        const paymentLines = pdf.splitTextToSize(quotation.paymentTerms, colWidth);
-        pdf.text(paymentLines, leftColX, leftY);
-        leftY += paymentLines.length * 5 + 8;
+        pdf.setFont('helvetica', 'bold');
+        pdf.text('PAYMENT TERMS', fullColX + 4, yPosition + 6.5);
+        
+        // Body background
+        pdf.setFillColor(250, 251, 255);
+        pdf.rect(fullColX, yPosition + 10, fullColWidth, boxHeight - 10, 'F');
+        
+        // Body text with proper wrapping
+        pdf.setTextColor(0, 0, 0);
+        pdf.setFont('helvetica', 'normal');
+        pdf.setFontSize(8.5);
+        pdf.text(paymentLines, fullColX + 4, yPosition + 14, {
+          maxWidth: fullColWidth - 8,
+          align: 'left'
+        });
+        
+        yPosition += boxHeight + 8;
       }
 
       if (quotation.projectTimeline) {
-        pdf.setFont('helvetica', 'bold');
-        pdf.setFontSize(11);
-        pdf.text('Project Timeline:', leftColX, leftY);
-        pdf.setFont('helvetica', 'normal');
+        // Check if we need new page before adding this section
+        if (yPosition > pageHeight - 50) {
+          pdf.addPage();
+          addHeader(pdf);
+          yPosition = 35;
+        }
+        
+        // Calculate proper box height based on content with proper text wrapping
+        const timelineLines = pdf.splitTextToSize(quotation.projectTimeline, fullColWidth - 8);
+        const lineCount = Array.isArray(timelineLines) ? timelineLines.length : 1;
+        const boxHeight = 10 + (lineCount * 4.5) + 6;
+        
+        // Border
+        pdf.setDrawColor(232, 237, 245);
+        pdf.setLineWidth(0.5);
+        pdf.roundedRect(fullColX, yPosition, fullColWidth, boxHeight, 2, 2, 'S');
+        
+        // Header background
+        pdf.setFillColor(13, 27, 62);
+        pdf.rect(fullColX, yPosition, fullColWidth, 10, 'F');
+        
+        // Header text
+        pdf.setTextColor(255, 255, 255);
         pdf.setFontSize(9);
-        leftY += 6;
-        const timelineLines = pdf.splitTextToSize(quotation.projectTimeline, colWidth);
-        pdf.text(timelineLines, leftColX, leftY);
-        leftY += timelineLines.length * 5 + 8;
+        pdf.setFont('helvetica', 'bold');
+        pdf.text('PROJECT TIMELINE', fullColX + 4, yPosition + 6.5);
+        
+        // Body background
+        pdf.setFillColor(250, 251, 255);
+        pdf.rect(fullColX, yPosition + 10, fullColWidth, boxHeight - 10, 'F');
+        
+        // Body text with proper wrapping
+        pdf.setTextColor(0, 0, 0);
+        pdf.setFont('helvetica', 'normal');
+        pdf.setFontSize(8.5);
+        pdf.text(timelineLines, fullColX + 4, yPosition + 14, {
+          maxWidth: fullColWidth - 8,
+          align: 'left'
+        });
+        
+        yPosition += boxHeight + 8;
       }
 
       if (quotation.notes) {
-        pdf.setFont('helvetica', 'bold');
-        pdf.setFontSize(11);
-        pdf.text('Notes:', leftColX, leftY);
-        pdf.setFont('helvetica', 'normal');
+        // Check if we need new page before adding this section
+        if (yPosition > pageHeight - 50) {
+          pdf.addPage();
+          addHeader(pdf);
+          yPosition = 35;
+        }
+        
+        // Calculate proper box height based on content with proper text wrapping
+        const notesLines = pdf.splitTextToSize(quotation.notes, fullColWidth - 8);
+        const lineCount = Array.isArray(notesLines) ? notesLines.length : 1;
+        const boxHeight = 10 + (lineCount * 4.5) + 6;
+        
+        // Border
+        pdf.setDrawColor(232, 237, 245);
+        pdf.setLineWidth(0.5);
+        pdf.roundedRect(fullColX, yPosition, fullColWidth, boxHeight, 2, 2, 'S');
+        
+        // Header background
+        pdf.setFillColor(13, 27, 62);
+        pdf.rect(fullColX, yPosition, fullColWidth, 10, 'F');
+        
+        // Header text
+        pdf.setTextColor(255, 255, 255);
         pdf.setFontSize(9);
-        leftY += 6;
-        const notesLines = pdf.splitTextToSize(quotation.notes, colWidth);
-        pdf.text(notesLines, leftColX, leftY);
-        leftY += notesLines.length * 5;
-      }
-
-      // Right Column - Terms & Conditions
-      let rightY = startY;
-      
-      if (quotation.termsAndConditions) {
         pdf.setFont('helvetica', 'bold');
-        pdf.setFontSize(11);
-        pdf.text('Terms & Conditions:', rightColX, rightY);
+        pdf.text('NOTES', fullColX + 4, yPosition + 6.5);
+        
+        // Body background
+        pdf.setFillColor(250, 251, 255);
+        pdf.rect(fullColX, yPosition + 10, fullColWidth, boxHeight - 10, 'F');
+        
+        // Body text with proper wrapping
+        pdf.setTextColor(0, 0, 0);
         pdf.setFont('helvetica', 'normal');
-        pdf.setFontSize(8);
-        rightY += 6;
-        const termsLines = pdf.splitTextToSize(quotation.termsAndConditions, colWidth);
-        pdf.text(termsLines, rightColX, rightY);
-        rightY += termsLines.length * 4;
+        pdf.setFontSize(8.5);
+        pdf.text(notesLines, fullColX + 4, yPosition + 14, {
+          maxWidth: fullColWidth - 8,
+          align: 'left'
+        });
+        
+        yPosition += boxHeight + 8;
       }
 
-      // Use the maximum Y position of both columns
-      yPosition = Math.max(leftY, rightY) + 10;
+      if (quotation.termsAndConditions) {
+        // Check if we need new page before adding this section
+        if (yPosition > pageHeight - 50) {
+          pdf.addPage();
+          addHeader(pdf);
+          yPosition = 35;
+        }
+        
+        // Calculate proper box height based on content with proper text wrapping
+        const termsLines = pdf.splitTextToSize(quotation.termsAndConditions, fullColWidth - 8);
+        const lineCount = Array.isArray(termsLines) ? termsLines.length : 1;
+        const boxHeight = 10 + (lineCount * 4) + 6;
+        
+        // Border
+        pdf.setDrawColor(232, 237, 245);
+        pdf.setLineWidth(0.5);
+        pdf.roundedRect(fullColX, yPosition, fullColWidth, boxHeight, 2, 2, 'S');
+        
+        // Header background
+        pdf.setFillColor(240, 244, 255);
+        pdf.rect(fullColX, yPosition, fullColWidth, 10, 'F');
+        
+        // Header text
+        pdf.setTextColor(26, 47, 107);
+        pdf.setFontSize(9);
+        pdf.setFont('helvetica', 'bold');
+        pdf.text('TERMS & CONDITIONS', fullColX + 4, yPosition + 6.5);
+        
+        // Body background
+        pdf.setFillColor(255, 255, 255);
+        pdf.rect(fullColX, yPosition + 10, fullColWidth, boxHeight - 10, 'F');
+        
+        // Body text with proper wrapping
+        pdf.setTextColor(0, 0, 0);
+        pdf.setFont('helvetica', 'normal');
+        pdf.setFontSize(7.5);
+        pdf.text(termsLines, fullColX + 4, yPosition + 14, {
+          maxWidth: fullColWidth - 8,
+          align: 'left'
+        });
+        
+        yPosition += boxHeight + 8;
+      }
 
-      // Ensure footer stays on same page if possible
-      const footerHeight = 30;
-      if (yPosition > pageHeight - footerHeight - 10) {
-        // If footer won't fit, move to next page
+      // Check if signature will fit on current page
+      if (yPosition > pageHeight - 50) {
         pdf.addPage();
-        yPosition = 20;
+        addHeader(pdf);
+        yPosition = 35;
       }
 
-      // Add some spacing before footer
-      yPosition = Math.max(yPosition, pageHeight - footerHeight - 5);
-
-      // Footer
-      const footerY = pageHeight - 25;
-      pdf.setFillColor(26, 26, 46);
-      pdf.rect(0, footerY - 5, pageWidth, 30, 'F');
+      // Signature Section (centered, with stamp like joining letter)
+      const signatureY = yPosition + 10;
+      const centerX = pageWidth / 2;
       
-      pdf.setTextColor(255, 255, 255);
+      // Add "CODEVERZA" stamp above signature line (simple non-rotated box like joining letter)
+      const stampY = signatureY - 18;
+      
+      // Draw stamp using simple rectangle and text (NO ROTATION)
+      pdf.setDrawColor(177, 76, 255); // Purple border
+      pdf.setLineWidth(0.6);
+      pdf.setTextColor(177, 76, 255); // Purple text
+      pdf.setFont('helvetica', 'bold');
+      pdf.setFontSize(11);
+      
+      // Calculate stamp width based on text
+      const stampText = 'CODEVERZA';
+      const stampWidth = pdf.getTextWidth(stampText) + 12;
+      const stampX = centerX - stampWidth / 2; // Center horizontally
+      
+      // Draw simple rectangle (non-rotated)
+      pdf.saveGraphicsState();
+      pdf.setLineDash([]);
+      pdf.rect(stampX, stampY, stampWidth, 10);
+      pdf.restoreGraphicsState();
+      
+      // Draw text inside box (non-rotated)
+      pdf.text(stampText, stampX + 6, stampY + 7);
+      
+      // Reset colors
+      pdf.setTextColor(0, 0, 0);
+      pdf.setDrawColor(0, 0, 0);
+      
+      // Top line for signature
+      pdf.setLineWidth(0.3);
+      pdf.line(centerX - 35, signatureY, centerX + 35, signatureY);
+      
+      // "Authorized Signature" text
       pdf.setFontSize(10);
       pdf.setFont('helvetica', 'bold');
-      pdf.text('Thank you for choosing Codeverza!', pageWidth / 2, footerY, { align: 'center' });
+      pdf.text('Authorized Signature', centerX, signatureY + 6, { align: 'center' });
       
+      // Name and designation
+      pdf.setFontSize(9);
       pdf.setFont('helvetica', 'normal');
-      pdf.setFontSize(8);
-      pdf.setTextColor(224, 224, 224);
-      const pdfFooterContact = `${quotation.companyWebsite || 'www.codeverza.com'} | ${quotation.companyEmail || 'info@codeverza.com'} | ${quotation.companyPhone || '+92 325 1507557'}`;
-      pdf.text(pdfFooterContact, pageWidth / 2, footerY + 5, { align: 'center' });
-      pdf.text('Delivering excellence in web development since 2020', pageWidth / 2, footerY + 10, { align: 'center' });
+      pdf.text('Muhammad Aqdas', centerX, signatureY + 11, { align: 'center' });
+      pdf.text('CEO', centerX, signatureY + 16, { align: 'center' });
 
-      // Page numbers
+      yPosition = signatureY + 15;
+
+      // Add footers to all pages
       const pageCount = pdf.internal.getNumberOfPages();
       for (let i = 1; i <= pageCount; i++) {
         pdf.setPage(i);
-        pdf.setFontSize(8);
-        pdf.text(`Page ${i} of ${pageCount}`, pageWidth - 15, footerY + 15, { align: 'right' });
+        addFooter(pdf, i, pageCount);
       }
 
-      // Save PDF
+      return pdf;
+
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      throw error;
+    }
+  };
+
+  const generatePDF = async () => {
+    setGenerating(true);
+    
+    try {
+      const pdf = await generatePDFDocument();
+      
+      // Save/Download PDF
       pdf.save(`Quotation_${quotation.quotationNumber}.pdf`);
       
       Swal.fire({
@@ -518,6 +925,36 @@ export default function QuotationPreviewPage() {
         icon: 'error',
         title: 'Error',
         text: 'Failed to generate PDF'
+      });
+    } finally {
+      setGenerating(false);
+    }
+  };
+
+  const previewPDF = async () => {
+    setGenerating(true);
+    
+    try {
+      const pdf = await generatePDFDocument();
+      
+      // Open PDF in new window/tab for preview
+      const pdfBlob = pdf.output('blob');
+      const pdfUrl = URL.createObjectURL(pdfBlob);
+      window.open(pdfUrl, '_blank');
+      
+      Swal.fire({
+        icon: 'success',
+        title: 'PDF Preview',
+        text: 'Opening PDF in new window',
+        timer: 2000
+      });
+
+    } catch (error) {
+      console.error('Error previewing PDF:', error);
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'Failed to preview PDF'
       });
     } finally {
       setGenerating(false);
@@ -631,6 +1068,23 @@ export default function QuotationPreviewPage() {
             onClick={handlePrint}
           >
             <FiPrinter /> Print
+          </button>
+          
+          <button 
+            className="btn-icon-text btn-preview"
+            onClick={previewPDF}
+            disabled={generating}
+            title="Open PDF in new window"
+          >
+            {generating ? (
+              <>
+                <span className="spinner-small"></span> Loading...
+              </>
+            ) : (
+              <>
+                <FiDownload /> Preview PDF
+              </>
+            )}
           </button>
           
           <button 

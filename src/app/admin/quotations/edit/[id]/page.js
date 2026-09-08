@@ -53,7 +53,7 @@ export default function EditQuotationPage() {
     }
   ];
 
-  const billingCycles = ['One-Time', 'Monthly', 'Half-Yearly', 'Annually'];
+  const billingCycles = ['One-Time', 'Monthly', 'Half-Yearly', 'Annually', '2 Years'];
 
   useEffect(() => {
     if (params.id) {
@@ -430,6 +430,17 @@ export default function EditQuotationPage() {
         <div className="form-section">
           <h2>Quotation Details</h2>
           <div className="form-grid">
+            <div className="form-group full-width">
+              <label>Quotation Title <span style={{fontSize:'11px',color:'#aaa'}}>(for internal reference only)</span></label>
+              <input
+                type="text"
+                name="quotationTitle"
+                value={formData.quotationTitle || ''}
+                onChange={handleInputChange}
+                placeholder="e.g., HMS Visuals & Co., ABC Company Project, etc."
+              />
+            </div>
+
             <div className="form-group">
               <label>Issue Date{!formData.isEmployeeQuotation ? ' *' : <span style={{fontSize:'11px',color:'#aaa'}}> (optional)</span>}</label>
               <input

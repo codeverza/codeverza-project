@@ -279,7 +279,19 @@ export default function QuotationsPage() {
               {filteredQuotations.map((quotation) => (
                 <tr key={quotation.id}>
                   <td>
-                    <strong>{quotation.quotationNumber}</strong>
+                    <div>
+                      <strong style={{display: 'block', marginBottom: '4px'}}>{quotation.quotationNumber}</strong>
+                      {quotation.quotationTitle && (
+                        <span style={{
+                          fontSize: '11px',
+                          color: '#b14cff',
+                          display: 'block',
+                          fontWeight: '500'
+                        }}>
+                          {quotation.quotationTitle}
+                        </span>
+                      )}
+                    </div>
                   </td>
                   <td>
                     <div className="client-info">
