@@ -80,10 +80,15 @@ export default function JoiningLetterPreviewPage() {
 
       const footerElement = documentElement.querySelector('.jl-doc-footer');
       const headerElement = documentElement.querySelector('.jl-doc-header');
+      const bodyElement = documentElement.querySelector('.jl-doc-body');
+      
       const headerPadding = headerElement?.style.padding;
       const footerPadding = footerElement?.style.padding;
+      const bodyPaddingBottom = bodyElement?.style.paddingBottom;
+      
       if (headerElement) headerElement.style.padding = '12px 40px';
       if (footerElement) footerElement.style.padding = '10px 40px';
+      if (bodyElement) bodyElement.style.paddingBottom = '120px'; // Extra large padding for PDF
       const headerCanvas = headerElement
         ? await html2canvas(headerElement, {
             backgroundColor: null,
@@ -102,6 +107,7 @@ export default function JoiningLetterPreviewPage() {
         : null;
       if (headerElement) headerElement.style.padding = headerPadding;
       if (footerElement) footerElement.style.padding = footerPadding;
+      if (bodyElement) bodyElement.style.paddingBottom = bodyPaddingBottom;
       const footerDisplay = footerElement?.style.display;
       if (footerElement) footerElement.style.display = 'none';
 
@@ -113,15 +119,22 @@ export default function JoiningLetterPreviewPage() {
         windowWidth: documentElement.scrollWidth,
         windowHeight: documentElement.scrollHeight,
       });
+      
       if (footerElement) footerElement.style.display = footerDisplay;
+      if (bodyElement) bodyElement.style.paddingBottom = bodyPaddingBottom; // Restore padding
 
       const { jsPDF } = await import('jspdf');
       const pdf = new jsPDF('p', 'mm', 'a4');
       const pageWidth = pdf.internal.pageSize.getWidth();
       const pageHeight = pdf.internal.pageSize.getHeight();
-      const renderedPageHeight = Math.floor((pageHeight / pageWidth) * canvas.width);
       const headerHeight = headerCanvas ? (headerCanvas.height / headerCanvas.width) * pageWidth : 0;
       const footerHeight = footerCanvas ? (footerCanvas.height / footerCanvas.width) * pageWidth : 0;
+      
+      // Available content height per page (excluding header and footer with extra buffer)
+      const footerBuffer = 20; // Very large buffer to ensure footer doesn't overlap content
+      const availableContentHeight = pageHeight - footerHeight - footerBuffer;
+      const renderedPageHeight = Math.floor((availableContentHeight / pageWidth) * canvas.width);
+      
       const documentRect = documentElement.getBoundingClientRect();
       const scaleRatio = canvas.width / documentElement.scrollWidth;
       const detailsElement = documentElement.querySelector('.jl-details-table');
@@ -138,7 +151,7 @@ export default function JoiningLetterPreviewPage() {
         if (pageIndex > 0) pdf.addPage();
 
         const sourceY = pageBreaks[pageIndex];
-        const sourceHeight = pageBreaks[pageIndex + 1] - sourceY;
+        const sourceHeight = Math.min(pageBreaks[pageIndex + 1] - sourceY, renderedPageHeight);
         const topMargin = pageIndex > 0 ? headerHeight + 10 : 0;
         const pageCanvas = document.createElement('canvas');
         pageCanvas.width = canvas.width;
@@ -156,7 +169,7 @@ export default function JoiningLetterPreviewPage() {
           0,
           topMargin,
           pageWidth,
-          Math.min(pageHeight - topMargin, imageHeight),
+          Math.min(availableContentHeight - (pageIndex > 0 ? 10 : 0), imageHeight),
         );
       }
 
@@ -200,13 +213,16 @@ export default function JoiningLetterPreviewPage() {
       const FOOTER_HEIGHT = 26;
       const MAX_Y     = PH - FOOTER_HEIGHT - 10; // Reserve space for footer + buffer
       let   y         = 20;
+      let   currentPage = 1;
 
       // Helper to check and add new page
       const checkPageBreak = (requiredSpace) => {
         if (y + requiredSpace > MAX_Y) {
           addFooter();
           pdf.addPage();
-          y = 20;
+          currentPage++;
+          addHeader();
+          y = 52;
           return true;
         }
         return false;
@@ -227,6 +243,34 @@ export default function JoiningLetterPreviewPage() {
         pdf.text('www.codeverza.com | info@codeverza.com | +92 325 1507557', PW / 2, fY + 5, { align: 'center' });
       };
 
+      // Helper to add header on each page
+      const addHeader = () => {
+        pdf.setFillColor(13, 27, 62);
+        pdf.rect(0, 0, PW, 42, 'F');
+
+        if (logoLoaded) {
+          try { pdf.addImage(logoImg, 'PNG', 12, 10, 20, 20); } catch { }
+        } else {
+          pdf.setFillColor(255, 255, 255);
+          pdf.roundedRect(12, 12, 12, 12, 2, 2, 'F');
+          pdf.setTextColor(13, 27, 62);
+          pdf.setFontSize(14); pdf.setFont('helvetica', 'bold');
+          pdf.text('C', 18, 21, { align: 'center' });
+        }
+
+        pdf.setTextColor(255, 255, 255);
+        pdf.setFontSize(20); pdf.setFont('helvetica', 'bold');
+        pdf.text('CODEVERZA', 36, 18);
+        pdf.setFontSize(8); pdf.setFont('helvetica', 'normal');
+        pdf.text('Professional Web Development Solutions', 36, 24);
+
+        // contact right
+        pdf.setFontSize(8);
+        ['www.codeverza.com', 'info@codeverza.com', '+92 325 1507557'].forEach((t, i) => {
+          pdf.text(t, PW - 14, 14 + i * 5, { align: 'right' });
+        });
+      };
+
       /* ── logo ── */
       let logoLoaded = false;
       const logoImg  = new window.Image();
@@ -238,31 +282,7 @@ export default function JoiningLetterPreviewPage() {
       ]);
 
       /* ── Header Band ── */
-      pdf.setFillColor(13, 27, 62);
-      pdf.rect(0, 0, PW, 42, 'F');
-
-      if (logoLoaded) {
-        try { pdf.addImage(logoImg, 'PNG', 12, 10, 20, 20); } catch { logoLoaded = false; }
-      }
-      if (!logoLoaded) {
-        pdf.setFillColor(255, 255, 255);
-        pdf.roundedRect(12, 12, 12, 12, 2, 2, 'F');
-        pdf.setTextColor(13, 27, 62);
-        pdf.setFontSize(14); pdf.setFont('helvetica', 'bold');
-        pdf.text('C', 18, 21, { align: 'center' });
-      }
-
-      pdf.setTextColor(255, 255, 255);
-      pdf.setFontSize(20); pdf.setFont('helvetica', 'bold');
-      pdf.text('CODEVERZA', 36, 18);
-      pdf.setFontSize(8); pdf.setFont('helvetica', 'normal');
-      pdf.text('Professional Web Development Solutions', 36, 24);
-
-      // contact right
-      pdf.setFontSize(8);
-      ['www.codeverza.com', 'info@codeverza.com', '+92 325 1507557'].forEach((t, i) => {
-        pdf.text(t, PW - 14, 14 + i * 5, { align: 'right' });
-      });
+      addHeader();
 
       y = 52;
 
@@ -350,6 +370,7 @@ export default function JoiningLetterPreviewPage() {
       }
 
       checkPageBreak(50);
+      const tableStartPage = currentPage;
       if (typeof pdf.autoTable === 'function') {
         pdf.autoTable({
           startY: y,
@@ -362,9 +383,21 @@ export default function JoiningLetterPreviewPage() {
             1: { textColor: [30, 30, 30] },
           },
           alternateRowStyles: { fillColor: [250, 251, 255] },
-          margin: { left: MARGIN, right: MARGIN },
+          margin: { left: MARGIN, right: MARGIN, top: 52, bottom: MAX_Y },
+          didDrawPage: (data) => {
+            // Add header and footer on new pages created by table overflow
+            const tableCurrentPage = data.pageNumber;
+            const actualPdfPage = tableStartPage + tableCurrentPage - 1;
+            
+            if (tableCurrentPage > 1) {
+              currentPage = actualPdfPage;
+              addHeader();
+              addFooter();
+            }
+          }
         });
         y = pdf.lastAutoTable.finalY + 10;
+        currentPage = pdf.internal.getCurrentPageInfo().pageNumber;
       } else {
         // Fallback manual table
         tableRows.forEach(([k, v]) => {
@@ -383,7 +416,9 @@ export default function JoiningLetterPreviewPage() {
           letter.commissionSlabs && letter.commissionSlabs.length > 0) {
         addFooter();
         pdf.addPage();
-        y = 20;
+        currentPage++;
+        addHeader();
+        y = 52;
         
         // Title
         pdf.setFont('helvetica', 'bold');
@@ -397,6 +432,13 @@ export default function JoiningLetterPreviewPage() {
           pdf.setTextColor(26, 47, 107);
           pdf.text(`(Released on: ${letter.commissionTrigger})`, MARGIN + 55, y);
         }
+        
+        y += 3;
+        
+        // Underline for title
+        pdf.setDrawColor(200, 210, 240);
+        pdf.setLineWidth(0.4);
+        pdf.line(MARGIN, y, PW - MARGIN, y);
         
         y += 8;
 
@@ -552,17 +594,48 @@ export default function JoiningLetterPreviewPage() {
       }
 
       /* ── Signatures ── */
-      checkPageBreak(40);
+      checkPageBreak(50);
       y += 6;
+      
+      // Add CodeVerza stamp (text style) ABOVE the signature line
+      pdf.setDrawColor(177, 76, 255); // Purple border
+      pdf.setLineWidth(0.6);
+      pdf.setTextColor(177, 76, 255); // Purple text
+      pdf.setFont('helvetica', 'bold');
+      pdf.setFontSize(11);
+      
+      // Draw stamp box
+      const stampText = 'CODEVERZA';
+      const stampWidth = pdf.getTextWidth(stampText) + 12;
+      const stampX = MARGIN + (61 - stampWidth) / 2; // Center in left column
+      const stampY = y;
+      
+      // Stamp rectangle
+      pdf.saveGraphicsState();
+      pdf.setLineDash([]);
+      pdf.rect(stampX, stampY, stampWidth, 10);
+      pdf.restoreGraphicsState();
+      
+      // Stamp text
+      pdf.text(stampText, stampX + 6, stampY + 7);
+      
+      // Move Y down after stamp
+      y += 15;
+      
+      // Signature lines
       pdf.setDrawColor(100, 100, 100); 
       pdf.setLineWidth(0.3);
       pdf.line(MARGIN, y + 18, 75, y + 18);
       pdf.line(PW - 75, y + 18, PW - MARGIN, y + 18);
+      
+      // Labels
+      pdf.setTextColor(40, 40, 40);
       pdf.setFont('helvetica', 'bold'); 
       pdf.setFontSize(9); 
-      pdf.setTextColor(40, 40, 40);
       pdf.text('Authorized Signatory', MARGIN, y + 24);
       pdf.text('Employee Acceptance', PW - 75, y + 24);
+      
+      // Names
       pdf.setFont('helvetica', 'normal'); 
       pdf.setFontSize(8); 
       pdf.setTextColor(100, 100, 100);
@@ -777,23 +850,23 @@ export default function JoiningLetterPreviewPage() {
                     ? [['Salary', `${fmtSalary(letter.salary, letter.currency)} / ${letter.salaryType || 'Monthly'}`]]
                     : letter.compensationType === 'Commission Only'
                     ? [
-                        ['Commission Structure', `${(letter.commissionSlabs||[]).length} slab(s) — see table below`],
+                        ['Commission Structure', `${(letter.commissionSlabs||[]).length} slab(s) — see table below`, true],
                         ['Commission Released',  letter.commissionTrigger || '—'],
                         ...(letter.commissionCap ? [['Monthly Cap', fmtSalary(letter.commissionCap, letter.currency)]] : []),
                       ]
                     : [ // Salary + Commission
                         ['Base Salary',          `${fmtSalary(letter.salary, letter.currency)} / ${letter.salaryType || 'Monthly'}`],
-                        ['Commission Structure', `${(letter.commissionSlabs||[]).length} slab(s) — see table below`],
+                        ['Commission Structure', `${(letter.commissionSlabs||[]).length} slab(s) — see table below`, true],
                         ['Commission Released',  letter.commissionTrigger || '—'],
                         ...(letter.commissionCap ? [['Monthly Cap', fmtSalary(letter.commissionCap, letter.currency)]] : []),
                       ]
                 ),
               ]
                 .filter(Boolean)
-                .map(([key, val], i) => (
-                  <tr key={i}>
-                    <td>{key}</td>
-                    <td>{val || '—'}</td>
+                .map(([key, val, needMargin], i) => (
+                  <tr key={i} style={needMargin ? { marginTop: '30px' } : {}}>
+                    <td style={needMargin ? { paddingTop: '180px' } : {}}>{key}</td>
+                    <td style={needMargin ? { paddingTop: '180px' } : {}}>{val || '—'}</td>
                   </tr>
                 ))}
             </tbody>
@@ -882,11 +955,11 @@ export default function JoiningLetterPreviewPage() {
 
           {/* Terms & Conditions */}
           {letter.termsAndConditions && (
-            <div style={{ background: '#fafbff', border: '1px solid #dde6ff', borderRadius: 8, padding: '14px 18px', marginBottom: 24 }}>
-              <div style={{ fontWeight: 700, color: '#1a2f6b', fontSize: 11, textTransform: 'uppercase', letterSpacing: '1px', marginBottom: 8 }}>
+            <div style={{ background: '#fafbff', border: '1px solid #dde6ff', borderRadius: 8, padding: '0px 18px', marginBottom: 24, marginTop: "80px" }}>
+              <div style={{ fontWeight: 700, color: '#1a2f6b', fontSize: 11, textTransform: 'uppercase', letterSpacing: '1px', marginBottom: 8, marginTop: 50 }}>
                 Terms &amp; Conditions
               </div>
-              <p style={{ margin: 0, fontSize: 12, color: '#444', lineHeight: 1.8, whiteSpace: 'pre-line' }}>
+              <p style={{ margin: 0, fontSize: 12, color: '#444', lineHeight: 1.8, whiteSpace: 'pre-line', marginBottom: "20px" }}>
                 {letter.termsAndConditions}
               </p>
             </div>
@@ -900,14 +973,35 @@ export default function JoiningLetterPreviewPage() {
           {/* Signatures */}
           <div className="jl-doc-signature">
             <div className="jl-sig-box">
+              {/* CodeVerza Stamp (text style like CONFIDENTIAL) - ABOVE the line */}
+              <div style={{ height: '50px', display: 'flex', alignItems: 'flex-end', justifyContent: 'center', marginBottom: '8px' }}>
+                <span style={{ 
+                  display: 'inline-block',
+                  padding: '8px 20px', 
+                  border: '2px solid #b14cff', 
+                  borderRadius: '6px',
+                  color: '#b14cff',
+                  fontWeight: 700,
+                  fontSize: '14px',
+                  letterSpacing: '2px',
+                  textTransform: 'uppercase',
+                  transform: 'rotate(-5deg)'
+                }}>
+                  CodeVerza
+                </span>
+              </div>
               <div className="jl-sig-line" />
               <strong>Authorized Signatory</strong>
-              <span>CodeVerza</span>
+              <span className='font-bold'>Muhammad Aqdas</span> <br/>
+              <span className='font-bold'>CEO</span>
             </div>
             <div className="jl-sig-box">
+              {/* Empty space to match height */}
+              <div style={{ height: '50px', marginBottom: '8px' }}></div>
               <div className="jl-sig-line" />
               <strong>Employee Acceptance</strong>
-              <span>{letter.employeeName}</span>
+              <span className='font-bold'>{letter.employeeName}</span> <br/>
+              <span className='font-bold'>{letter.position}</span>
             </div>
           </div>
 

@@ -693,7 +693,7 @@
 
 /* ── Doc Body ── */
 .jl-doc-body {
-  padding: 36px 40px;
+  padding: 36px 40px 80px 40px; /* Increased bottom padding significantly to avoid footer overlap */
   background: #fff;
   line-height: 1.8;
 }
@@ -785,7 +785,7 @@
 .jl-sig-line {
   border-top: 1px solid #333;
   margin-bottom: 8px;
-  padding-top: 60px; /* space for physical signature */
+  padding-top: 18px; /* space for physical signature */
 }
 
 .jl-sig-box strong { font-size: 13px; color: #333; display: block; }
@@ -884,8 +884,10 @@
   .jl-details-table tbody tr:nth-child(even) td { background: #fafbff !important; }
 
   .jl-document { min-height: 0; display: block; }
-  .jl-doc-body { padding-bottom: 32mm; }
-  .jl-commission-section { page-break-before: always; break-before: page; page-break-inside: avoid; break-inside: avoid; }
+  .jl-doc-body { padding: 36px 40px 90px 40px !important; }
+  .jl-commission-section { page-break-before: always !important; break-before: page !important; page-break-inside: avoid; break-inside: avoid; }
+  .jl-commission-terms-section { page-break-inside: avoid !important; break-inside: avoid !important; }
+  .jl-terms-section { page-break-inside: avoid !important; break-inside: avoid !important; }
   .jl-details-table, .jl-doc-signature { page-break-inside: avoid; break-inside: avoid; }
   .jl-doc-footer {
     position: fixed;
