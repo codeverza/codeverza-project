@@ -11,8 +11,9 @@ import {
   SiNextdotjs, SiFirebase, SiMongodb,
   SiTailwindcss, SiMysql, SiCanva, SiFigma,
   SiAdobephotoshop, SiAdobeillustrator, SiAdobexd, SiAdobeaftereffects,
+  SiFlutter, SiDart, SiAndroid, SiApple,
 } from 'react-icons/si';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, Smartphone as SmartphoneIcon } from 'lucide-react';
 import '../css/technologies.css';
 
 const techs = [
@@ -20,6 +21,12 @@ const techs = [
   { name: 'CSS3',         icon: FaCss3Alt,          color: '#1572b6' },
   { name: 'JavaScript',   icon: FaJs,               color: '#f7df1e' },
   { name: 'React.js',     icon: FaReact,            color: '#61dafb' },
+  { name: 'React Native', icon: FaReact,            color: '#61dafb' },
+  { name: 'Flutter',      icon: SiFlutter,          color: '#54c5f8' },
+  { name: 'Dart',         icon: SiDart,             color: '#00b4ab' },
+  { name: 'Android',      icon: SiAndroid,          color: '#a4c639' },
+  { name: 'iOS',          icon: SiApple,            color: '#ffffff' },
+  { name: 'Mobile Apps',  icon: SmartphoneIcon,     color: '#b14cff' },
   { name: 'Next.js',      icon: SiNextdotjs,        color: '#ffffff' },
   { name: 'Node.js',      icon: FaNodeJs,           color: '#68a063' },
   { name: 'Firebase',     icon: SiFirebase,         color: '#ffca28' },
