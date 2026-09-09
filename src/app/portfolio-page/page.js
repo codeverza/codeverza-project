@@ -95,19 +95,19 @@ const designProjects = [
 
 // Add new poster images here. Each image is shown directly in the Graphic Design tab.
 const graphicPosters = [
-  { id: 'poster-01', title: 'Brand Campaign', src: '/graphic-posters/graphic-1.JPEG' },
-  { id: 'poster-13', title: 'Brand Campaign', src: '/graphic-posters/visit-card4.PNG' },
-  { id: 'poster-02', title: 'Brand Campaign', src: '/graphic-posters/graphic-2.JPEG' },
-  { id: 'poster-03', title: 'Brand Campaign', src: '/graphic-posters/travel-1.PNG' },
-  { id: 'poster-04', title: 'Brand Campaign', src: '/graphic-posters/graphic-3.JPEG' },
-  { id: 'poster-05', title: 'Brand Campaign', src: '/graphic-posters/mobile-1.PNG' },
-  { id: 'poster-06', title: 'Brand Campaign', src: '/graphic-posters/graphic-4.JPEG' },
-  { id: 'poster-07', title: 'Brand Campaign', src: '/graphic-posters/graphic-5.JPEG' },
-  { id: 'poster-10', title: 'Brand Campaign', src: '/graphic-posters/visit-card1.PNG' },
-  { id: 'poster-08', title: 'Brand Campaign', src: '/graphic-posters/graphic-6.JPEG' },
-  { id: 'poster-11', title: 'Brand Campaign', src: '/graphic-posters/visit-card2.PNG' },
-  { id: 'poster-09', title: 'Brand Campaign', src: '/graphic-posters/graphic-7.JPEG' },
-  { id: 'poster-12', title: 'Brand Campaign', src: '/graphic-posters/visit-card3.PNG' },
+  { id: 'poster-01', title: 'Brand Campaign', src: '/graphic-posters/graphic-1.jpeg' },
+  { id: 'poster-13', title: 'Brand Campaign', src: '/graphic-posters/visit-card4.png' },
+  { id: 'poster-02', title: 'Brand Campaign', src: '/graphic-posters/graphic-2.jpeg' },
+  { id: 'poster-03', title: 'Brand Campaign', src: '/graphic-posters/travel-1.png' },
+  { id: 'poster-04', title: 'Brand Campaign', src: '/graphic-posters/graphic-3.jpeg' },
+  { id: 'poster-05', title: 'Brand Campaign', src: '/graphic-posters/mobile-1.png' },
+  { id: 'poster-06', title: 'Brand Campaign', src: '/graphic-posters/graphic-4.jpeg' },
+  { id: 'poster-07', title: 'Brand Campaign', src: '/graphic-posters/graphic-5.jpeg' },
+  { id: 'poster-10', title: 'Brand Campaign', src: '/graphic-posters/visit-card1.png' },
+  { id: 'poster-08', title: 'Brand Campaign', src: '/graphic-posters/graphic-6.jpeg' },
+  { id: 'poster-11', title: 'Brand Campaign', src: '/graphic-posters/visit-card2.png' },
+  { id: 'poster-09', title: 'Brand Campaign', src: '/graphic-posters/graphic-7.jpeg' },
+  { id: 'poster-12', title: 'Brand Campaign', src: '/graphic-posters/visit-card3.png' },
 ];
 
 const animationProjects = [
