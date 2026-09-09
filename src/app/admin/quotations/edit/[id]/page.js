@@ -147,6 +147,14 @@ export default function EditQuotationPage() {
     }, 0);
   };
 
+  const calculateCurrencyTotals = () => {
+    return formData.services.reduce((totals, service) => {
+      const currency = service.currency || formData.currency;
+      totals[currency] = (totals[currency] || 0) + (service.quantity * service.price);
+      return totals;
+    }, {});
+  };
+
   const calculateDiscount = () => {
     const subtotal = calculateSubtotal();
     return (subtotal * formData.discount) / 100;
@@ -464,20 +472,6 @@ export default function EditQuotationPage() {
             </div>
 
             <div className="form-group">
-              <label>Currency</label>
-              <select
-                name="currency"
-                value={formData.currency}
-                onChange={handleInputChange}
-              >
-                <option value="PKR">PKR (₨)</option>
-                <option value="USD">USD ($)</option>
-                <option value="EUR">EUR (€)</option>
-                <option value="GBP">GBP (£)</option>
-              </select>
-            </div>
-
-            <div className="form-group">
               <label>Status</label>
               <select
                 name="status"
@@ -498,11 +492,7 @@ export default function EditQuotationPage() {
         <div className="form-section">
           <div className="section-header">
             <h2>Services</h2>
-            <button 
-              type="button" 
-              className="btn-add"
-              onClick={addService}
-            >
+            <button type="button" className="btn-add" onClick={addService}>
               <FiPlus /> Add Service
             </button>
           </div>
@@ -573,15 +563,21 @@ export default function EditQuotationPage() {
                 </div>
 
                 <div className="form-group">
-                  <label>Price ({formData.currency}) *</label>
-                  <input
-                    type="number"
-                    value={service.price}
-                    onChange={(e) => handleServiceChange(index, 'price', parseFloat(e.target.value) || 0)}
-                    min="0"
-                    step="0.01"
-                    required
-                  />
+                  <label>Price ({service.currency || formData.currency}) *</label>
+                  <div className="price-control">
+                    <input
+                      type="number"
+                      value={service.price}
+                      onChange={(e) => handleServiceChange(index, 'price', parseFloat(e.target.value) || 0)}
+                      min="0"
+                      step="0.01"
+                      required
+                    />
+                    <select value={service.currency || formData.currency} onChange={(e) => handleServiceChange(index, 'currency', e.target.value)} aria-label="Price currency">
+                      <option value="PKR">PKR</option>
+                      <option value="USD">USD</option>
+                    </select>
+                  </div>
                 </div>
 
                 <div className="form-group">
@@ -600,7 +596,7 @@ export default function EditQuotationPage() {
                   <label>Total</label>
                   <input
                     type="text"
-                    value={formatCurrency(service.quantity * service.price)}
+                    value={`${service.currency || formData.currency} ${formatCurrency(service.quantity * service.price)}`}
                     readOnly
                     className="readonly"
                   />
@@ -643,26 +639,18 @@ export default function EditQuotationPage() {
           </div>
 
           <div className="summary-table">
-            <div className="summary-row">
-              <span>Subtotal:</span>
-              <strong>{formData.currency} {formatCurrency(calculateSubtotal())}</strong>
-            </div>
-            {formData.discount > 0 && (
-              <div className="summary-row discount">
-                <span>Discount ({formData.discount}%):</span>
-                <strong>- {formData.currency} {formatCurrency(calculateDiscount())}</strong>
-              </div>
-            )}
-            {formData.tax > 0 && (
-              <div className="summary-row">
-                <span>Tax ({formData.tax}%):</span>
-                <strong>{formData.currency} {formatCurrency(calculateTax())}</strong>
-              </div>
-            )}
-            <div className="summary-row total">
-              <span>Grand Total:</span>
-              <strong>{formData.currency} {formatCurrency(calculateGrandTotal())}</strong>
-            </div>
+            {Object.entries(calculateCurrencyTotals()).map(([currency, subtotal]) => {
+              const discount = (subtotal * formData.discount) / 100;
+              const tax = ((subtotal - discount) * formData.tax) / 100;
+              return (
+                <div key={currency} className="currency-summary-group">
+                  <div className="summary-row"><span>{currency} Subtotal:</span><strong>{currency} {formatCurrency(subtotal)}</strong></div>
+                  {formData.discount > 0 && <div className="summary-row discount"><span>{currency} Discount ({formData.discount}%):</span><strong>- {currency} {formatCurrency(discount)}</strong></div>}
+                  {formData.tax > 0 && <div className="summary-row"><span>{currency} Tax ({formData.tax}%):</span><strong>{currency} {formatCurrency(tax)}</strong></div>}
+                  <div className="summary-row total"><span>{currency} Grand Total:</span><strong>{currency} {formatCurrency(subtotal - discount + tax)}</strong></div>
+                </div>
+              );
+            })}
           </div>
         </div>
         )}

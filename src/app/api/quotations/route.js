@@ -139,10 +139,13 @@ export async function POST(request) {
     const quotationNumber = await generateQuotationNumber(data.isEmployeeQuotation === true);
 
     // Calculate totals
-    const subtotal = data.services.reduce((sum, service) => {
-      return sum + (parseFloat(service.quantity) * parseFloat(service.price));
-    }, 0);
-
+    const totalsByCurrency = data.services.reduce((totals, service) => {
+      const currency = service.currency || data.currency || 'PKR';
+      const amount = parseFloat(service.quantity) * parseFloat(service.price);
+      totals[currency] = (totals[currency] || 0) + amount;
+      return totals;
+    }, {});
+    const subtotal = Object.values(totalsByCurrency).reduce((sum, amount) => sum + amount, 0);
     const discountAmount = (subtotal * (parseFloat(data.discount) || 0)) / 100;
     const taxableAmount = subtotal - discountAmount;
     const taxAmount = (taxableAmount * (parseFloat(data.tax) || 0)) / 100;
@@ -168,6 +171,7 @@ export async function POST(request) {
       
       // Services
       services: data.services,
+      totalsByCurrency,
       
       // Pricing
       subtotal,
@@ -239,9 +243,12 @@ export async function PUT(request) {
     // Recalculate totals if services or pricing changed
     if (updateData.services || updateData.discount !== undefined || updateData.tax !== undefined) {
       const services = updateData.services || data.services;
-      const subtotal = services.reduce((sum, service) => {
-        return sum + (service.quantity * service.price);
-      }, 0);
+      const totalsByCurrency = services.reduce((totals, service) => {
+        const currency = service.currency || updateData.currency || data.currency || 'PKR';
+        totals[currency] = (totals[currency] || 0) + (service.quantity * service.price);
+        return totals;
+      }, {});
+      const subtotal = Object.values(totalsByCurrency).reduce((sum, amount) => sum + amount, 0);
 
       const discountAmount = (subtotal * (updateData.discount ?? data.discount ?? 0)) / 100;
       const taxableAmount = subtotal - discountAmount;
@@ -252,6 +259,7 @@ export async function PUT(request) {
       updateData.discountAmount = discountAmount;
       updateData.taxAmount = taxAmount;
       updateData.grandTotal = grandTotal;
+      updateData.totalsByCurrency = totalsByCurrency;
     }
 
     updateData.updatedAt = serverTimestamp();

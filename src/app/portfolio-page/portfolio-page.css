@@ -134,6 +134,54 @@
 }
 .pp-live-btn:hover { box-shadow: 0 0 50px rgba(229,53,171,0.6); gap: 14px; }
 
+/* ── SOFTWARE PRODUCTS ── */
+.pp-software-section { margin-bottom: 40px; }
+.pp-software-intro {
+  max-width: 620px; margin: -18px 0 42px;
+  color: #888; font-size: 15px; line-height: 1.8;
+}
+.pp-software-grid {
+  display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 28px;
+}
+.pp-software-card {
+  background: rgba(255,255,255,0.035);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-top: 2px solid var(--mc, #b14cff);
+  border-radius: 22px; overflow: hidden;
+  transition: border-color 0.3s, box-shadow 0.3s;
+}
+.pp-software-card:hover {
+  border-color: var(--mc, #b14cff);
+  box-shadow: 0 18px 44px rgba(0,0,0,0.28), 0 0 34px color-mix(in srgb, var(--mc, #b14cff) 16%, transparent);
+}
+.pp-software-visual {
+  min-height: 250px; position: relative; overflow: hidden;
+  display: flex; align-items: center; justify-content: center;
+}
+.pp-software-glow {
+  position: absolute; width: 190px; height: 190px; border-radius: 50%;
+  opacity: 0.2; filter: blur(55px);
+}
+.pp-software-logo {
+  position: relative; z-index: 1;
+  width: 150px; height: 150px; object-fit: contain;
+  filter: drop-shadow(0 16px 24px rgba(0,0,0,0.35));
+  transition: transform 0.35s ease;
+}
+.pp-software-card:hover .pp-software-logo { transform: scale(1.08) rotate(-2deg); }
+.pp-software-body { padding: 26px 26px 30px; }
+.pp-software-title { font-size: 28px; font-weight: 850; line-height: 1.2; margin: 4px 0 12px; }
+.pp-software-body .pp-project-desc { margin-bottom: 20px; }
+.pp-software-btn { padding: 13px 22px; font-size: 14px; }
+
+@media (max-width: 700px) {
+  .pp-software-grid { grid-template-columns: 1fr; gap: 20px; }
+  .pp-software-intro { margin-bottom: 28px; }
+  .pp-software-visual { min-height: 210px; }
+  .pp-software-body { padding: 22px 20px 24px; }
+  .pp-software-title { font-size: 24px; }
+}
+
 /* ── SCREENS ── */
 .pp-screens-section { margin-bottom: 70px; }
 .pp-section-label {
@@ -310,6 +358,82 @@
   transition: gap 0.2s, opacity 0.2s;
 }
 .pp-more-link:hover { gap: 8px; opacity: 0.8; }
+
+/* ── POSTER GALLERY ── */
+.pp-poster-section { margin-bottom: 40px; }
+.pp-poster-intro {
+  max-width: 620px; margin: -18px 0 36px;
+  color: #888; font-size: 15px; line-height: 1.8;
+}
+.pp-poster-grid {
+  display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px;
+}
+.pp-poster-card {
+  position: relative; padding: 0; border: 1px solid rgba(177,76,255,0.18);
+  border-radius: 18px; overflow: hidden; background: #111; cursor: zoom-in;
+  aspect-ratio: 4 / 5; isolation: isolate;
+  transition: border-color 0.35s, box-shadow 0.35s, transform 0.35s;
+}
+.pp-poster-card:hover {
+  border-color: #b14cff;
+  box-shadow: 0 16px 36px rgba(177,76,255,0.16);
+}
+.pp-poster-card::after {
+  content: ''; position: absolute; inset: 0; z-index: 1;
+  background: linear-gradient(115deg, transparent 25%, rgba(255,255,255,0.18) 45%, transparent 65%);
+  transform: translateX(-130%); pointer-events: none;
+}
+.pp-poster-card:hover::after { animation: pp-poster-sheen 0.85s ease forwards; }
+@keyframes pp-poster-sheen { to { transform: translateX(130%); } }
+.pp-poster-image {
+  width: 100%; height: 100%; display: block; object-fit: cover;
+  transition: transform 0.65s cubic-bezier(0.2, 0.8, 0.2, 1), filter 0.4s ease;
+}
+.pp-poster-card:hover .pp-poster-image { transform: scale(1.07); filter: saturate(1.1) brightness(0.72); }
+.pp-poster-hover-icon {
+  position: absolute; z-index: 2; top: 50%; left: 50%; display: inline-flex;
+  align-items: center; gap: 8px; padding: 10px 14px; border-radius: 999px;
+  background: rgba(0,0,0,0.62); border: 1px solid rgba(255,255,255,0.35);
+  color: #fff; font-size: 12px; font-weight: 700; white-space: nowrap;
+  opacity: 0; transform: translate(-50%, -42%) scale(0.9);
+  transition: opacity 0.3s ease, transform 0.3s ease; pointer-events: none;
+}
+.pp-poster-card:hover .pp-poster-hover-icon { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+.pp-poster-caption {
+  position: absolute; z-index: 2; right: 12px; bottom: 12px; left: 12px;
+  padding: 9px 12px; border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 10px; background: rgba(0,0,0,0.62); backdrop-filter: blur(8px);
+  color: #fff; font-size: 12px; font-weight: 700; text-align: left;
+  transition: background 0.3s ease, transform 0.3s ease;
+}
+.pp-poster-card:hover .pp-poster-caption { background: rgba(177,76,255,0.68); transform: translateY(-4px); }
+.pp-poster-empty {
+  padding: 70px 20px; border: 1px dashed rgba(177,76,255,0.3);
+  border-radius: 18px; color: #777; text-align: center;
+}
+.pp-poster-lightbox {
+  position: fixed; inset: 0; z-index: 1200; padding: 34px;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(0,0,0,0.94); backdrop-filter: blur(12px);
+}
+.pp-lightbox-image {
+  max-width: 96vw; max-height: 92vh; width: auto; height: auto;
+  object-fit: contain; border-radius: 8px;
+  box-shadow: 0 20px 80px rgba(0,0,0,0.55);
+}
+.pp-lightbox-close {
+  position: absolute; top: 18px; right: 22px; z-index: 1;
+  width: 42px; height: 42px; border: 1px solid rgba(255,255,255,0.25);
+  border-radius: 50%; background: rgba(255,255,255,0.1); color: #fff;
+  font-size: 28px; line-height: 1; cursor: pointer;
+}
+.pp-lightbox-close:hover { background: rgba(177,76,255,0.5); }
+
+@media (max-width: 860px) { .pp-poster-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 540px) {
+  .pp-poster-grid { grid-template-columns: 1fr; }
+  .pp-poster-lightbox { padding: 18px; }
+}
 
 /* ── PROJECT DETAIL MODAL ── */
 .pp-modal-overlay {

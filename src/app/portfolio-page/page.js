@@ -12,6 +12,7 @@ import './portfolio-page.css';
 
 const CATEGORIES = [
   { id: 'development', label: 'Development', icon: <Code2 size={15} /> },
+  { id: 'Softwares', label: 'Softwares', icon: <Code2 size={15} /> },
   { id: 'design',      label: 'Graphic Design', icon: <Brush size={15} /> },
   { id: 'animation',   label: 'Animation',  icon: <Sparkles size={15} /> },
 ];
@@ -92,6 +93,23 @@ const designProjects = [
   },
 ];
 
+// Add new poster images here. Each image is shown directly in the Graphic Design tab.
+const graphicPosters = [
+  { id: 'poster-01', title: 'Brand Campaign', src: '/graphic-posters/graphic-1.JPEG' },
+  { id: 'poster-13', title: 'Brand Campaign', src: '/graphic-posters/visit-card4.PNG' },
+  { id: 'poster-02', title: 'Brand Campaign', src: '/graphic-posters/graphic-2.JPEG' },
+  { id: 'poster-03', title: 'Brand Campaign', src: '/graphic-posters/travel-1.PNG' },
+  { id: 'poster-04', title: 'Brand Campaign', src: '/graphic-posters/graphic-3.JPEG' },
+  { id: 'poster-05', title: 'Brand Campaign', src: '/graphic-posters/mobile-1.PNG' },
+  { id: 'poster-06', title: 'Brand Campaign', src: '/graphic-posters/graphic-4.JPEG' },
+  { id: 'poster-07', title: 'Brand Campaign', src: '/graphic-posters/graphic-5.JPEG' },
+  { id: 'poster-10', title: 'Brand Campaign', src: '/graphic-posters/visit-card1.PNG' },
+  { id: 'poster-08', title: 'Brand Campaign', src: '/graphic-posters/graphic-6.JPEG' },
+  { id: 'poster-11', title: 'Brand Campaign', src: '/graphic-posters/visit-card2.PNG' },
+  { id: 'poster-09', title: 'Brand Campaign', src: '/graphic-posters/graphic-7.JPEG' },
+  { id: 'poster-12', title: 'Brand Campaign', src: '/graphic-posters/visit-card3.PNG' },
+];
+
 const animationProjects = [
   {
     id: 'a1', title: 'Motion Graphics — Product Launch',
@@ -119,6 +137,31 @@ const animationProjects = [
     features: ['60-second explainer video', '2D character animation', 'Icon & UI animations', 'Voiceover-ready timing', 'Multiple language versions', 'Web & social exports'],
     color: '#ffd43b', gradient: 'linear-gradient(135deg, #2a1f00, #3d2e00)', emoji: '🎥', liveUrl: '#',
     detailPage: '/portfolio-page/explainer-animation',
+  },
+];
+
+const softwareProjects = [
+  {
+    id: 'erp-management',
+    title: 'ERP Management',
+    category: 'Business Management Software',
+    desc: 'A centralized ERP platform for managing business operations, teams, records, and day-to-day workflows from one powerful dashboard.',
+    logo: '/img/novexa-logo.png',
+    color: '#43d5ff',
+    gradient: 'linear-gradient(135deg, #061b2e 0%, #073b5c 55%, #0b1728 100%)',
+    tags: ['ERP System', 'Admin Dashboard', 'Business Operations'],
+    liveUrl: 'https://novexaerp.codeverza.com',
+  },
+  {
+    id: 'gym-management',
+    title: 'Gym Management',
+    category: 'Fitness Management Software',
+    desc: 'A focused gym management system for memberships, trainers, attendance, plans, and the daily rhythm of a modern fitness business.',
+    logo: '/img/gym-logo.png',
+    color: '#ff8a22',
+    gradient: 'linear-gradient(135deg, #271005 0%, #54200a 55%, #160d0a 100%)',
+    tags: ['Gym Software', 'Memberships', 'Attendance'],
+    liveUrl: 'https://gymtitan.codeverza.com',
   },
 ];
 
@@ -208,6 +251,7 @@ function PortfolioContent() {
   const searchParams = useSearchParams();
   const [hovered, setHovered] = useState(null);
   const [activeProject, setActiveProject] = useState(null);
+  const [activePoster, setActivePoster] = useState(null);
   const [activeCategory, setActiveCategory] = useState(
     () => searchParams.get('tab') ?? 'development'
   );
@@ -243,7 +287,7 @@ function PortfolioContent() {
           {CATEGORIES.map(c => (
             <motion.button key={c.id}
               className={`pp-cat-tab ${activeCategory === c.id ? 'pp-cat-active' : ''}`}
-              onClick={() => { setActiveCategory(c.id); setActiveProject(null); }}
+              onClick={() => { setActiveCategory(c.id); setActiveProject(null); setActivePoster(null); }}
               whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.97 }}
             >
               {c.icon} {c.label}
@@ -390,34 +434,72 @@ function PortfolioContent() {
 
           </>) /* end development */}
 
+          {/* ── SOFTWARE PROJECTS ── */}
+          {activeCategory === 'Softwares' && (
+            <motion.div className="pp-software-section"
+              initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.55 }}
+            >
+              <div className="pp-section-label">Our Software Products</div>
+              <h2 className="pp-section-title">Tools That <span className="pp-purple">Move Work Forward</span></h2>
+              <p className="pp-software-intro">Purpose-built platforms designed to make complex operations feel simple, clear, and ready to scale.</p>
+
+              <div className="pp-software-grid">
+                {softwareProjects.map((software, i) => (
+                  <motion.article key={software.id} className="pp-software-card"
+                    style={{ '--mc': software.color }}
+                    initial={{ opacity: 0, y: 28 }} animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: i * 0.12 }}
+                    whileHover={{ y: -8 }}
+                  >
+                    <div className="pp-software-visual" style={{ background: software.gradient }}>
+                      <div className="pp-software-glow" style={{ background: software.color }} />
+                      <img src={software.logo} alt={`${software.title} logo`} className="pp-software-logo" />
+                    </div>
+                    <div className="pp-software-body">
+                      <div className="pp-project-cat" style={{ color: software.color }}>{software.category}</div>
+                      <h3 className="pp-software-title">{software.title}</h3>
+                      <p className="pp-project-desc">{software.desc}</p>
+                      <div className="pp-project-tags">
+                        {software.tags.map(tag => <span key={tag} className="pp-tag">{tag}</span>)}
+                      </div>
+                      <a href={software.liveUrl} target="_blank" rel="noopener noreferrer"
+                        className="pp-live-btn pp-software-btn"
+                        style={{ background: `linear-gradient(135deg, ${software.color}, #6a00ff)` }}
+                      >
+                        <Eye size={16} /> Open Software <ExternalLink size={14} />
+                      </a>
+                    </div>
+                  </motion.article>
+                ))}
+              </div>
+            </motion.div>
+          )}
+
           {/* ── DESIGN PROJECTS ── */}
           {activeCategory === 'design' && (
-            <div className="pp-other-grid">
-              {designProjects.map((p, i) => (
-                <motion.div key={p.id} className="pp-more-card"
-                  style={{ '--mc': p.color }}
-                  initial={{ opacity: 0, y: 30 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: i * 0.1 }}
-                  whileHover={{ y: -6 }}
-                  onClick={() => router.push(p.detailPage)}
-                >
-                  <div className="pp-more-visual" style={{ background: p.gradient }}>
-                    <span className="pp-more-emoji">{p.emoji}</span>
-                  </div>
-                  <div className="pp-more-body">
-                    <div className="pp-more-cat" style={{ color: p.color }}>Graphic Design</div>
-                    <h4 className="pp-more-title">{p.title}</h4>
-                    <p className="pp-more-desc">{p.desc}</p>
-                    <div className="pp-more-tags">
-                      {p.tags.map(t => <span key={t} className="pp-tag">{t}</span>)}
-                    </div>
-                    <button className="pp-more-link" style={{ color: p.color, background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontFamily: 'inherit' }}>
-                      <Eye size={13} /> View Details
-                    </button>
-                  </div>
-                </motion.div>
-              ))}
+            <div className="pp-poster-section">
+              <div className="pp-section-label">Graphic Design Gallery</div>
+              <h2 className="pp-section-title">Every Poster, <span className="pp-purple">On Display</span></h2>
+              <p className="pp-poster-intro">A visual collection of campaigns, brand artwork, and promotional designs.</p>
+
+              {graphicPosters.length > 0 ? (
+                <div className="pp-poster-grid">
+                  {graphicPosters.map((poster, i) => (
+                    <motion.button key={poster.id} type="button" className="pp-poster-card"
+                      onClick={() => setActivePoster(poster)}
+                      initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: i * 0.08 }} whileHover={{ y: -6 }}
+                    >
+                      <img src={poster.src} alt={poster.title} className="pp-poster-image" />
+                      <span className="pp-poster-hover-icon"><Eye size={18} /> View Full Poster</span>
+                      <span className="pp-poster-caption">{poster.title}</span>
+                    </motion.button>
+                  ))}
+                </div>
+              ) : (
+                <div className="pp-poster-empty">Your design posters will appear here.</div>
+              )}
             </div>
           )}
 
@@ -532,6 +614,27 @@ function PortfolioContent() {
                 )}
               </div>
             </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {activePoster && (
+          <motion.div className="pp-poster-lightbox"
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            onClick={() => setActivePoster(null)}
+          >
+            <button type="button" className="pp-lightbox-close" onClick={() => setActivePoster(null)} aria-label="Close poster">
+              ×
+            </button>
+            <motion.img
+              src={activePoster.src}
+              alt={activePoster.title}
+              className="pp-lightbox-image"
+              initial={{ opacity: 0, scale: 0.94 }} animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.94 }}
+              onClick={e => e.stopPropagation()}
+            />
           </motion.div>
         )}
       </AnimatePresence>

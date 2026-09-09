@@ -74,6 +74,15 @@ export default function QuotationPreviewPage() {
     }).format(amount);
   };
 
+  const getCurrencyTotals = () => {
+    if (quotation?.totalsByCurrency) return quotation.totalsByCurrency;
+    return (quotation?.services || []).reduce((totals, service) => {
+      const currency = service.currency || quotation?.currency || 'PKR';
+      totals[currency] = (totals[currency] || 0) + (service.quantity * service.price);
+      return totals;
+    }, {});
+  };
+
   const handlePrint = () => {
     window.print();
   };
@@ -81,386 +90,249 @@ export default function QuotationPreviewPage() {
   const generatePDFDocument = async () => {
     if (!quotation) return;
     
-    setGenerating(true);
-    
     try {
-      // Dynamically import jspdf-autotable to ensure proper loading
+      // Use html2canvas for PDF generation (similar to joining letters)
+      const html2canvas = (await import('html2canvas')).default;
       const { jsPDF } = await import('jspdf');
-      await import('jspdf-autotable');
       
+      const documentElement = document.querySelector('.quotation-document');
+      if (!documentElement) throw new Error('Document not found');
+
+      const footerElement = documentElement.querySelector('.quotation-footer');
+      const headerElement = documentElement.querySelector('.quotation-header');
+      const bodyElement = documentElement.querySelector('.document-body');
+      
+      const headerPadding = headerElement?.style.padding;
+      const footerPadding = footerElement?.style.padding;
+      const bodyPaddingBottom = bodyElement?.style.paddingBottom;
+      
+      if (headerElement) headerElement.style.padding = '12px 40px';
+      if (footerElement) footerElement.style.padding = '10px 40px';
+      if (bodyElement) bodyElement.style.paddingBottom = '120px';
+
+      const headerCanvas = headerElement ? await html2canvas(headerElement, {
+        backgroundColor: null, scale: 2, useCORS: true, logging: false
+      }) : null;
+
+      const footerCanvas = footerElement ? await html2canvas(footerElement, {
+        backgroundColor: null, scale: 2, useCORS: true, logging: false
+      }) : null;
+
+      if (headerElement) headerElement.style.padding = headerPadding;
+      if (footerElement) footerElement.style.padding = footerPadding;
+      if (bodyElement) bodyElement.style.paddingBottom = bodyPaddingBottom;
+
+      const footerDisplay = footerElement?.style.display;
+      if (footerElement) footerElement.style.display = 'none';
+
+      const canvas = await html2canvas(documentElement, {
+        backgroundColor: '#ffffff', scale: 2, useCORS: true, logging: false,
+        windowWidth: documentElement.scrollWidth, windowHeight: documentElement.scrollHeight,
+        onclone: (clonedDocument) => {
+          const stamp = clonedDocument.querySelector('.codeverza-stamp');
+          if (stamp) {
+            stamp.style.transform = 'rotate(-5deg)';
+            stamp.style.position = 'relative';
+            stamp.style.zIndex = '2';
+            stamp.style.backgroundColor = '#ffffff';
+          }
+        }
+      });
+      
+      if (footerElement) footerElement.style.display = footerDisplay;
+      if (bodyElement) bodyElement.style.paddingBottom = bodyPaddingBottom;
+
       const pdf = new jsPDF('p', 'mm', 'a4');
       const pageWidth = pdf.internal.pageSize.getWidth();
       const pageHeight = pdf.internal.pageSize.getHeight();
-      let yPosition = 20;
-
-      // Load company logo using native browser Image
-      let logoLoaded = false;
-      const logoImg = typeof window !== 'undefined' ? window.Image ? new window.Image() : document.createElement('img') : null;
+      const headerHeight = headerCanvas ? (headerCanvas.height / headerCanvas.width) * pageWidth : 0;
+      const footerHeight = footerCanvas ? (footerCanvas.height / footerCanvas.width) * pageWidth : 0;
       
-      if (logoImg) {
-        logoImg.crossOrigin = 'anonymous';
-        logoImg.src = '/img/codeverza-logo.png';
-        
-        // Wait for logo to load with timeout
-        try {
-          await Promise.race([
-            new Promise((resolve) => {
-              logoImg.onload = () => {
-                logoLoaded = true;
-                resolve();
-              };
-              logoImg.onerror = resolve;
-            }),
-            new Promise((resolve) => setTimeout(resolve, 2000)) // 2 second timeout
-          ]);
-        } catch (err) {
-          console.log('Logo loading timed out or failed');
-        }
-      }
+      const footerBuffer = 20;
+      const availableContentHeight = pageHeight - footerHeight - footerBuffer;
+      const pixelsPerMm = canvas.width / pageWidth;
+      const firstPageHeight = Math.floor(availableContentHeight * pixelsPerMm);
+      const followingPageHeight = Math.floor(
+        (availableContentHeight - headerHeight - 10) * pixelsPerMm
+      );
 
-      // Function to add header on each page
-      const addHeader = (pdf) => {
-        // Thin header bar
-        pdf.setFillColor(13, 27, 62);
-        pdf.rect(0, 0, pageWidth, 28, 'F');
-        
-        // Accent line
-        pdf.setFillColor(79, 142, 247);
-        pdf.rect(0, 28, pageWidth, 1.5, 'F');
-        
-        // Company Logo (small, left side)
-        if (logoLoaded && logoImg) {
-          try {
-            pdf.addImage(logoImg, 'PNG', 12, 8, 12, 12);
-          } catch (err) {
-            console.log('Failed to add logo');
+      // Keep each rendered text line together when choosing a manual page break.
+      const findSafePageBreak = (proposedBreak, pageStart, pageEnd) => {
+        const context = canvas.getContext('2d', { willReadFrequently: true });
+        const scanLeft = Math.floor(canvas.width * 0.1);
+        const scanRight = Math.floor(canvas.width * 0.9);
+        const isBlankRow = (row) => {
+          if (row < 0 || row >= canvas.height) return false;
+
+          const pixels = context.getImageData(scanLeft, row, scanRight - scanLeft, 1).data;
+          let darkPixels = 0;
+          for (let index = 0; index < pixels.length; index += 16) {
+            if (pixels[index] < 235 || pixels[index + 1] < 235 || pixels[index + 2] < 235) {
+              darkPixels += 1;
+              if (darkPixels > 2) return false;
+            }
+          }
+          return true;
+        };
+
+        const searchStart = Math.min(proposedBreak - 1, pageEnd - 1);
+        const searchEnd = Math.max(pageStart + 4, searchStart - 180);
+        for (let row = searchStart; row >= searchEnd; row -= 1) {
+          if (
+            isBlankRow(row - 2) &&
+            isBlankRow(row - 1) &&
+            isBlankRow(row) &&
+            isBlankRow(row + 1)
+          ) {
+            return row - 1;
           }
         }
-        
-        // Company Name
-        pdf.setTextColor(255, 255, 255);
-        pdf.setFontSize(14);
-        pdf.setFont('helvetica', 'bold');
-        pdf.text('CODEVERZA', 28, 16);
-        
-        // Tagline
-        pdf.setFontSize(7);
-        pdf.setFont('helvetica', 'normal');
-        pdf.text('Professional Web Development Solutions', 28, 20);
-        
-        // Contact info (right side, compact)
-        pdf.setFontSize(7);
-        const contactX = pageWidth - 12;
-        pdf.text(quotation.companyWebsite || 'www.codeverza.com', contactX, 12, { align: 'right' });
-        pdf.text(quotation.companyEmail || 'info@codeverza.com', contactX, 16, { align: 'right' });
-        pdf.text(quotation.companyPhone || '+92 325 1507557', contactX, 20, { align: 'right' });
+
+        return proposedBreak;
       };
-
-      // Function to add footer on each page
-      const addFooter = (pdf, pageNum, totalPages) => {
-        const footerY = pageHeight - 18;
-        
-        // Accent line
-        pdf.setFillColor(79, 142, 247);
-        pdf.rect(0, footerY - 1, pageWidth, 1, 'F');
-        
-        // Footer background
-        pdf.setFillColor(13, 27, 62);
-        pdf.rect(0, footerY, pageWidth, 18, 'F');
-        
-        // Left side - Thank you message
-        pdf.setTextColor(255, 255, 255);
-        pdf.setFontSize(8);
-        pdf.setFont('helvetica', 'bold');
-        pdf.text('Thank you for choosing Codeverza!', 12, footerY + 7);
-        
-        pdf.setFontSize(6.5);
-        pdf.setFont('helvetica', 'normal');
-        pdf.setTextColor(200, 200, 200);
-        pdf.text('Delivering excellence in web development since 2020', 12, footerY + 12);
-        
-        // Right side - Page number
-        pdf.setFontSize(7);
-        pdf.setTextColor(200, 200, 200);
-        pdf.text(`Page ${pageNum} of ${totalPages}`, pageWidth - 12, footerY + 10, { align: 'right' });
-      };
-
-      // Add header on first page
-      addHeader(pdf);
-
-      yPosition = 35;
-
-      // Quotation Title Band (directly after header, no gap)
-      pdf.setFillColor(240, 244, 255);
-      pdf.rect(0, yPosition, pageWidth, 14, 'F');
       
-      // Border line
-      pdf.setDrawColor(221, 230, 255);
-      pdf.setLineWidth(0.3);
-      pdf.line(0, yPosition + 14, pageWidth, yPosition + 14);
-      
-      pdf.setTextColor(13, 27, 62);
-      pdf.setFontSize(16);
-      pdf.setFont('helvetica', 'bold');
-      pdf.text('QUOTATION', 15, yPosition + 9);
-      
-      // Quotation number (right side)
-      pdf.setFontSize(9);
-      pdf.setFont('helvetica', 'normal');
-      pdf.setTextColor(100, 100, 100);
-      const refLabel = 'Ref No: ';
-      const refWidth = pdf.getTextWidth(refLabel);
-      pdf.text(refLabel, pageWidth - 15 - pdf.getTextWidth(quotation.quotationNumber) - refWidth, yPosition + 9, { align: 'left' });
-      pdf.setFont('helvetica', 'bold');
-      pdf.setTextColor(13, 27, 62);
-      pdf.text(quotation.quotationNumber, pageWidth - 15, yPosition + 9, { align: 'right' });
-      
-      yPosition += 22;
+      const pageBreaks = [0];
+      while (pageBreaks[pageBreaks.length - 1] < canvas.height) {
+        const pageIndex = pageBreaks.length - 1;
+        const pageHeightInPixels = pageIndex === 0 ? firstPageHeight : followingPageHeight;
+        const pageStart = pageBreaks[pageBreaks.length - 1];
+        const proposedBreak = Math.min(canvas.height, pageStart + pageHeightInPixels);
+        const nextBreak = proposedBreak < canvas.height
+          ? findSafePageBreak(proposedBreak, pageStart, pageStart + pageHeightInPixels)
+          : proposedBreak;
 
-      // Two-column layout for Quotation Details and Client Details (with styled boxes like preview)
-      const boxMargin = 15;
-      const boxWidth = quotation.isEmployeeQuotation ? (pageWidth - 2 * boxMargin) : ((pageWidth - 3 * boxMargin) / 2);
-      const leftBoxX = boxMargin;
-      const rightBoxX = pageWidth - boxMargin - boxWidth;
-      let currentY = yPosition;
-
-      // Left Box - Quotation Details (styled box with header)
-      const quotationDetailsLines = [];
-      if (quotation.issueDate) {
-        quotationDetailsLines.push({ label: 'Issue Date', value: formatDate(quotation.issueDate) });
-      }
-      if (quotation.validityDate) {
-        quotationDetailsLines.push({ label: 'Valid Until', value: formatDate(quotation.validityDate) });
-      }
-      quotationDetailsLines.push({ label: 'Status', value: quotation.status });
-      if (quotation.currency) {
-        quotationDetailsLines.push({ label: 'Currency', value: quotation.currency });
+        if (nextBreak > pageBreaks[pageBreaks.length - 1]) pageBreaks.push(nextBreak);
+        else break;
       }
 
-      const detailsBoxHeight = 10 + (quotationDetailsLines.length * 7) + 6;
+      for (let pageIndex = 0; pageIndex < pageBreaks.length - 1; pageIndex++) {
+        if (pageIndex > 0) pdf.addPage();
+        const sourceY = pageBreaks[pageIndex];
+        const sourceHeight = pageBreaks[pageIndex + 1] - sourceY;
+        const topMargin = pageIndex > 0 ? headerHeight + 10 : 0;
+        
+        const pageCanvas = document.createElement('canvas');
+        pageCanvas.width = canvas.width;
+        pageCanvas.height = sourceHeight;
+        pageCanvas.getContext('2d').drawImage(canvas, 0, sourceY, canvas.width, sourceHeight, 0, 0, pageCanvas.width, pageCanvas.height);
 
-      // Border
-      pdf.setDrawColor(232, 237, 245);
-      pdf.setLineWidth(0.5);
-      pdf.roundedRect(leftBoxX, currentY, boxWidth, detailsBoxHeight, 2, 2, 'S');
+        const imageHeight = (sourceHeight / canvas.width) * pageWidth;
+        pdf.addImage(pageCanvas.toDataURL('image/jpeg', 0.98), 'JPEG', 0, topMargin, pageWidth,
+          Math.min(availableContentHeight - (pageIndex > 0 ? 10 : 0), imageHeight));
+      }
 
-      // Header background
-      pdf.setFillColor(13, 27, 62);
-      pdf.rect(leftBoxX, currentY, boxWidth, 10, 'F');
+      if (footerCanvas) {
+        const footerImage = footerCanvas.toDataURL('image/png');
+        for (let i = 1; i <= pdf.internal.getNumberOfPages(); i++) {
+          pdf.setPage(i);
+          pdf.addImage(footerImage, 'PNG', 0, pageHeight - footerHeight, pageWidth, footerHeight);
+        }
+      }
 
-      // Header text
-      pdf.setTextColor(255, 255, 255);
-      pdf.setFontSize(10);
-      pdf.setFont('helvetica', 'bold');
-      pdf.text('QUOTATION DETAILS', leftBoxX + 4, currentY + 6.5);
+      if (headerCanvas) {
+        const headerImage = headerCanvas.toDataURL('image/png');
+        for (let i = 2; i <= pdf.internal.getNumberOfPages(); i++) {
+          pdf.setPage(i);
+          pdf.addImage(headerImage, 'PNG', 0, 0, pageWidth, headerHeight);
+        }
+      }
 
-      // Body background
-      pdf.setFillColor(250, 251, 255);
-      pdf.rect(leftBoxX, currentY + 10, boxWidth, detailsBoxHeight - 10, 'F');
+      return pdf;
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      throw error;
+    }
+  };
 
-      // Body content
-      pdf.setTextColor(0, 0, 0);
-      pdf.setFontSize(9);
-      let detailY = currentY + 17;
-      quotationDetailsLines.forEach(item => {
-        pdf.setFont('helvetica', 'bold');
-        pdf.text(item.label + ':', leftBoxX + 4, detailY);
-        pdf.setFont('helvetica', 'normal');
-        pdf.text(item.value, leftBoxX + 35, detailY);
-        detailY += 7;
+  const generatePDF = async () => {
+    setGenerating(true);
+    
+    try {
+      const pdf = await generatePDFDocument();
+      
+      // Save/Download PDF
+      pdf.save(`Quotation_${quotation.quotationNumber}.pdf`);
+      
+      Swal.fire({
+        icon: 'success',
+        title: 'PDF Generated',
+        text: 'Quotation downloaded successfully',
+        timer: 2000
       });
 
-      // Right Box - Client Details (only if not employee quotation)
-      if (!quotation.isEmployeeQuotation) {
-        const clientDetailsLines = [];
-        clientDetailsLines.push({ type: 'name', value: quotation.clientName });
-        if (quotation.clientCompany) {
-          clientDetailsLines.push({ type: 'company', value: quotation.clientCompany });
-        }
-        clientDetailsLines.push({ type: 'contact', value: quotation.clientEmail });
-        if (quotation.clientPhone) {
-          clientDetailsLines.push({ type: 'contact', value: quotation.clientPhone });
-        }
-        if (quotation.clientAddress) {
-          clientDetailsLines.push({ type: 'address', value: quotation.clientAddress });
-        }
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'Failed to generate PDF'
+      });
+    } finally {
+      setGenerating(false);
+    }
+  };
 
-        const clientBoxHeight = 10 + (clientDetailsLines.length * 7) + 6;
-
-        // Border
-        pdf.setDrawColor(232, 237, 245);
-        pdf.setLineWidth(0.5);
-        pdf.roundedRect(rightBoxX, currentY, boxWidth, clientBoxHeight, 2, 2, 'S');
-
-        // Header background
-        pdf.setFillColor(13, 27, 62);
-        pdf.rect(rightBoxX, currentY, boxWidth, 10, 'F');
-
-        // Header text
-        pdf.setTextColor(255, 255, 255);
-        pdf.setFontSize(10);
-        pdf.setFont('helvetica', 'bold');
-        pdf.text('BILLED TO', rightBoxX + 4, currentY + 6.5);
-
-        // Body background
-        pdf.setFillColor(255, 255, 255);
-        pdf.rect(rightBoxX, currentY + 10, boxWidth, clientBoxHeight - 10, 'F');
-
-        // Body content
-        pdf.setTextColor(0, 0, 0);
-        pdf.setFontSize(9);
-        let clientY = currentY + 17;
-        clientDetailsLines.forEach(item => {
-          if (item.type === 'name') {
-            pdf.setFont('helvetica', 'bold');
-            pdf.setFontSize(10);
-          } else if (item.type === 'company') {
-            pdf.setFont('helvetica', 'normal');
-            pdf.setFontSize(9);
-          } else {
-            pdf.setFont('helvetica', 'normal');
-            pdf.setFontSize(8.5);
-          }
-          pdf.text(item.value, rightBoxX + 4, clientY);
-          clientY += 7;
-        });
-
-        yPosition = currentY + Math.max(detailsBoxHeight, clientBoxHeight) + 10;
-      } else {
-        yPosition = currentY + detailsBoxHeight + 10;
-      }
-
-      // Add spacing before table
-      yPosition += 5;
-
-      // IMPORTANT: Ensure table starts on page 1 by capping the Y position
-      // If yPosition is too high (close to bottom), autoTable will skip to page 2
-      // For employee quotations, yPosition might be around 90-100mm
-      // We need to ensure it's not too close to page bottom (297mm)
-      const MAX_START_Y_FOR_TABLE = 180; // If starting position > 180mm, table will go to page 2
-      if (yPosition > MAX_START_Y_FOR_TABLE) {
-        console.warn(`Table starting Y (${yPosition}) is too high, autoTable might skip to page 2`);
-      }
-
-      // Check if we have reasonable space on first page for table
-      // If not enough space, it's better to add content on same page anyway
-      const availableSpaceOnFirstPage = pageHeight - yPosition - 25; // 25 for footer
-      console.log('Available space for table:', availableSpaceOnFirstPage, 'Starting Y:', yPosition);
-
-      // Services Table with proper formatting
-      const tableData = quotation.services.map(service => {
-        // Format description with proper line breaks for numbered lists
-        const formattedDesc = service.description || '-';
-        
-        return [
-          service.name,
-          formattedDesc,
-          service.quantity.toString(),
-          formatCurrency(service.price, quotation.currency),
-          service.billingCycle,
-          formatCurrency(service.quantity * service.price, quotation.currency)
-        ];
+  const previewPDF = async () => {
+    setGenerating(true);
+    
+    try {
+      const pdf = await generatePDFDocument();
+      
+      // Open PDF in new window/tab for preview
+      const pdfBlob = pdf.output('blob');
+      const pdfUrl = URL.createObjectURL(pdfBlob);
+      window.open(pdfUrl, '_blank');
+      
+      Swal.fire({
+        icon: 'success',
+        title: 'PDF Preview',
+        text: 'Opening PDF in new window',
+        timer: 2000
       });
 
-      if (typeof pdf.autoTable === 'function') {
-        // Prevent autoTable from creating a blank first page
-        const currentPage = pdf.internal.getCurrentPageInfo().pageNumber;
-        
-        pdf.autoTable({
-          startY: yPosition,
-          head: [['Service', 'Description', 'Qty', 'Price', 'Billing', 'Total']],
-          body: tableData,
-          theme: 'grid',
-          headStyles: {
-            fillColor: [13, 27, 62],
-            textColor: [255, 255, 255],
-            fontStyle: 'bold',
-            fontSize: 10,
-            halign: 'left',
-            valign: 'middle',
-            cellPadding: { top: 5, right: 4, bottom: 5, left: 4 }
-          },
-          bodyStyles: {
-            fontSize: 9.5,
-            cellPadding: { top: 7, right: 4, bottom: 7, left: 4 },
-            lineColor: [221, 230, 255],
-            lineWidth: 0.1,
-            valign: 'top',
-            textColor: [0, 0, 0],
-            minCellHeight: 16,
-            lineHeight: 1.6
-          },
-          alternateRowStyles: {
-            fillColor: [250, 251, 255]
-          },
-          columnStyles: {
-            0: { 
-              cellWidth: 40, 
-              overflow: 'linebreak', 
-              halign: 'left',
-              fontStyle: 'bold',
-              textColor: [13, 27, 62],
-              minCellHeight: 16,
-              fontSize: 9.5
-            },
-            1: { 
-              cellWidth: 52,
-              overflow: 'linebreak',
-              halign: 'left',
-              minCellHeight: 16,
-              fontSize: 8.5,
-              textColor: [0, 0, 0],
-              cellPadding: { top: 7, right: 3, bottom: 7, left: 3 },
-              lineHeight: 1.6
-            },
-            2: { 
-              cellWidth: 12, 
-              halign: 'center',
-              overflow: 'visible',
-              fontSize: 9
-            },
-            3: { 
-              cellWidth: 28, 
-              halign: 'right',
-              overflow: 'linebreak',
-              fontSize: 9
-            },
-            4: { 
-              cellWidth: 22, 
-              overflow: 'linebreak', 
-              halign: 'left',
-              fontSize: 8
-            },
-            5: { 
-              cellWidth: 26, 
-              halign: 'right',
-              fontStyle: 'bold',
-              textColor: [13, 27, 62],
-              overflow: 'linebreak',
-              fontSize: 9.5
-            }
-          },
-          tableLineColor: [221, 230, 255],
-          tableLineWidth: 0.1,
-          didParseCell: function(data) {
-            // Make service name bold
-            if (data.column.index === 0 && data.section === 'body') {
-              data.cell.styles.fontStyle = 'bold';
-              data.cell.styles.fontSize = 9.5;
-            }
-            // Ensure description has proper wrapping and height
-            if (data.column.index === 1 && data.section === 'body') {
-              data.cell.styles.overflow = 'linebreak';
-              data.cell.styles.minCellHeight = 16;
-              data.cell.styles.fontSize = 8.5;
-            }
-          },
-          willDrawPage: function(data) {
-            // Force table to render on current page (page 1) if it's the initial render
-            // AutoTable sometimes skips to page 2 thinking there's not enough space
-            // But we want at least the header row on page 1
-          },
-          didDrawPage: function(data) {
+    } catch (error) {
+      console.error('Error previewing PDF:', error);
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'Failed to preview PDF'
+      });
+    } finally {
+      setGenerating(false);
+    }
+  };
+
+  const handleWhatsAppShare = () => {
+    if (!quotation) return;
+    
+    const message = `Hi ${quotation.clientName},%0A%0APlease find your quotation details:%0A%0AQuotation Number: ${quotation.quotationNumber}%0AAmount: ${formatCurrency(quotation.grandTotal, quotation.currency)}%0AValid Until: ${formatDate(quotation.validityDate)}%0A%0AFor full details, please contact us.%0A%0AThank you!%0ACodeverza Team`;
+    
+    const whatsappUrl = `https://wa.me/${quotation.clientPhone?.replace(/[^0-9]/g, '')}?text=${message}`;
+    window.open(whatsappUrl, '_blank');
+  };
+
+  const handleEmailShare = () => {
+    if (!quotation) return;
+    
+    const subject = `Quotation ${quotation.quotationNumber} - Codeverza`;
+    const body = `Dear ${quotation.clientName},%0A%0APlease find your quotation details below:%0A%0AQuotation Number: ${quotation.quotationNumber}%0AAmount: ${formatCurrency(quotation.grandTotal, quotation.currency)}%0AIssue Date: ${formatDate(quotation.issueDate)}%0AValid Until: ${formatDate(quotation.validityDate)}%0A%0AFor complete details, please refer to the attached quotation document.%0A%0AThank you for considering Codeverza!%0A%0ABest regards,%0ACodeverza Team`;
+    
+    const mailtoUrl = `mailto:${quotation.clientEmail}?subject=${subject}&body=${body}`;
+    window.location.href = mailtoUrl;
+  };
+
+  const handleCopyLink = () => {
+    const url = window.location.href;
+    navigator.clipboard.writeText(url);
+    Swal.fire({
+      icon: 'success',
+      title: 'Link Copied',
+      text: 'Quotation link copied to clipboard',
+      timer: 2000
+    });
+  };
+
+  /*
             // Add header on new pages only (first page already has content)
             if (data.pageNumber > 1) {
               addHeader(pdf);
@@ -991,6 +863,8 @@ export default function QuotationPreviewPage() {
     });
   };
 
+  */
+
   if (loading) {
     return (
       <div className="quotation-preview-page">
@@ -1216,12 +1090,12 @@ export default function QuotationPreviewPage() {
                       ) : '—'}
                     </td>
                     <td className="text-center">{service.quantity}</td>
-                    <td className="text-right">{formatCurrency(service.price, quotation.currency)}</td>
+                    <td className="text-right">{formatCurrency(service.price, service.currency || quotation.currency)}</td>
                     <td style={{ textTransform: 'capitalize', fontSize: '11.5px', color: '#666' }}>
                       {service.billingCycle}
                     </td>
                     <td className="text-right">
-                      {formatCurrency(service.quantity * service.price, quotation.currency)}
+                      {formatCurrency(service.quantity * service.price, service.currency || quotation.currency)}
                     </td>
                   </tr>
                 ))}
@@ -1233,26 +1107,18 @@ export default function QuotationPreviewPage() {
           {!quotation.isEmployeeQuotation && (
           <div className="totals-wrapper">
             <div className="pricing-summary-section">
-              <div className="sum-row">
-                <span>Subtotal</span>
-                <span>{formatCurrency(quotation.subtotal, quotation.currency)}</span>
-              </div>
-              {quotation.discount > 0 && (
-                <div className="sum-row discount">
-                  <span>Discount ({quotation.discount}%)</span>
-                  <span>− {formatCurrency(quotation.discountAmount, quotation.currency)}</span>
-                </div>
-              )}
-              {quotation.tax > 0 && (
-                <div className="sum-row">
-                  <span>Tax ({quotation.tax}%)</span>
-                  <span>{formatCurrency(quotation.taxAmount, quotation.currency)}</span>
-                </div>
-              )}
-              <div className="sum-row grand-total">
-                <span>Grand Total</span>
-                <span>{formatCurrency(quotation.grandTotal, quotation.currency)}</span>
-              </div>
+              {Object.entries(getCurrencyTotals()).map(([currency, subtotal]) => {
+                const discount = (subtotal * (quotation.discount || 0)) / 100;
+                const tax = ((subtotal - discount) * (quotation.tax || 0)) / 100;
+                return (
+                  <div key={currency} className="currency-summary-group">
+                    <div className="sum-row"><span>{currency} Subtotal</span><span>{formatCurrency(subtotal, currency)}</span></div>
+                    {quotation.discount > 0 && <div className="sum-row discount"><span>{currency} Discount ({quotation.discount}%)</span><span>− {formatCurrency(discount, currency)}</span></div>}
+                    {quotation.tax > 0 && <div className="sum-row"><span>{currency} Tax ({quotation.tax}%)</span><span>{formatCurrency(tax, currency)}</span></div>}
+                    <div className="sum-row grand-total"><span>{currency} Grand Total</span><span>{formatCurrency(subtotal - discount + tax, currency)}</span></div>
+                  </div>
+                );
+              })}
             </div>
           </div>
           )}
@@ -1308,17 +1174,29 @@ export default function QuotationPreviewPage() {
           )}
 
           {/* Signature Block */}
-          <div className="signature-section">
+          <div className={`signature-section ${quotation.isEmployeeQuotation ? 'single-signature' : ''}`}>
             <div className="signature-box">
+              {quotation.isEmployeeQuotation && (
+                <div className="codeverza-stamp"><span>CODEVERZA</span></div>
+              )}
               <div className="signature-line"></div>
               <strong>Authorized Signature</strong>
-              <p>Codeverza</p>
+              {quotation.isEmployeeQuotation ? (
+                <>
+                  <p>{quotation.employeeName || (quotation.clientName === 'Employee Quotation' ? 'Muhammad Aqdas' : quotation.clientName)}</p>
+                  <p>{quotation.employeeDesignation || 'CEO'}</p>
+                </>
+              ) : (
+                <p>Codeverza</p>
+              )}
             </div>
-            <div className="signature-box">
-              <div className="signature-line"></div>
-              <strong>Client Acceptance</strong>
-              <p>{quotation.clientName}</p>
-            </div>
+            {!quotation.isEmployeeQuotation && (
+              <div className="signature-box">
+                <div className="signature-line"></div>
+                <strong>Client Acceptance</strong>
+                <p>{quotation.clientName}</p>
+              </div>
+            )}
           </div>
 
         </div>{/* end document-body */}
