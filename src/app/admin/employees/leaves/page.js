@@ -168,11 +168,7 @@ function LeavesPageContent() {
   };
 
   if (loading) {
-    return (
-      <div className="employees-container">
-        <div className="loading-spinner">Loading leave requests...</div>
-      </div>
-    );
+    return null; // Global loader will handle this
   }
 
   return (

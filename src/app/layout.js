@@ -1,6 +1,7 @@
 import { Poppins } from "next/font/google";
 import "./globals.css";
 import OneSignalInit from "./components/OneSignalInit";
+import NavigationLoader from "./components/NavigationLoader";
 
 const poppins = Poppins({
   subsets: ["latin"],
@@ -84,6 +85,7 @@ export default function RootLayout({ children }) {
     <html lang="en" className={poppins.variable}>
       <body className="font-poppins antialiased" id="__next">
         <OneSignalInit />
+        <NavigationLoader />
         {children}
       </body>
     </html>

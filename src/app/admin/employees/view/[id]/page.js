@@ -56,11 +56,7 @@ export default function ViewEmployeePage() {
   };
 
   if (loading) {
-    return (
-      <div className="employees-container">
-        <div className="loading-spinner">Loading employee...</div>
-      </div>
-    );
+    return null; // Global loader will handle this
   }
 
   if (!employee) {

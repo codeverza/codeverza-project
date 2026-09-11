@@ -114,11 +114,7 @@ export default function EmployeesPage() {
   const employmentTypes = [...new Set(employees.map(emp => emp.employmentType))];
 
   if (loading) {
-    return (
-      <div className="quotations-container">
-        <div className="loading-spinner">Loading employees...</div>
-      </div>
-    );
+    return null; // Global loader will handle this
   }
 
   return (

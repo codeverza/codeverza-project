@@ -173,14 +173,7 @@ export default function QuotationsPage() {
   };
 
   if (loading) {
-    return (
-      <div className="quotations-page">
-        <div className="loading-container">
-          <div className="spinner"></div>
-          <p>Loading quotations...</p>
-        </div>
-      </div>
-    );
+    return null; // Global loader will handle this
   }
 
   return (

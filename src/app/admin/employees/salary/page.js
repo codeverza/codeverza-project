@@ -148,11 +148,7 @@ function SalaryManagementPageContent() {
   };
 
   if (loading) {
-    return (
-      <div className="employees-container">
-        <div className="loading-spinner">Loading salary records...</div>
-      </div>
-    );
+    return null; // Global loader will handle this
   }
 
   return (

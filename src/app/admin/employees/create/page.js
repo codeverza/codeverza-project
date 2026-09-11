@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Swal from 'sweetalert2';
 import '../employees.css';
 
 export const dynamic = 'force-dynamic';
@@ -32,7 +33,12 @@ export default function CreateEmployeePage() {
     annualLeaves: 15,
     role: 'Employee',
     isSalesEmployee: false,
-    monthlySalesTarget: 0
+    monthlySalesTarget: 0,
+    password: '',
+    loginEnabled: false,
+    commissionSlabs: [
+      { minSales: 0, maxSales: 100000, percentage: 5 }
+    ]
   });
 
   const handleChange = (e) => {
@@ -41,6 +47,35 @@ export default function CreateEmployeePage() {
       ...prev,
       [name]: type === 'checkbox' ? checked : value
     }));
+  };
+
+  const handleSlabChange = (index, field, value) => {
+    const newSlabs = [...formData.commissionSlabs];
+    newSlabs[index][field] = parseFloat(value) || 0;
+    setFormData(prev => ({
+      ...prev,
+      commissionSlabs: newSlabs
+    }));
+  };
+
+  const addSlab = () => {
+    const lastSlab = formData.commissionSlabs[formData.commissionSlabs.length - 1];
+    setFormData(prev => ({
+      ...prev,
+      commissionSlabs: [
+        ...prev.commissionSlabs,
+        { minSales: lastSlab.maxSales, maxSales: lastSlab.maxSales + 100000, percentage: 5 }
+      ]
+    }));
+  };
+
+  const removeSlab = (index) => {
+    if (formData.commissionSlabs.length > 1) {
+      setFormData(prev => ({
+        ...prev,
+        commissionSlabs: prev.commissionSlabs.filter((_, i) => i !== index)
+      }));
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -59,14 +94,53 @@ export default function CreateEmployeePage() {
       const data = await response.json();
 
       if (data.success) {
-        alert(`Employee created successfully! Employee ID: ${data.generatedEmployeeId}`);
-        router.push('/admin/employees');
+        Swal.fire({
+          icon: 'success',
+          title: 'Employee Created Successfully! 🎉',
+          html: `
+            <div style="text-align: center;">
+              <p style="font-size: 16px; color: #fff; margin: 20px 0;">
+                Employee has been added to the system
+              </p>
+              <div style="background: rgba(177, 76, 255, 0.2); padding: 15px; border-radius: 10px; border: 1px solid rgba(177, 76, 255, 0.3);">
+                <p style="margin: 0; color: #b14cff; font-weight: 600; font-size: 14px;">Employee ID</p>
+                <p style="margin: 5px 0 0 0; color: #fff; font-size: 18px; font-weight: 700;">${data.generatedEmployeeId}</p>
+              </div>
+            </div>
+          `,
+          confirmButtonText: 'View Employees',
+          confirmButtonColor: '#b14cff',
+          background: '#0d0d0d',
+          color: '#fff',
+          customClass: {
+            popup: 'custom-swal-popup',
+            confirmButton: 'custom-swal-button'
+          }
+        }).then(() => {
+          router.push('/admin/employees');
+        });
       } else {
-        alert(data.message || 'Failed to create employee');
+        Swal.fire({
+          icon: 'error',
+          title: 'Failed to Create Employee',
+          text: data.message || 'Something went wrong. Please try again.',
+          confirmButtonText: 'Try Again',
+          confirmButtonColor: '#b14cff',
+          background: '#0d0d0d',
+          color: '#fff'
+        });
       }
     } catch (error) {
       console.error('Error creating employee:', error);
-      alert('Failed to create employee');
+      Swal.fire({
+        icon: 'error',
+        title: 'Oops! Something Went Wrong',
+        text: 'Failed to create employee. Please check your connection and try again.',
+        confirmButtonText: 'OK',
+        confirmButtonColor: '#b14cff',
+        background: '#0d0d0d',
+        color: '#fff'
+      });
     } finally {
       setLoading(false);
     }
@@ -269,6 +343,7 @@ export default function CreateEmployeePage() {
                 value={formData.monthlySalary}
                 onChange={handleChange}
                 min="0"
+                disabled={formData.salaryType === 'Commission'}
               />
             </div>
 
@@ -285,31 +360,193 @@ export default function CreateEmployeePage() {
               </select>
             </div>
 
-            <div className="form-group">
-              <label>Commission Percentage (%)</label>
-              <input
-                type="number"
-                name="commissionPercentage"
-                value={formData.commissionPercentage}
-                onChange={handleChange}
-                min="0"
-                max="100"
-                step="0.5"
-              />
-            </div>
+            {formData.salaryType !== 'Commission' && (
+              <>
+                <div className="form-group">
+                  <label>Commission Percentage (%)</label>
+                  <input
+                    type="number"
+                    name="commissionPercentage"
+                    value={formData.commissionPercentage}
+                    onChange={handleChange}
+                    min="0"
+                    max="100"
+                    step="0.5"
+                  />
+                </div>
 
-            <div className="form-group">
-              <label>
-                <input
-                  type="checkbox"
-                  name="excludeThirdPartyExpenses"
-                  checked={formData.excludeThirdPartyExpenses}
-                  onChange={handleChange}
-                />
-                {' '}Exclude Third-Party Expenses from Commission
-              </label>
-            </div>
+                <div className="form-group">
+                  <label>
+                    <input
+                      type="checkbox"
+                      name="excludeThirdPartyExpenses"
+                      checked={formData.excludeThirdPartyExpenses}
+                      onChange={handleChange}
+                    />
+                    {' '}Exclude Third-Party Expenses from Commission
+                  </label>
+                </div>
+              </>
+            )}
           </div>
+
+          {/* Commission Slabs - Only show for Commission Only */}
+          {formData.salaryType === 'Commission' && (
+            <div style={{ marginTop: '25px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
+                <h3 style={{ margin: 0, fontSize: '18px', color: '#2d3748' }}>Commission Slabs</h3>
+                <button
+                  type="button"
+                  onClick={addSlab}
+                  style={{
+                    padding: '8px 16px',
+                    background: '#667eea',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '6px',
+                    fontSize: '14px',
+                    fontWeight: '600',
+                    cursor: 'pointer'
+                  }}
+                >
+                  + Add Slab
+                </button>
+              </div>
+
+              {formData.commissionSlabs.map((slab, index) => (
+                <div
+                  key={index}
+                  style={{
+                    display: 'grid',
+                    gridTemplateColumns: '1fr 1fr 1fr auto',
+                    gap: '15px',
+                    marginBottom: '15px',
+                    padding: '15px',
+                    background: 'rgba(255, 255, 255, 0.03)',
+                    borderRadius: '8px',
+                    border: '1px solid rgba(177, 76, 255, 0.2)'
+                  }}
+                >
+                  <div className="form-group" style={{ margin: 0 }}>
+                    <label style={{ color: '#888', fontSize: '12px' }}>Min Sales (PKR)</label>
+                    <input
+                      type="number"
+                      value={slab.minSales}
+                      onChange={(e) => handleSlabChange(index, 'minSales', e.target.value)}
+                      min="0"
+                      style={{ 
+                        width: '100%',
+                        background: 'rgba(0, 0, 0, 0.5)',
+                        border: '1px solid rgba(177, 76, 255, 0.3)',
+                        color: '#fff',
+                        padding: '10px',
+                        borderRadius: '6px'
+                      }}
+                    />
+                  </div>
+
+                  <div className="form-group" style={{ margin: 0 }}>
+                    <label style={{ color: '#888', fontSize: '12px' }}>Max Sales (PKR)</label>
+                    <input
+                      type="text"
+                      value={slab.maxSales === 0 ? '∞ (Infinity)' : slab.maxSales}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        // Allow typing 0, infinity symbols, or clear field
+                        if (value === '' || value === '0' || value.includes('∞') || value.toLowerCase().includes('infinity')) {
+                          handleSlabChange(index, 'maxSales', 0);
+                        } else {
+                          handleSlabChange(index, 'maxSales', value);
+                        }
+                      }}
+                      onFocus={(e) => {
+                        if (slab.maxSales === 0) {
+                          e.target.value = '0';
+                        }
+                      }}
+                      placeholder="0 = Infinity"
+                      style={{ 
+                        width: '100%',
+                        background: 'rgba(0, 0, 0, 0.5)',
+                        border: '1px solid rgba(177, 76, 255, 0.3)',
+                        color: slab.maxSales === 0 ? '#b14cff' : '#fff',
+                        padding: '10px',
+                        borderRadius: '6px',
+                        fontWeight: slab.maxSales === 0 ? '600' : 'normal'
+                      }}
+                    />
+                    <small style={{ color: '#666', fontSize: '11px', marginTop: '3px', display: 'block' }}>
+                      Enter 0 for no upper limit
+                    </small>
+                  </div>
+
+                  <div className="form-group" style={{ margin: 0 }}>
+                    <label style={{ color: '#888', fontSize: '12px' }}>Commission (%)</label>
+                    <input
+                      type="number"
+                      value={slab.percentage}
+                      onChange={(e) => handleSlabChange(index, 'percentage', e.target.value)}
+                      min="0"
+                      max="100"
+                      step="0.5"
+                      style={{ 
+                        width: '100%',
+                        background: 'rgba(0, 0, 0, 0.5)',
+                        border: '1px solid rgba(177, 76, 255, 0.3)',
+                        color: '#fff',
+                        padding: '10px',
+                        borderRadius: '6px'
+                      }}
+                    />
+                  </div>
+
+                  <div style={{ display: 'flex', alignItems: 'flex-end' }}>
+                    {formData.commissionSlabs.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => removeSlab(index)}
+                        style={{
+                          padding: '10px 12px',
+                          background: 'rgba(239, 68, 68, 0.2)',
+                          color: '#ef4444',
+                          border: '1px solid rgba(239, 68, 68, 0.3)',
+                          borderRadius: '6px',
+                          cursor: 'pointer',
+                          fontWeight: '600'
+                        }}
+                      >
+                        ✕
+                      </button>
+                    )}
+                  </div>
+                </div>
+              ))}
+
+              <div style={{
+                padding: '12px',
+                background: 'rgba(177, 76, 255, 0.1)',
+                border: '1px solid rgba(177, 76, 255, 0.3)',
+                borderRadius: '8px',
+                fontSize: '13px',
+                color: '#b14cff',
+                marginTop: '15px'
+              }}>
+                <strong>Example:</strong> Rs. 0 - 100,000 par 5%, Rs. 100,000 - 500,000 par 10%, Rs. 500,000+ par 15%
+              </div>
+
+              <div className="form-group" style={{ marginTop: '15px' }}>
+                <label>
+                  <input
+                    type="checkbox"
+                    name="excludeThirdPartyExpenses"
+                    checked={formData.excludeThirdPartyExpenses}
+                    onChange={handleChange}
+                  />
+                  {' '}Exclude Third-Party Expenses from Commission
+                </label>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Leave Balance */}
@@ -377,6 +614,44 @@ export default function CreateEmployeePage() {
                   onChange={handleChange}
                   min="0"
                 />
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Login & Access Settings */}
+        <div className="form-section">
+          <h2>Login & Access Settings</h2>
+          <div className="form-grid">
+            <div className="form-group">
+              <label>
+                <input
+                  type="checkbox"
+                  name="loginEnabled"
+                  checked={formData.loginEnabled}
+                  onChange={handleChange}
+                />
+                {' '}Enable Login Access
+              </label>
+              <small style={{ color: '#718096', marginTop: '5px' }}>
+                Agar yeh enable karenge to employee apne account se login kar sakta hai
+              </small>
+            </div>
+
+            {formData.loginEnabled && (
+              <div className="form-group">
+                <label>Password *</label>
+                <input
+                  type="text"
+                  name="password"
+                  value={formData.password}
+                  onChange={handleChange}
+                  placeholder="Employee ka password enter karein"
+                  required={formData.loginEnabled}
+                />
+                <small style={{ color: '#718096', marginTop: '5px' }}>
+                  Yeh password employee ko login karne ke liye chahiye hoga
+                </small>
               </div>
             )}
           </div>

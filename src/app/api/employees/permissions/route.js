@@ -3,10 +3,8 @@ import { collection, addDoc, getDocs, doc, updateDoc, deleteDoc, getDoc, query, 
 import { NextResponse } from 'next/server';
 
 const PERMISSIONS_COLLECTION = 'employeePermissions';
-const EMPLOYEES_COLLECTION = 'employees';
-const LOGIN_HISTORY_COLLECTION = 'employeeLoginHistory';
 
-// GET - Fetch permissions
+// GET - Fetch permissions for an employee
 export async function GET(request) {
   try {
     const { searchParams } = new URL(request.url);
@@ -14,10 +12,10 @@ export async function GET(request) {
     const permissionId = searchParams.get('id');
 
     if (permissionId) {
-      // Fetch single permission record
-      const permissionDoc = await getDoc(doc(db, PERMISSIONS_COLLECTION, permissionId));
+      // Fetch single permission record by ID
+      const permDoc = await getDoc(doc(db, PERMISSIONS_COLLECTION, permissionId));
       
-      if (!permissionDoc.exists()) {
+      if (!permDoc.exists()) {
         return NextResponse.json(
           { success: false, message: 'Permission record not found' },
           { status: 404 }
@@ -26,34 +24,28 @@ export async function GET(request) {
 
       return NextResponse.json({
         success: true,
-        permission: { id: permissionDoc.id, ...permissionDoc.data() }
+        permission: { id: permDoc.id, ...permDoc.data() }
       });
     }
 
     if (employeeId) {
       // Fetch permissions for specific employee
-      const permissionQuery = query(
-        collection(db, PERMISSIONS_COLLECTION),
-        where('employeeId', '==', employeeId)
-      );
-      const querySnapshot = await getDocs(permissionQuery);
-      
+      const q = query(collection(db, PERMISSIONS_COLLECTION), where('employeeId', '==', employeeId));
+      const querySnapshot = await getDocs(q);
+
       if (querySnapshot.empty) {
+        // Return default permissions if none exist
         return NextResponse.json({
           success: true,
-          permission: null,
-          message: 'No permissions found for this employee'
+          permissions: null,
+          message: 'No custom permissions set. Using default permissions.'
         });
       }
 
-      const permission = {
-        id: querySnapshot.docs[0].id,
-        ...querySnapshot.docs[0].data()
-      };
-
+      const permissionDoc = querySnapshot.docs[0];
       return NextResponse.json({
         success: true,
-        permission
+        permissions: { id: permissionDoc.id, ...permissionDoc.data() }
       });
     }
 
@@ -79,146 +71,112 @@ export async function GET(request) {
   }
 }
 
-// POST - Create permission record
+// POST - Create permissions for an employee
 export async function POST(request) {
   try {
     const data = await request.json();
+    const { employeeId } = data;
 
-    // Validate required fields
-    if (!data.employeeId || !data.role) {
+    if (!employeeId) {
       return NextResponse.json(
-        { success: false, message: 'Employee ID and role are required' },
+        { success: false, message: 'Employee ID is required' },
         { status: 400 }
       );
     }
 
-    // Verify employee exists
-    const employeeDoc = await getDoc(doc(db, EMPLOYEES_COLLECTION, data.employeeId));
-    if (!employeeDoc.exists()) {
-      return NextResponse.json(
-        { success: false, message: 'Employee not found' },
-        { status: 404 }
-      );
-    }
-
-    const employee = employeeDoc.data();
-
     // Check if permissions already exist for this employee
-    const existingQuery = query(
-      collection(db, PERMISSIONS_COLLECTION),
-      where('employeeId', '==', data.employeeId)
-    );
-    const existingSnapshot = await getDocs(existingQuery);
+    const q = query(collection(db, PERMISSIONS_COLLECTION), where('employeeId', '==', employeeId));
+    const existingSnapshot = await getDocs(q);
 
     if (!existingSnapshot.empty) {
       return NextResponse.json(
         { success: false, message: 'Permissions already exist for this employee. Use PUT to update.' },
-        { status: 400 }
+        { status: 409 }
       );
     }
 
-    // Prepare permission data with module-wise permissions
-    const permissionData = {
-      employeeId: data.employeeId,
-      employeeName: employee.name,
-      employeeIdNumber: employee.employeeId,
-      role: data.role, // Admin, Manager, Employee, Sales, HR, etc.
+    // Default permissions structure
+    const permissionsData = {
+      employeeId,
       
-      // Account status
-      accountStatus: data.accountStatus || 'Active', // Active, Suspended, Deactivated
-      loginEnabled: data.loginEnabled !== undefined ? data.loginEnabled : true,
-      
-      // Module-wise permissions
-      modules: {
-        // Dashboard
-        dashboard: {
-          view: data.modules?.dashboard?.view ?? true
-        },
-        
-        // Employee Management
-        employees: {
-          view: data.modules?.employees?.view ?? false,
-          add: data.modules?.employees?.add ?? false,
-          edit: data.modules?.employees?.edit ?? false,
-          delete: data.modules?.employees?.delete ?? false
-        },
-        
-        // Attendance
-        attendance: {
-          view: data.modules?.attendance?.view ?? true,
-          add: data.modules?.attendance?.add ?? false,
-          edit: data.modules?.attendance?.edit ?? false,
-          delete: data.modules?.attendance?.delete ?? false
-        },
-        
-        // Leave Management
-        leaves: {
-          view: data.modules?.leaves?.view ?? true,
-          add: data.modules?.leaves?.add ?? true,
-          edit: data.modules?.leaves?.edit ?? false,
-          delete: data.modules?.leaves?.delete ?? false,
-          approve: data.modules?.leaves?.approve ?? false
-        },
-        
-        // Salary & Commission
-        salary: {
-          view: data.modules?.salary?.view ?? false,
-          add: data.modules?.salary?.add ?? false,
-          edit: data.modules?.salary?.edit ?? false,
-          delete: data.modules?.salary?.delete ?? false
-        },
-        
-        // Projects & Tasks
-        projects: {
-          view: data.modules?.projects?.view ?? true,
-          add: data.modules?.projects?.add ?? false,
-          edit: data.modules?.projects?.edit ?? false,
-          delete: data.modules?.projects?.delete ?? false
-        },
-        
-        // Sales (Leads & Follow-ups)
-        sales: {
-          view: data.modules?.sales?.view ?? false,
-          add: data.modules?.sales?.add ?? false,
-          edit: data.modules?.sales?.edit ?? false,
-          delete: data.modules?.sales?.delete ?? false
-        },
-        
-        // Documents
-        documents: {
-          view: data.modules?.documents?.view ?? true,
-          add: data.modules?.documents?.add ?? false,
-          edit: data.modules?.documents?.edit ?? false,
-          delete: data.modules?.documents?.delete ?? false
-        },
-        
-        // Reports & Performance
-        reports: {
-          view: data.modules?.reports?.view ?? false
-        }
+      // Dashboard access
+      dashboard: {
+        view: data.dashboard?.view !== undefined ? data.dashboard.view : true
       },
       
-      // Password management
-      passwordResetRequired: data.passwordResetRequired || false,
-      lastPasswordChange: data.lastPasswordChange || null,
+      // Profile access
+      profile: {
+        view: data.profile?.view !== undefined ? data.profile.view : true,
+        edit: data.profile?.edit !== undefined ? data.profile.edit : false
+      },
+      
+      // Attendance access
+      attendance: {
+        view: data.attendance?.view !== undefined ? data.attendance.view : true,
+        add: data.attendance?.add !== undefined ? data.attendance.add : false,
+        edit: data.attendance?.edit !== undefined ? data.attendance.edit : false,
+        delete: data.attendance?.delete !== undefined ? data.attendance.delete : false
+      },
+      
+      // Leaves access
+      leaves: {
+        view: data.leaves?.view !== undefined ? data.leaves.view : true,
+        add: data.leaves?.add !== undefined ? data.leaves.add : true,
+        edit: data.leaves?.edit !== undefined ? data.leaves.edit : false,
+        delete: data.leaves?.delete !== undefined ? data.leaves.delete : false
+      },
+      
+      // Salary access
+      salary: {
+        view: data.salary?.view !== undefined ? data.salary.view : true
+      },
+      
+      // Projects access
+      projects: {
+        view: data.projects?.view !== undefined ? data.projects.view : true,
+        add: data.projects?.add !== undefined ? data.projects.add : false,
+        edit: data.projects?.edit !== undefined ? data.projects.edit : false
+      },
+      
+      // Tasks access
+      tasks: {
+        view: data.tasks?.view !== undefined ? data.tasks.view : true,
+        add: data.tasks?.add !== undefined ? data.tasks.add : false,
+        edit: data.tasks?.edit !== undefined ? data.tasks.edit : true,
+        delete: data.tasks?.delete !== undefined ? data.tasks.delete : false
+      },
+      
+      // Documents access
+      documents: {
+        view: data.documents?.view !== undefined ? data.documents.view : true,
+        add: data.documents?.add !== undefined ? data.documents.add : false,
+        edit: data.documents?.edit !== undefined ? data.documents.edit : false,
+        delete: data.documents?.delete !== undefined ? data.documents.delete : false
+      },
+      
+      // Sales access (for sales employees)
+      sales: {
+        view: data.sales?.view !== undefined ? data.sales.view : false,
+        add: data.sales?.add !== undefined ? data.sales.add : false,
+        edit: data.sales?.edit !== undefined ? data.sales.edit : false,
+        delete: data.sales?.delete !== undefined ? data.sales.delete : false
+      },
+      
+      // Reports access
+      reports: {
+        view: data.reports?.view !== undefined ? data.reports.view : false
+      },
       
       createdAt: Timestamp.now(),
       updatedAt: Timestamp.now()
     };
 
-    const docRef = await addDoc(collection(db, PERMISSIONS_COLLECTION), permissionData);
-
-    // Update employee record with role
-    await updateDoc(doc(db, EMPLOYEES_COLLECTION, data.employeeId), {
-      role: data.role,
-      updatedAt: Timestamp.now()
-    });
+    const docRef = await addDoc(collection(db, PERMISSIONS_COLLECTION), permissionsData);
 
     return NextResponse.json({
       success: true,
       message: 'Permissions created successfully',
-      permissionId: docRef.id,
-      permission: permissionData
+      permissionId: docRef.id
     }, { status: 201 });
 
   } catch (error) {
@@ -234,19 +192,38 @@ export async function POST(request) {
 export async function PUT(request) {
   try {
     const data = await request.json();
-    const { id, ...updateData } = data;
+    const { id, employeeId, ...permissionUpdates } = data;
 
-    if (!id) {
+    if (!id && !employeeId) {
       return NextResponse.json(
-        { success: false, message: 'Permission ID is required' },
+        { success: false, message: 'Permission ID or Employee ID is required' },
         { status: 400 }
       );
     }
 
-    const permissionRef = doc(db, PERMISSIONS_COLLECTION, id);
-    const permissionDoc = await getDoc(permissionRef);
+    let permissionRef;
 
-    if (!permissionDoc.exists()) {
+    if (id) {
+      // Update by permission ID
+      permissionRef = doc(db, PERMISSIONS_COLLECTION, id);
+    } else {
+      // Find permission by employee ID
+      const q = query(collection(db, PERMISSIONS_COLLECTION), where('employeeId', '==', employeeId));
+      const querySnapshot = await getDocs(q);
+
+      if (querySnapshot.empty) {
+        return NextResponse.json(
+          { success: false, message: 'Permission record not found' },
+          { status: 404 }
+        );
+      }
+
+      permissionRef = doc(db, PERMISSIONS_COLLECTION, querySnapshot.docs[0].id);
+    }
+
+    const permDoc = await getDoc(permissionRef);
+
+    if (!permDoc.exists()) {
       return NextResponse.json(
         { success: false, message: 'Permission record not found' },
         { status: 404 }
@@ -254,18 +231,9 @@ export async function PUT(request) {
     }
 
     await updateDoc(permissionRef, {
-      ...updateData,
+      ...permissionUpdates,
       updatedAt: Timestamp.now()
     });
-
-    // If role is being updated, update employee record too
-    if (updateData.role) {
-      const currentPermission = permissionDoc.data();
-      await updateDoc(doc(db, EMPLOYEES_COLLECTION, currentPermission.employeeId), {
-        role: updateData.role,
-        updatedAt: Timestamp.now()
-      });
-    }
 
     return NextResponse.json({
       success: true,
@@ -286,18 +254,36 @@ export async function DELETE(request) {
   try {
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');
+    const employeeId = searchParams.get('employeeId');
 
-    if (!id) {
+    if (!id && !employeeId) {
       return NextResponse.json(
-        { success: false, message: 'Permission ID is required' },
+        { success: false, message: 'Permission ID or Employee ID is required' },
         { status: 400 }
       );
     }
 
-    const permissionRef = doc(db, PERMISSIONS_COLLECTION, id);
-    const permissionDoc = await getDoc(permissionRef);
+    let permissionRef;
 
-    if (!permissionDoc.exists()) {
+    if (id) {
+      permissionRef = doc(db, PERMISSIONS_COLLECTION, id);
+    } else {
+      const q = query(collection(db, PERMISSIONS_COLLECTION), where('employeeId', '==', employeeId));
+      const querySnapshot = await getDocs(q);
+
+      if (querySnapshot.empty) {
+        return NextResponse.json(
+          { success: false, message: 'Permission record not found' },
+          { status: 404 }
+        );
+      }
+
+      permissionRef = doc(db, PERMISSIONS_COLLECTION, querySnapshot.docs[0].id);
+    }
+
+    const permDoc = await getDoc(permissionRef);
+
+    if (!permDoc.exists()) {
       return NextResponse.json(
         { success: false, message: 'Permission record not found' },
         { status: 404 }

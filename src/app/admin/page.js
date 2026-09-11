@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { signInWithEmailAndPassword } from 'firebase/auth';
-import { auth } from '../../../lib/firebase';
+import { auth } from '@/lib/firebase';
 import { Lock, Mail, Eye, EyeOff } from 'lucide-react';
 
 export default function AdminLogin() {

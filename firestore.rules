@@ -52,8 +52,23 @@ service cloud.firestore {
       allow read, write: if true;
     }
     
-    // Tasks
+    // Tasks - New Task Management System
+    match /tasks/{taskId} {
+      allow read, write: if true;
+    }
+    
+    // Employee Tasks (Legacy - keeping for backward compatibility)
     match /employeeTasks/{taskId} {
+      allow read, write: if true;
+    }
+    
+    // Sales Leads
+    match /salesLeads/{leadId} {
+      allow read, write: if true;
+    }
+    
+    // Sales Follow-ups
+    match /salesFollowups/{followupId} {
       allow read, write: if true;
     }
     

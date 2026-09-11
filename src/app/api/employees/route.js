@@ -126,6 +126,10 @@ export async function POST(request) {
       role: data.role || 'Employee',
       isSalesEmployee: data.isSalesEmployee || false,
       
+      // Login credentials
+      password: data.password || '',
+      loginEnabled: data.loginEnabled || false,
+      
       createdAt: Timestamp.now(),
       updatedAt: Timestamp.now()
     };

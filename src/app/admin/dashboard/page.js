@@ -4,8 +4,8 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
 import { collection, getDocs, orderBy, query, doc, updateDoc } from 'firebase/firestore';
-import { auth, db } from '../../../../lib/firebase';
-import { Mail, Users, MessageSquare, LogOut, Send, RefreshCw, Clock, Phone, Briefcase, BarChart2, Inbox, Radio } from 'lucide-react';
+import { auth, db } from '@/lib/firebase';
+import { Mail, Users, MessageSquare, LogOut, Send, RefreshCw, Clock, Phone, Briefcase, BarChart2, Inbox, Radio, ListTodo } from 'lucide-react';
 import Swal from 'sweetalert2';
 
 const S = {
@@ -215,6 +215,9 @@ export default function AdminDashboard() {
     { id: 'quotations', label: 'Quotations', icon: <Briefcase size={17} />, isLink: true, href: '/admin/quotations' },
     { id: 'joining-letters', label: 'Joining Letters', icon: <Users size={17} />, isLink: true, href: '/admin/joining-letters' },
     { id: 'employees', label: 'Employees', icon: <Users size={17} />, isLink: true, href: '/admin/employees' },
+    { id: 'attendance', label: 'Attendance', icon: <Clock size={17} />, isLink: true, href: '/admin/employees/attendance' },
+    { id: 'leaves', label: 'Leaves', icon: <Clock size={17} />, isLink: true, href: '/admin/employees/leaves' },
+    { id: 'tasks', label: 'Tasks', icon: <ListTodo size={17} />, isLink: true, href: '/admin/tasks' },
   ];
 
   // fetch subscribers when broadcast tab opens

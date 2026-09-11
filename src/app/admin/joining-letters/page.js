@@ -106,14 +106,7 @@ export default function JoiningLettersPage() {
   ];
 
   if (loading) {
-    return (
-      <div className="jl-page">
-        <div className="jl-loading">
-          <div className="spinner" />
-          <p>Loading joining letters...</p>
-        </div>
-      </div>
-    );
+    return null; // Global loader will handle this
   }
 
   return (

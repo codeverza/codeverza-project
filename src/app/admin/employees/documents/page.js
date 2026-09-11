@@ -135,11 +135,7 @@ function DocumentsPageContent() {
   };
 
   if (loading) {
-    return (
-      <div className="employees-container">
-        <div className="loading-spinner">Loading documents...</div>
-      </div>
-    );
+    return null; // Global loader will handle this
   }
 
   const expiredDocs = documents.filter(doc => doc.isExpired).length;

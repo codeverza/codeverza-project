@@ -294,14 +294,7 @@ export default function QuotationSharePage() {
 
   /* ─── LOADING ─── */
   if (loading) {
-    return (
-      <div className="quotation-preview-page">
-        <div className="loading-container">
-          <div className="spinner"></div>
-          <p>Loading quotation...</p>
-        </div>
-      </div>
-    );
+    return null; // Global loader will handle this
   }
 
   if (!quotation) {

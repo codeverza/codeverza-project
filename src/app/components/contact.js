@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { motion, useInView, AnimatePresence } from 'framer-motion';
 import { Mail, Phone, MapPin, Send, User, MessageSquare, CheckCircle, Briefcase } from 'lucide-react';
-import { db } from '../../../lib/firebase';
+import { db } from '@/lib/firebase';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import Swal from 'sweetalert2';
 import '../css/contact.css';

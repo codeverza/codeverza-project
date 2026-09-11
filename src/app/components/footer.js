@@ -7,7 +7,7 @@ import {
   FaFacebook,
 } from 'react-icons/fa';
 import { Mail, Phone, MapPin, ChevronRight, Heart } from 'lucide-react';
-import { db } from '../../../lib/firebase';
+import { db } from '@/lib/firebase';
 import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
 import Swal from 'sweetalert2';
 import '../css/footer.css';

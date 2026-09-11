@@ -720,11 +720,7 @@ export default function JoiningLetterPreviewPage() {
   };
 
   /* ── Loading ── */
-  if (loading) return (
-    <div className="jl-preview-page">
-      <div className="jl-loading"><div className="spinner" /><p>Loading letter...</p></div>
-    </div>
-  );
+  if (loading) return null; // Global loader will handle this
 
   if (!letter) return (
     <div className="jl-preview-page">
