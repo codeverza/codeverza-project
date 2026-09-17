@@ -1207,414 +1207,303 @@ function TasksTab({ data, employeeId, onRefresh }) {
 
 // Sales Tab Component
 function SalesTab({ data, employeeId, employee, onRefresh }) {
-  const [activeView, setActiveView] = useState('overview');
+  const [activeView, setActiveView] = useState('leads');
+  const [leads, setLeads] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [showAddLead, setShowAddLead] = useState(false);
+  const [selectedLead, setSelectedLead] = useState(null);
   
-  // Calculate today's follow-ups
-  const today = new Date().toISOString().split('T')[0];
-  const todayFollowups = data.followups.filter(f => 
-    f.scheduledDate === today && f.status === 'pending'
-  );
-  const overdueFollowups = data.followups.filter(f => 
-    f.scheduledDate < today && f.status === 'pending'
-  );
+  useEffect(() => {
+    loadLeads();
+  }, [employeeId]);
 
-  // Add Lead Handler
-  const handleAddLead = async () => {
-    const result = await Swal.fire({
-      title: 'Add New Lead',
-      html: `
-        <div style="text-align: left; margin-top: 20px;">
-          <div style="margin-bottom: 15px;">
-            <label style="color: #fff; font-size: 14px; font-weight: 600; margin-bottom: 8px; display: block;">
-              Client Name *
-            </label>
-            <input 
-              id="client-name" 
-              type="text"
-              placeholder="Enter client full name"
-              style="
-                width: 100%;
-                padding: 12px;
-                background: rgba(0, 0, 0, 0.5);
-                border: 1px solid rgba(177, 76, 255, 0.3);
-                border-radius: 8px;
-                color: #fff;
-                font-size: 14px;
-              "
-            />
-          </div>
-
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
-            <div>
-              <label style="color: #fff; font-size: 14px; font-weight: 600; margin-bottom: 8px; display: block;">
-                Email
-              </label>
-              <input 
-                id="client-email" 
-                type="email"
-                placeholder="email@example.com"
-                style="
-                  width: 100%;
-                  padding: 12px;
-                  background: rgba(0, 0, 0, 0.5);
-                  border: 1px solid rgba(177, 76, 255, 0.3);
-                  border-radius: 8px;
-                  color: #fff;
-                  font-size: 14px;
-                "
-              />
-            </div>
-            <div>
-              <label style="color: #fff; font-size: 14px; font-weight: 600; margin-bottom: 8px; display: block;">
-                Phone
-              </label>
-              <input 
-                id="client-phone" 
-                type="tel"
-                placeholder="+92 300 1234567"
-                style="
-                  width: 100%;
-                  padding: 12px;
-                  background: rgba(0, 0, 0, 0.5);
-                  border: 1px solid rgba(177, 76, 255, 0.3);
-                  border-radius: 8px;
-                  color: #fff;
-                  font-size: 14px;
-                "
-              />
-            </div>
-          </div>
-
-          <div style="margin-bottom: 15px;">
-            <label style="color: #fff; font-size: 14px; font-weight: 600; margin-bottom: 8px; display: block;">
-              Company Name
-            </label>
-            <input 
-              id="company-name" 
-              type="text"
-              placeholder="Company or organization name"
-              style="
-                width: 100%;
-                padding: 12px;
-                background: rgba(0, 0, 0, 0.5);
-                border: 1px solid rgba(177, 76, 255, 0.3);
-                border-radius: 8px;
-                color: #fff;
-                font-size: 14px;
-              "
-            />
-          </div>
-
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
-            <div>
-              <label style="color: #fff; font-size: 14px; font-weight: 600; margin-bottom: 8px; display: block;">
-                Service Type *
-              </label>
-              <select 
-                id="service-type"
-                style="
-                  width: 100%;
-                  padding: 12px;
-                  background: rgba(0, 0, 0, 0.5);
-                  border: 1px solid rgba(177, 76, 255, 0.3);
-                  border-radius: 8px;
-                  color: #fff;
-                  font-size: 14px;
-                "
-              >
-                <option value="">Select Service</option>
-                <option value="Website Development">Website Development</option>
-                <option value="Mobile App">Mobile App</option>
-                <option value="ERP System">ERP System</option>
-                <option value="E-Commerce">E-Commerce</option>
-                <option value="SEO Services">SEO Services</option>
-                <option value="Digital Marketing">Digital Marketing</option>
-                <option value="Graphic Design">Graphic Design</option>
-                <option value="Custom Software">Custom Software</option>
-                <option value="Other">Other</option>
-              </select>
-            </div>
-            <div>
-              <label style="color: #fff; font-size: 14px; font-weight: 600; margin-bottom: 8px; display: block;">
-                Expected Value (PKR) *
-              </label>
-              <input 
-                id="expected-value" 
-                type="number"
-                placeholder="0"
-                min="0"
-                style="
-                  width: 100%;
-                  padding: 12px;
-                  background: rgba(0, 0, 0, 0.5);
-                  border: 1px solid rgba(177, 76, 255, 0.3);
-                  border-radius: 8px;
-                  color: #fff;
-                  font-size: 14px;
-                "
-              />
-            </div>
-          </div>
-
-          <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; margin-bottom: 15px;">
-            <div>
-              <label style="color: #fff; font-size: 14px; font-weight: 600; margin-bottom: 8px; display: block;">
-                Priority
-              </label>
-              <select 
-                id="priority"
-                style="
-                  width: 100%;
-                  padding: 12px;
-                  background: rgba(0, 0, 0, 0.5);
-                  border: 1px solid rgba(177, 76, 255, 0.3);
-                  border-radius: 8px;
-                  color: #fff;
-                  font-size: 14px;
-                "
-              >
-                <option value="Low">Low</option>
-                <option value="Medium" selected>Medium</option>
-                <option value="High">High</option>
-              </select>
-            </div>
-            <div>
-              <label style="color: #fff; font-size: 14px; font-weight: 600; margin-bottom: 8px; display: block;">
-                Source
-              </label>
-              <select 
-                id="source"
-                style="
-                  width: 100%;
-                  padding: 12px;
-                  background: rgba(0, 0, 0, 0.5);
-                  border: 1px solid rgba(177, 76, 255, 0.3);
-                  border-radius: 8px;
-                  color: #fff;
-                  font-size: 14px;
-                "
-              >
-                <option value="Direct">Direct</option>
-                <option value="Referral">Referral</option>
-                <option value="Website">Website</option>
-                <option value="Social Media">Social Media</option>
-                <option value="Cold Call">Cold Call</option>
-              </select>
-            </div>
-            <div>
-              <label style="color: #fff; font-size: 14px; font-weight: 600; margin-bottom: 8px; display: block;">
-                Next Follow-up
-              </label>
-              <input 
-                id="next-followup" 
-                type="date"
-                style="
-                  width: 100%;
-                  padding: 12px;
-                  background: rgba(0, 0, 0, 0.5);
-                  border: 1px solid rgba(177, 76, 255, 0.3);
-                  border-radius: 8px;
-                  color: #fff;
-                  font-size: 14px;
-                "
-              />
-            </div>
-          </div>
-
-          <div style="margin-bottom: 15px;">
-            <label style="color: #fff; font-size: 14px; font-weight: 600; margin-bottom: 8px; display: block;">
-              Notes
-            </label>
-            <textarea 
-              id="notes" 
-              placeholder="Any additional information about this lead..."
-              style="
-                width: 100%;
-                min-height: 80px;
-                padding: 12px;
-                background: rgba(0, 0, 0, 0.5);
-                border: 1px solid rgba(177, 76, 255, 0.3);
-                border-radius: 8px;
-                color: #fff;
-                font-size: 14px;
-                font-family: inherit;
-                resize: vertical;
-              "
-            ></textarea>
-          </div>
-        </div>
-      `,
-      showCancelButton: true,
-      confirmButtonText: 'Add Lead',
-      cancelButtonText: 'Cancel',
-      confirmButtonColor: '#b14cff',
-      cancelButtonColor: '#6b7280',
-      background: '#0d0d0d',
-      color: '#fff',
-      customClass: {
-        popup: 'swal-popup-custom',
-        title: 'swal-title-custom'
-      },
-      backdrop: `
-        rgba(0, 0, 0, 0.8)
-        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100'%3E%3Ccircle cx='2' cy='2' r='1' fill='%23b14cff' opacity='0.3'/%3E%3C/svg%3E")
-      `,
-      width: '600px',
-      preConfirm: () => {
-        const clientName = document.getElementById('client-name').value;
-        const clientEmail = document.getElementById('client-email').value;
-        const clientPhone = document.getElementById('client-phone').value;
-        const companyName = document.getElementById('company-name').value;
-        const serviceType = document.getElementById('service-type').value;
-        const expectedValue = document.getElementById('expected-value').value;
-        const priority = document.getElementById('priority').value;
-        const source = document.getElementById('source').value;
-        const nextFollowUp = document.getElementById('next-followup').value;
-        const notes = document.getElementById('notes').value;
-
-        if (!clientName || !serviceType || !expectedValue) {
-          Swal.showValidationMessage('Client Name, Service Type, and Expected Value are required!');
-          return false;
-        }
-
-        return {
-          clientName,
-          clientEmail,
-          clientPhone,
-          companyName,
-          serviceType,
-          expectedValue: parseFloat(expectedValue),
-          priority,
-          source,
-          nextFollowUp,
-          notes,
-          assignedTo: employeeId,
-          status: 'New'
-        };
+  const loadLeads = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch(`/api/leads?employeeId=${employeeId}`);
+      const data = await response.json();
+      if (data.success) {
+        setLeads(data.leads || []);
       }
-    });
-
-    if (result.isConfirmed) {
-      try {
-        const response = await fetch('/api/sales/leads', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(result.value)
-        });
-
-        const resData = await response.json();
-
-        if (resData.success) {
-          await Swal.fire({
-            icon: 'success',
-            title: 'Lead Added!',
-            text: 'New lead has been created successfully',
-            confirmButtonColor: '#b14cff',
-            background: '#0d0d0d',
-            color: '#fff'
-          });
-          onRefresh();
-        } else {
-          throw new Error(resData.message);
-        }
-      } catch (error) {
-        Swal.fire({
-          icon: 'error',
-          title: 'Failed',
-          text: error.message || 'Could not create lead',
-          confirmButtonColor: '#b14cff',
-          background: '#0d0d0d',
-          color: '#fff'
-        });
-      }
+    } catch (error) {
+      console.error('Error loading leads:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
-  // Mark Follow-up Complete Handler
-  const handleCompleteFollowup = async (followup) => {
-    const result = await Swal.fire({
-      title: 'Complete Follow-up',
-      html: `
-        <div style="text-align: left; margin-top: 20px;">
-          <label style="color: #fff; font-size: 14px; font-weight: 600; margin-bottom: 8px; display: block;">
-            Follow-up Notes *
-          </label>
-          <textarea 
-            id="completion-notes" 
-            placeholder="What was discussed? What are the next steps?"
-            style="
-              width: 100%;
-              min-height: 120px;
-              padding: 12px;
-              background: rgba(0, 0, 0, 0.5);
-              border: 1px solid rgba(177, 76, 255, 0.3);
-              border-radius: 8px;
-              color: #fff;
-              font-size: 14px;
-              font-family: inherit;
-              resize: vertical;
-            "
-          ></textarea>
-        </div>
-      `,
-      icon: 'question',
-      showCancelButton: true,
-      confirmButtonText: 'Mark Complete',
-      cancelButtonText: 'Cancel',
-      confirmButtonColor: '#10b981',
-      cancelButtonColor: '#6b7280',
-      background: '#0d0d0d',
-      color: '#fff',
-      customClass: {
-        popup: 'swal-popup-custom'
-      },
-      backdrop: `
-        rgba(0, 0, 0, 0.8)
-        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100'%3E%3Ccircle cx='2' cy='2' r='1' fill='%2310b981' opacity='0.3'/%3E%3C/svg%3E")
-      `,
-      preConfirm: () => {
-        const notes = document.getElementById('completion-notes').value;
-        if (!notes) {
-          Swal.showValidationMessage('Follow-up notes are required!');
-          return false;
-        }
-        return { notes };
-      }
-    });
+  // Calculate Stats
+  const stats = {
+    total: leads.length,
+    new: leads.filter(l => l.stage === 'New').length,
+    contacted: leads.filter(l => l.stage === 'Contacted').length,
+    quotation: leads.filter(l => l.stage === 'Quotation Sent').length,
+    negotiation: leads.filter(l => l.stage === 'Negotiation').length,
+    won: leads.filter(l => l.stage === 'Won').length,
+    lost: leads.filter(l => l.stage === 'Lost').length,
+    totalValue: leads.reduce((sum, l) => sum + (l.expectedValue || 0), 0),
+    wonValue: leads.filter(l => l.stage === 'Won').reduce((sum, l) => sum + (l.wonPrice || 0), 0),
+  };
 
-    if (result.isConfirmed) {
+  // Add Lead Handler
+  const handleAddLead = async (e) => {
+    e.preventDefault();
+    const formData = new FormData(e.target);
+    
+    const stage = formData.get('stage');
+    const wonPrice = formData.get('wonPrice');
+    
+    console.log('Form Data:', {
+      clientName: formData.get('clientName'),
+      serviceType: formData.get('serviceType'),
+      priority: formData.get('priority'),
+      source: formData.get('source'),
+      stage: stage,
+      employeeId: employee?.id,
+      employeeName: employee?.name
+    });
+    
+    // Validate: If stage is Won, wonPrice is required
+    if (stage === 'Won' && (!wonPrice || parseFloat(wonPrice) <= 0)) {
+      await Swal.fire({
+        icon: 'error',
+        title: 'Won Price Required',
+        text: 'Please enter the final deal price when marking lead as Won',
+        confirmButtonColor: '#b14cff',
+        background: '#0d0d0d',
+        color: '#fff'
+      });
+      return;
+    }
+    
+    // Show loading popup
+    Swal.fire({
+      title: 'Adding Lead...',
+      text: 'Please wait while we create your lead',
+      allowOutsideClick: false,
+      allowEscapeKey: false,
+      didOpen: () => {
+        Swal.showLoading();
+      },
+      background: '#0d0d0d',
+      color: '#fff'
+    });
+    
+    const leadData = {
+      clientName: formData.get('clientName'),
+      email: formData.get('email'),
+      phone: formData.get('phone'),
+      companyName: formData.get('companyName'),
+      serviceType: formData.get('serviceType'),
+      expectedValue: 0, // Set to 0 by default since we removed the field
+      priority: formData.get('priority'),
+      source: formData.get('source'),
+      stage: stage,
+      nextFollowUp: formData.get('nextFollowUp') || null,
+      notes: formData.get('notes'),
+      createdBy: employee?.id,
+      createdByName: employee?.name || 'Employee'
+    };
+
+    // Add wonPrice if stage is Won
+    if (stage === 'Won' && wonPrice) {
+      leadData.wonPrice = parseFloat(wonPrice);
+    }
+
+    console.log('Sending lead data:', leadData);
+
+    try {
+      const response = await fetch('/api/leads', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(leadData)
+      });
+
+      console.log('Response status:', response.status);
+      const data = await response.json();
+      console.log('Response data:', data);
+
+      if (data.success) {
+        await Swal.fire({
+          icon: 'success',
+          title: 'Lead Added Successfully!',
+          text: 'New lead has been created and saved',
+          confirmButtonColor: '#10b981',
+          background: '#0d0d0d',
+          color: '#fff',
+          timer: 2000,
+          showConfirmButton: true
+        });
+        setShowAddLead(false);
+        loadLeads();
+      } else {
+        throw new Error(data.message);
+      }
+    } catch (error) {
+      console.error('Error adding lead:', error);
+      Swal.fire({
+        icon: 'error',
+        title: 'Failed to Add Lead',
+        text: error.message || 'Could not create lead. Please try again.',
+        confirmButtonColor: '#ef4444',
+        background: '#0d0d0d',
+        color: '#fff'
+      });
+    }
+  };
+
+  // Update Lead Stage
+  const handleUpdateStage = async (lead, newStage) => {
+    // If Won, ask for won price
+    if (newStage === 'Won') {
+      const result = await Swal.fire({
+        title: 'Lead Won! 🎉',
+        html: `
+          <div style="text-align: left; margin-top: 20px;">
+            <label style="color: #fff; font-size: 14px; font-weight: 600; margin-bottom: 8px; display: block;">
+              Final Deal Price (PKR) *
+            </label>
+            <input 
+              id="won-price" 
+              type="number"
+              placeholder="Enter final deal price"
+              min="0"
+              style="
+                width: 100%;
+                padding: 12px;
+                background: rgba(0, 0, 0, 0.5);
+                border: 1px solid rgba(177, 76, 255, 0.3);
+                border-radius: 8px;
+                color: #fff;
+                font-size: 16px;
+                font-weight: 600;
+              "
+            />
+            <p style="color: #888; font-size: 12px; margin-top: 8px;">
+              Expected Value: PKR ${lead.expectedValue?.toLocaleString()}
+            </p>
+          </div>
+        `,
+        showCancelButton: true,
+        confirmButtonText: 'Mark as Won',
+        cancelButtonText: 'Cancel',
+        confirmButtonColor: '#10b981',
+        cancelButtonColor: '#6b7280',
+        background: '#0d0d0d',
+        color: '#fff',
+        preConfirm: () => {
+          const wonPrice = document.getElementById('won-price').value;
+          if (!wonPrice || parseFloat(wonPrice) <= 0) {
+            Swal.showValidationMessage('Please enter a valid deal price!');
+            return false;
+          }
+          return { wonPrice: parseFloat(wonPrice) };
+        }
+      });
+
+      if (!result.isConfirmed) return;
+
+      // Show updating popup
+      Swal.fire({
+        title: 'Updating Lead...',
+        text: 'Please wait while we update the lead status',
+        allowOutsideClick: false,
+        allowEscapeKey: false,
+        didOpen: () => {
+          Swal.showLoading();
+        },
+        background: '#0d0d0d',
+        color: '#fff'
+      });
+
       try {
-        const response = await fetch('/api/sales/followups', {
+        const response = await fetch('/api/leads', {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            id: followup.id,
-            status: 'completed',
-            completionNotes: result.value.notes
+            id: lead.id,
+            stage: newStage,
+            wonPrice: result.value.wonPrice,
+            updatedByName: employee?.name || 'Employee'
           })
         });
 
-        const resData = await response.json();
+        const data = await response.json();
 
-        if (resData.success) {
+        if (data.success) {
           await Swal.fire({
             icon: 'success',
-            title: 'Follow-up Completed!',
-            text: 'Follow-up has been marked as complete',
+            title: 'Updated Successfully!',
+            text: `Lead marked as ${newStage}`,
             confirmButtonColor: '#10b981',
             background: '#0d0d0d',
-            color: '#fff'
+            color: '#fff',
+            timer: 2000,
+            showConfirmButton: true
           });
-          onRefresh();
+          loadLeads();
         } else {
-          throw new Error(resData.message);
+          throw new Error(data.message);
         }
       } catch (error) {
         Swal.fire({
           icon: 'error',
-          title: 'Failed',
-          text: error.message || 'Could not complete follow-up',
-          confirmButtonColor: '#b14cff',
+          title: 'Update Failed',
+          text: error.message,
+          confirmButtonColor: '#ef4444',
+          background: '#0d0d0d',
+          color: '#fff'
+        });
+      }
+    } else {
+      // Regular stage update
+      // Show updating popup
+      Swal.fire({
+        title: 'Updating Lead...',
+        text: 'Please wait while we update the lead status',
+        allowOutsideClick: false,
+        allowEscapeKey: false,
+        didOpen: () => {
+          Swal.showLoading();
+        },
+        background: '#0d0d0d',
+        color: '#fff'
+      });
+
+      try {
+        const response = await fetch('/api/leads', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            id: lead.id,
+            stage: newStage,
+            updatedByName: employee?.name || 'Employee'
+          })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+          await Swal.fire({
+            icon: 'success',
+            title: 'Updated Successfully!',
+            text: `Lead stage changed to ${newStage}`,
+            confirmButtonColor: '#10b981',
+            background: '#0d0d0d',
+            color: '#fff',
+            timer: 2000,
+            showConfirmButton: true
+          });
+          loadLeads();
+        } else {
+          throw new Error(data.message);
+        }
+      } catch (error) {
+        Swal.fire({
+          icon: 'error',
+          title: 'Update Failed',
+          text: error.message,
+          confirmButtonColor: '#ef4444',
           background: '#0d0d0d',
           color: '#fff'
         });
@@ -1622,209 +1511,469 @@ function SalesTab({ data, employeeId, employee, onRefresh }) {
     }
   };
 
+  // Get Stage Badge Color
+  const getStageBadgeClass = (stage) => {
+    const stageMap = {
+      'New': 'badge-new',
+      'Contacted': 'badge-contacted',
+      'Quotation Sent': 'badge-quotation',
+      'Negotiation': 'badge-negotiation',
+      'Won': 'badge-won',
+      'Lost': 'badge-lost'
+    };
+    return stageMap[stage] || 'badge-new';
+  };
+
+  const getPriorityClass = (priority) => {
+    const map = {
+      'Low': 'priority-low',
+      'Medium': 'priority-medium',
+      'High': 'priority-high',
+      'Urgent': 'priority-urgent'
+    };
+    return map[priority] || 'priority-medium';
+  };
+
   return (
-    <div className="sales-tab">
-      <div className="sales-header">
-        <h2>Sales Dashboard</h2>
-        <p>Welcome, {employee?.name || 'Salesperson'}</p>
-      </div>
-
-      {/* Overview Cards */}
-      <div className="sales-overview-grid">
-        <div className="sales-card">
-          <div className="sales-card-icon" style={{ background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)' }}>
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
-              <circle cx="9" cy="7" r="4"></circle>
-              <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
-              <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+    <div className="sales-tab-container">
+      {/* Stats Overview */}
+      <div className="sales-stats-grid">
+        <div className="sales-stat-card">
+          <div className="stat-icon" style={{ background: 'rgba(177, 76, 255, 0.15)' }}>
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#b14cff" strokeWidth="2">
+              <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+              <circle cx="8.5" cy="7" r="4"></circle>
+              <line x1="20" y1="8" x2="20" y2="14"></line>
+              <line x1="23" y1="11" x2="17" y2="11"></line>
             </svg>
           </div>
-          <div className="sales-card-content">
-            <h3>{data.stats.total}</h3>
-            <p>My Leads</p>
+          <div className="stat-info">
+            <h4>Total Leads</h4>
+            <p className="stat-number">{stats.total}</p>
           </div>
         </div>
 
-        <div className="sales-card">
-          <div className="sales-card-icon" style={{ background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)' }}>
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <circle cx="12" cy="12" r="10"></circle>
-              <polyline points="12 6 12 12 16 14"></polyline>
-            </svg>
-          </div>
-          <div className="sales-card-content">
-            <h3>{todayFollowups.length + overdueFollowups.length}</h3>
-            <p>Follow-ups Due</p>
-          </div>
-        </div>
-
-        <div className="sales-card">
-          <div className="sales-card-icon" style={{ background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)' }}>
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+        <div className="sales-stat-card">
+          <div className="stat-icon" style={{ background: 'rgba(16, 185, 129, 0.15)' }}>
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="2">
               <polyline points="20 6 9 17 4 12"></polyline>
             </svg>
           </div>
-          <div className="sales-card-content">
-            <h3>{data.stats.won}</h3>
-            <p>Won Deals</p>
+          <div className="stat-info">
+            <h4>Won Deals</h4>
+            <p className="stat-number" style={{ color: '#10b981' }}>{stats.won}</p>
           </div>
         </div>
 
-        <div className="sales-card">
-          <div className="sales-card-icon" style={{ background: 'linear-gradient(135deg, #b14cff 0%, #8b2acf 100%)' }}>
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+        <div className="sales-stat-card">
+          <div className="stat-icon" style={{ background: 'rgba(251, 191, 36, 0.15)' }}>
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fbbf24" strokeWidth="2">
               <line x1="12" y1="1" x2="12" y2="23"></line>
               <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
             </svg>
           </div>
-          <div className="sales-card-content">
-            <h3>PKR {data.stats.commission.toLocaleString()}</h3>
-            <p>Expected Commission</p>
+          <div className="stat-info">
+            <h4>Expected Value</h4>
+            <p className="stat-number" style={{ color: '#fbbf24', fontSize: '18px' }}>
+              PKR {stats.totalValue.toLocaleString()}
+            </p>
+          </div>
+        </div>
+
+        <div className="sales-stat-card">
+          <div className="stat-icon" style={{ background: 'rgba(34, 197, 94, 0.15)' }}>
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#22c55e" strokeWidth="2">
+              <path d="M12 2v20M2 12h20"></path>
+            </svg>
+          </div>
+          <div className="stat-info">
+            <h4>Won Value</h4>
+            <p className="stat-number" style={{ color: '#22c55e', fontSize: '18px' }}>
+              PKR {stats.wonValue.toLocaleString()}
+            </p>
           </div>
         </div>
       </div>
 
-      {/* Today's Follow-ups Section */}
-      <div className="sales-section">
-        <div className="section-header">
-          <h3>Today's Follow-ups</h3>
-          <div className="followup-badges">
-            <span className="badge badge-primary">{todayFollowups.length} Due Today</span>
-            <span className="badge badge-danger">{overdueFollowups.length} Overdue</span>
-          </div>
-        </div>
-        
-        {(todayFollowups.length === 0 && overdueFollowups.length === 0) ? (
-          <div className="empty-state">
-            <p>No follow-ups scheduled for today</p>
-          </div>
-        ) : (
-          <div className="followup-list">
-            {overdueFollowups.map(followup => (
-              <div key={followup.id} className="followup-item overdue">
-                <div className="followup-icon">⚠️</div>
-                <div className="followup-details">
-                  <h4>Lead ID: {followup.leadId}</h4>
-                  <p>{followup.type} - {followup.scheduledDate} {followup.scheduledTime}</p>
-                  <small>{followup.notes}</small>
-                </div>
-                <button className="btn-complete" onClick={() => handleCompleteFollowup(followup)}>Mark Complete</button>
-              </div>
-            ))}
-            {todayFollowups.map(followup => (
-              <div key={followup.id} className="followup-item">
-                <div className="followup-icon">📞</div>
-                <div className="followup-details">
-                  <h4>Lead ID: {followup.leadId}</h4>
-                  <p>{followup.type} - {followup.scheduledTime || 'TBD'}</p>
-                  <small>{followup.notes}</small>
-                </div>
-                <button className="btn-complete" onClick={() => handleCompleteFollowup(followup)}>Mark Complete</button>
-              </div>
-            ))}
-          </div>
-        )}
+      {/* Action Buttons */}
+      <div className="sales-actions">
+        <button className="btn-add-lead" onClick={() => setShowAddLead(true)}>
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <line x1="12" y1="5" x2="12" y2="19"></line>
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+          </svg>
+          Add New Lead
+        </button>
       </div>
 
-      {/* Lead Pipeline */}
-      <div className="sales-section">
-        <h3>Lead Pipeline</h3>
-        <div className="pipeline">
-          {['New', 'Contacted', 'Follow-up', 'Quotation', 'Negotiation', 'Won', 'Lost'].map((stage, index) => (
-            <div key={stage} className="pipeline-stage">
-              <div className="stage-header">
-                <h4>{stage}</h4>
-                <span className="stage-count">
-                  {data.leads.filter(l => l.status === stage).length}
-                </span>
-              </div>
-              {index < 6 && <div className="stage-arrow">→</div>}
+      {/* Add Lead Modal */}
+      {showAddLead && (
+        <div className="modal-overlay" onClick={() => setShowAddLead(false)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>Add New Lead</h2>
+              <button className="modal-close" onClick={() => setShowAddLead(false)}>×</button>
             </div>
-          ))}
-        </div>
-      </div>
+            <form onSubmit={handleAddLead} className="lead-form">
+              <div className="form-grid">
+                <div className="form-group full-width">
+                  <label>Client Name *</label>
+                  <input 
+                    type="text" 
+                    name="clientName" 
+                    placeholder="Enter client full name"
+                    required 
+                  />
+                </div>
 
-      {/* Recent Leads Table */}
-      <div className="sales-section">
-        <div className="section-header">
-          <h3>Recent Leads</h3>
-          <button className="btn-add-lead" onClick={handleAddLead}>+ Add Lead</button>
+                <div className="form-group">
+                  <label>Email</label>
+                  <input 
+                    type="email" 
+                    name="email" 
+                    placeholder="email@example.com"
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label>Phone</label>
+                  <input 
+                    type="tel" 
+                    name="phone" 
+                    placeholder="+92 300 1234567"
+                  />
+                </div>
+
+                <div className="form-group full-width">
+                  <label>Company Name</label>
+                  <input 
+                    type="text" 
+                    name="companyName" 
+                    placeholder="Company or organization name"
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label>Service Type *</label>
+                  <select name="serviceType" required>
+                    <option value="">Select Service</option>
+                    <option value="Website Development">Website Development</option>
+                    <option value="Mobile App">Mobile App</option>
+                    <option value="ERP System">ERP System</option>
+                    <option value="E-Commerce">E-Commerce</option>
+                    <option value="SEO Services">SEO Services</option>
+                    <option value="Digital Marketing">Digital Marketing</option>
+                    <option value="Graphic Design">Graphic Design</option>
+                    <option value="Custom Software">Custom Software</option>
+                    <option value="Other">Other</option>
+                  </select>
+                </div>
+
+                <div className="form-group">
+                  <label>Current Stage *</label>
+                  <select 
+                    name="stage" 
+                    defaultValue="New" 
+                    required
+                    onChange={(e) => {
+                      const wonField = document.getElementById('wonPriceField');
+                      const wonInput = document.getElementById('wonPriceInput');
+                      
+                      if (e.target.value === 'Won') {
+                        // Show Won Price field and make it required
+                        wonField.style.display = 'flex';
+                        wonInput.required = true;
+                      } else {
+                        // Hide Won Price field
+                        wonField.style.display = 'none';
+                        wonInput.required = false;
+                        wonInput.value = '';
+                      }
+                    }}
+                  >
+                    <option value="New">New</option>
+                    <option value="Contacted">Contacted</option>
+                    <option value="Quotation Sent">Quotation Sent</option>
+                    <option value="Negotiation">Negotiation</option>
+                    <option value="Won">Won</option>
+                    <option value="Lost">Lost</option>
+                  </select>
+                </div>
+
+                <div className="form-group">
+                  <label>Priority</label>
+                  <select name="priority" defaultValue="Medium">
+                    <option value="Low">Low</option>
+                    <option value="Medium">Medium</option>
+                    <option value="High">High</option>
+                    <option value="Urgent">Urgent</option>
+                  </select>
+                </div>
+
+                <div className="form-group">
+                  <label>Source</label>
+                  <select name="source" defaultValue="Direct">
+                    <option value="Direct">Direct</option>
+                    <option value="Referral">Referral</option>
+                    <option value="Website">Website</option>
+                    <option value="Social Media">Social Media</option>
+                    <option value="Cold Call">Cold Call</option>
+                    <option value="Other">Other</option>
+                  </select>
+                </div>
+
+                <div className="form-group">
+                  <label>Next Follow-up</label>
+                  <input 
+                    type="date" 
+                    name="nextFollowUp"
+                    min={new Date().toISOString().split('T')[0]}
+                  />
+                </div>
+
+                {/* Conditional Won Price Field - Only shows when stage is Won */}
+                <div className="form-group" id="wonPriceField" style={{ display: 'none' }}>
+                  <label>Won Price (PKR) *</label>
+                  <input 
+                    type="number" 
+                    name="wonPrice" 
+                    placeholder="Final deal price"
+                    min="0"
+                    id="wonPriceInput"
+                  />
+                </div>
+
+                <div className="form-group full-width">
+                  <label>Notes</label>
+                  <textarea 
+                    name="notes" 
+                    placeholder="Any additional information about this lead..."
+                    rows="3"
+                  ></textarea>
+                </div>
+              </div>
+
+              <div className="form-actions">
+                <button type="button" className="btn-cancel" onClick={() => setShowAddLead(false)}>
+                  Cancel
+                </button>
+                <button type="submit" className="btn-submit">
+                  Add Lead
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
-        
-        {data.leads.length === 0 ? (
+      )}
+
+      {/* Leads Table */}
+      <div className="leads-table-container">
+        {loading ? (
+          <div className="loading-state">Loading leads...</div>
+        ) : leads.length === 0 ? (
           <div className="empty-state">
-            <p>No leads yet. Add your first lead!</p>
+            <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" opacity="0.3">
+              <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+              <circle cx="8.5" cy="7" r="4"></circle>
+              <line x1="20" y1="8" x2="20" y2="14"></line>
+              <line x1="23" y1="11" x2="17" y2="11"></line>
+            </svg>
+            <p>No leads yet. Start by adding your first lead!</p>
           </div>
         ) : (
-          <div className="table-container">
-            <table className="data-table">
-              <thead>
-                <tr>
-                  <th>Client</th>
-                  <th>Service</th>
-                  <th>Value</th>
-                  <th>Status</th>
-                  <th>Follow-up</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {data.leads.slice(0, 10).map(lead => (
-                  <tr key={lead.id}>
-                    <td>
+          <table className="leads-table">
+            <thead>
+              <tr>
+                <th>Client</th>
+                <th>Service</th>
+                <th>Expected Value</th>
+                <th>Priority</th>
+                <th>Stage</th>
+                <th>Source</th>
+                <th>Created</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {leads.map((lead) => (
+                <tr key={lead.id}>
+                  <td>
+                    <div className="client-info">
                       <strong>{lead.clientName}</strong>
-                      <br />
-                      <small style={{ color: '#888' }}>{lead.companyName}</small>
-                    </td>
-                    <td>{lead.serviceType}</td>
-                    <td>PKR {lead.expectedValue.toLocaleString()}</td>
-                    <td>
-                      <span className={`status-badge status-${lead.status.toLowerCase().replace(' ', '-')}`}>
-                        {lead.status}
-                      </span>
-                    </td>
-                    <td>{lead.nextFollowUp || '-'}</td>
-                    <td>
-                      <div style={{ display: 'flex', gap: '5px' }}>
-                        <button className="btn-action">View</button>
-                        <button className="btn-action">Edit</button>
+                      {lead.companyName && <span className="company-name">{lead.companyName}</span>}
+                    </div>
+                  </td>
+                  <td>{lead.serviceType}</td>
+                  <td>
+                    <strong style={{ color: '#fbbf24' }}>
+                      PKR {lead.expectedValue?.toLocaleString()}
+                    </strong>
+                    {lead.stage === 'Won' && lead.wonPrice && (
+                      <div style={{ fontSize: '12px', color: '#10b981', marginTop: '4px' }}>
+                        Won: PKR {lead.wonPrice.toLocaleString()}
                       </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                    )}
+                  </td>
+                  <td>
+                    <span className={`priority-badge ${getPriorityClass(lead.priority)}`}>
+                      {lead.priority}
+                    </span>
+                  </td>
+                  <td>
+                    <select 
+                      className={`stage-select ${getStageBadgeClass(lead.stage)}`}
+                      value={lead.stage}
+                      onChange={(e) => handleUpdateStage(lead, e.target.value)}
+                    >
+                      <option value="New">New</option>
+                      <option value="Contacted">Contacted</option>
+                      <option value="Quotation Sent">Quotation Sent</option>
+                      <option value="Negotiation">Negotiation</option>
+                      <option value="Won">Won</option>
+                      <option value="Lost">Lost</option>
+                    </select>
+                  </td>
+                  <td>{lead.source}</td>
+                  <td style={{ fontSize: '13px', color: '#888' }}>
+                    {new Date(lead.createdAt).toLocaleDateString()}
+                  </td>
+                  <td>
+                    <button 
+                      className="btn-view-lead"
+                      onClick={() => setSelectedLead(lead)}
+                      title="View Details"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                        <circle cx="12" cy="12" r="3"></circle>
+                      </svg>
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         )}
       </div>
 
-      {/* Sales Performance */}
-      <div className="sales-section">
-        <h3>Sales Performance</h3>
-        <div className="performance-grid">
-          <div className="perf-stat">
-            <label>Total Leads</label>
-            <p>{data.stats.total}</p>
-          </div>
-          <div className="perf-stat">
-            <label>Won Deals</label>
-            <p>{data.stats.won}</p>
-          </div>
-          <div className="perf-stat">
-            <label>Conversion Rate</label>
-            <p>{data.stats.total > 0 ? ((data.stats.won / data.stats.total) * 100).toFixed(1) : 0}%</p>
-          </div>
-          <div className="perf-stat">
-            <label>Total Sales Value</label>
-            <p>PKR {data.leads.filter(l => l.status === 'Won').reduce((sum, l) => sum + (l.actualValue || 0), 0).toLocaleString()}</p>
-          </div>
-          <div className="perf-stat highlight">
-            <label>Expected Commission</label>
-            <p>PKR {data.stats.commission.toLocaleString()}</p>
+      {/* Lead Detail Modal */}
+      {selectedLead && (
+        <div className="modal-overlay" onClick={() => setSelectedLead(null)}>
+          <div className="modal-content modal-detail" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>Lead Details</h2>
+              <button className="modal-close" onClick={() => setSelectedLead(null)}>×</button>
+            </div>
+            <div className="lead-detail-content">
+              <div className="detail-section">
+                <h3>Client Information</h3>
+                <div className="detail-grid">
+                  <div className="detail-item">
+                    <label>Name</label>
+                    <p>{selectedLead.clientName}</p>
+                  </div>
+                  {selectedLead.companyName && (
+                    <div className="detail-item">
+                      <label>Company</label>
+                      <p>{selectedLead.companyName}</p>
+                    </div>
+                  )}
+                  {selectedLead.email && (
+                    <div className="detail-item">
+                      <label>Email</label>
+                      <p>{selectedLead.email}</p>
+                    </div>
+                  )}
+                  {selectedLead.phone && (
+                    <div className="detail-item">
+                      <label>Phone</label>
+                      <p>{selectedLead.phone}</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className="detail-section">
+                <h3>Lead Information</h3>
+                <div className="detail-grid">
+                  <div className="detail-item">
+                    <label>Service Type</label>
+                    <p>{selectedLead.serviceType}</p>
+                  </div>
+                  <div className="detail-item">
+                    <label>Expected Value</label>
+                    <p style={{ color: '#fbbf24', fontWeight: 'bold' }}>
+                      PKR {selectedLead.expectedValue?.toLocaleString()}
+                    </p>
+                  </div>
+                  <div className="detail-item">
+                    <label>Priority</label>
+                    <p>
+                      <span className={`priority-badge ${getPriorityClass(selectedLead.priority)}`}>
+                        {selectedLead.priority}
+                      </span>
+                    </p>
+                  </div>
+                  <div className="detail-item">
+                    <label>Stage</label>
+                    <p>
+                      <span className={`stage-badge ${getStageBadgeClass(selectedLead.stage)}`}>
+                        {selectedLead.stage}
+                      </span>
+                    </p>
+                  </div>
+                  <div className="detail-item">
+                    <label>Source</label>
+                    <p>{selectedLead.source}</p>
+                  </div>
+                  {selectedLead.stage === 'Won' && selectedLead.wonPrice && (
+                    <div className="detail-item">
+                      <label>Won Price</label>
+                      <p style={{ color: '#10b981', fontWeight: 'bold' }}>
+                        PKR {selectedLead.wonPrice.toLocaleString()}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {selectedLead.notes && (
+                <div className="detail-section">
+                  <h3>Notes</h3>
+                  <p style={{ color: '#ccc', lineHeight: '1.6' }}>{selectedLead.notes}</p>
+                </div>
+              )}
+
+              {selectedLead.activityLog && selectedLead.activityLog.length > 0 && (
+                <div className="detail-section">
+                  <h3>Activity Log</h3>
+                  <div className="activity-log">
+                    {selectedLead.activityLog.map((activity, index) => (
+                      <div key={index} className="activity-item">
+                        <div className="activity-icon">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <circle cx="12" cy="12" r="10"></circle>
+                          </svg>
+                        </div>
+                        <div className="activity-details">
+                          <p className="activity-action">{activity.action}</p>
+                          <p className="activity-meta">
+                            {activity.performedBy} • {new Date(activity.performedAt).toLocaleString()}
+                          </p>
+                          {activity.details && (
+                            <p className="activity-details-text">{activity.details}</p>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }
+
