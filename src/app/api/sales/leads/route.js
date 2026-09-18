@@ -42,21 +42,25 @@ export async function GET(request) {
     }
 
     // Build query
-    let q = query(leadsRef, orderBy('createdAt', 'desc'));
+    let q = query(leadsRef);
     
     if (employeeId) {
-      q = query(leadsRef, where('assignedTo', '==', employeeId), orderBy('createdAt', 'desc'));
+      q = query(leadsRef, where('assignedTo', '==', employeeId));
     }
     
     if (status) {
-      q = query(leadsRef, where('status', '==', status), orderBy('createdAt', 'desc'));
+      q = query(leadsRef, where('status', '==', status));
     }
 
     const querySnapshot = await getDocs(q);
     const leads = querySnapshot.docs.map(doc => ({
       id: doc.id,
       ...doc.data()
-    }));
+    })).sort((first, second) => {
+      const firstDate = first.createdAt?.toMillis?.() || 0;
+      const secondDate = second.createdAt?.toMillis?.() || 0;
+      return secondDate - firstDate;
+    });
 
     return NextResponse.json({
       success: true,

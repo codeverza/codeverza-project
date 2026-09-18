@@ -215,6 +215,7 @@ export default function AdminDashboard() {
     { id: 'quotations', label: 'Quotations', icon: <Briefcase size={17} />, isLink: true, href: '/admin/quotations' },
     { id: 'joining-letters', label: 'Joining Letters', icon: <Users size={17} />, isLink: true, href: '/admin/joining-letters' },
     { id: 'sales', label: 'Sales & Leads', icon: <BarChart2 size={17} />, isLink: true, href: '/admin/sales' },
+    { id: 'projects', label: 'Projects & Payments', icon: <Briefcase size={17} />, isLink: true, href: '/admin/employees/projects' },
     { id: 'employees', label: 'Employees', icon: <Users size={17} />, isLink: true, href: '/admin/employees' },
     { id: 'attendance', label: 'Attendance', icon: <Clock size={17} />, isLink: true, href: '/admin/employees/attendance' },
     { id: 'leaves', label: 'Leaves', icon: <Clock size={17} />, isLink: true, href: '/admin/employees/leaves' },

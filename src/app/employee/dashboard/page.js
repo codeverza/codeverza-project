@@ -28,6 +28,13 @@ export default function EmployeeDashboardPage() {
     stats: { total: 0, won: 0, expected: 0, commission: 0 }
   });
 
+  const changeTab = (tab) => {
+    setActiveTab(tab);
+    if (typeof window !== 'undefined' && employee?.id) {
+      localStorage.setItem(`employeeActiveTab_${employee.id}`, tab);
+    }
+  };
+
   useEffect(() => {
     checkAuth();
     
@@ -45,7 +52,7 @@ export default function EmployeeDashboardPage() {
     return () => clearInterval(interval);
   }, []);
 
-  const checkAuth = () => {
+  const checkAuth = async () => {
     const empData = getEmployeeAuth();
     
     if (!empData) {
@@ -55,14 +62,27 @@ export default function EmployeeDashboardPage() {
 
     setEmployee(empData);
     // Use permissions from employee data, no defaults for attendance/leaves
-    console.log('Employee Permissions from localStorage:', empData.permissions);
     setPermissions(empData.permissions);
+    const savedTab = typeof window !== 'undefined'
+      ? localStorage.getItem(`employeeActiveTab_${empData.id}`)
+      : null;
+    const savedTabAllowed = savedTab === 'profile' || savedTab === 'tasks' ||
+      (savedTab === 'attendance' && empData.permissions?.attendance?.view) ||
+      (savedTab === 'leaves' && empData.permissions?.leaves?.view) ||
+      (savedTab === 'salary' && empData.permissions?.salary?.view) ||
+      (savedTab === 'projects' && empData.permissions?.projects?.view) ||
+      (savedTab === 'sales' && empData.permissions?.sales?.view);
+    if (savedTab && savedTabAllowed) setActiveTab(savedTab);
     setSessionTime(getSessionTimeRemaining());
-    loadEmployeeData(empData.id);
-    setLoading(false);
+
+    try {
+      await loadEmployeeData(empData.id, empData.permissions);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const loadEmployeeData = async (employeeId) => {
+  const loadEmployeeData = async (employeeId, employeePermissions = permissions) => {
     try {
       // Load profile data
       const profileRes = await fetch(`/api/employees?id=${employeeId}`);
@@ -72,7 +92,7 @@ export default function EmployeeDashboardPage() {
       }
 
       // Load attendance if permitted
-      if (permissions?.attendance?.view) {
+      if (employeePermissions?.attendance?.view) {
         const attRes = await fetch(`/api/employees/attendance?employeeId=${employeeId}`);
         const attData = await attRes.json();
         if (attData.success) {
@@ -81,7 +101,7 @@ export default function EmployeeDashboardPage() {
       }
 
       // Load leaves if permitted
-      if (permissions?.leaves?.view) {
+      if (employeePermissions?.leaves?.view) {
         const leavesRes = await fetch(`/api/employees/leaves?employeeId=${employeeId}`);
         const leavesData = await leavesRes.json();
         if (leavesData.success) {
@@ -90,7 +110,7 @@ export default function EmployeeDashboardPage() {
       }
 
       // Load salary if permitted
-      if (permissions?.salary?.view) {
+      if (employeePermissions?.salary?.view) {
         const salaryRes = await fetch(`/api/employees/salary?employeeId=${employeeId}`);
         const salaryData = await salaryRes.json();
         if (salaryData.success) {
@@ -99,7 +119,7 @@ export default function EmployeeDashboardPage() {
       }
 
       // Load projects if permitted
-      if (permissions?.projects?.view) {
+      if (employeePermissions?.projects?.view) {
         const projRes = await fetch(`/api/employees/projects?employeeId=${employeeId}`);
         const projData = await projRes.json();
         if (projData.success) {
@@ -109,12 +129,9 @@ export default function EmployeeDashboardPage() {
 
       // Load tasks - ALWAYS LOAD (removed permission check for debugging)
       try {
-        console.log('Fetching tasks for employee:', employeeId);
         const tasksRes = await fetch(`/api/tasks?employeeId=${employeeId}`);
         const tasksData = await tasksRes.json();
-        console.log('Tasks API Response:', tasksData);
         if (tasksData.success) {
-          console.log('Tasks found:', tasksData.tasks?.length || 0);
           setTasksData(tasksData.tasks || []);
         } else {
           console.error('Tasks API returned error:', tasksData.message);
@@ -124,7 +141,7 @@ export default function EmployeeDashboardPage() {
       }
 
       // Load sales data if permitted
-      if (permissions?.sales?.view) {
+      if (employeePermissions?.sales?.view) {
         try {
           // Load leads
           const leadsRes = await fetch(`/api/sales/leads?employeeId=${employeeId}`);
@@ -173,19 +190,42 @@ export default function EmployeeDashboardPage() {
     }
   };
 
-  const handleLogout = (isAutoLogout = false) => {
-    const message = isAutoLogout 
-      ? 'Session expired. Please login again.' 
-      : 'Kya aap logout karna chahte hain?';
-    
-    if (isAutoLogout || confirm(message)) {
-      clearEmployeeAuth();
-      router.push('/employee/login');
+  const handleLogout = async (isAutoLogout = false) => {
+    if (!isAutoLogout) {
+      const result = await Swal.fire({
+        icon: 'warning',
+        iconColor: '#fbbf24',
+        title: 'Logout from account?',
+        text: 'Aap apne employee dashboard se logout honay walay hain.',
+        showCancelButton: true,
+        confirmButtonText: 'Yes, Logout',
+        cancelButtonText: 'Stay Logged In',
+        confirmButtonColor: '#ef4444',
+        cancelButtonColor: '#4b5563',
+        background: '#111014',
+        color: '#fff',
+        customClass: {
+          popup: 'logout-confirm-popup',
+          title: 'logout-confirm-title',
+          confirmButton: 'logout-confirm-button',
+          cancelButton: 'logout-cancel-button'
+        }
+      });
+
+      if (!result.isConfirmed) return;
     }
+
+    clearEmployeeAuth();
+    router.push('/employee/login');
   };
 
   if (loading) {
-    return null; // Global loader will handle this
+    return (
+      <div className="loading-container dashboard-initial-loader">
+        <div className="spinner-large" aria-label="Loading employee dashboard"></div>
+        <p className="loading-text">Loading Employee Dashboard...</p>
+      </div>
+    );
   }
 
   if (!employee) {
@@ -216,9 +256,9 @@ export default function EmployeeDashboardPage() {
             )}
             <div className="employee-details">
               <h3>{employee.name}</h3>
-              <p>{employee.designation}</p>
+              <p style={{ color: '#fff'}}>{employee.designation}</p>
               {sessionTime !== null && (
-                <small style={{ color: '#718096', fontSize: '11px' }}>
+                <small style={{ color: '#fff', fontSize: '11px' }}>
                   Session: {Math.floor(sessionTime)}h remaining
                 </small>
               )}
@@ -247,7 +287,7 @@ export default function EmployeeDashboardPage() {
       <nav className="dashboard-nav">
         <button 
           className={activeTab === 'profile' ? 'active' : ''} 
-          onClick={() => setActiveTab('profile')}
+            onClick={() => changeTab('profile')}
         >
           <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
@@ -259,7 +299,7 @@ export default function EmployeeDashboardPage() {
         {permissions?.attendance?.view && (
           <button 
             className={activeTab === 'attendance' ? 'active' : ''} 
-            onClick={() => setActiveTab('attendance')}
+            onClick={() => changeTab('attendance')}
           >
             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
@@ -274,7 +314,7 @@ export default function EmployeeDashboardPage() {
         {permissions?.leaves?.view && (
           <button 
             className={activeTab === 'leaves' ? 'active' : ''} 
-            onClick={() => setActiveTab('leaves')}
+            onClick={() => changeTab('leaves')}
           >
             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <circle cx="12" cy="12" r="10"></circle>
@@ -287,7 +327,7 @@ export default function EmployeeDashboardPage() {
         {permissions?.salary?.view && (
           <button 
             className={activeTab === 'salary' ? 'active' : ''} 
-            onClick={() => setActiveTab('salary')}
+            onClick={() => changeTab('salary')}
           >
             <span style={{ 
               fontSize: '18px', 
@@ -302,7 +342,7 @@ export default function EmployeeDashboardPage() {
         {permissions?.projects?.view && (
           <button 
             className={activeTab === 'projects' ? 'active' : ''} 
-            onClick={() => setActiveTab('projects')}
+            onClick={() => changeTab('projects')}
           >
             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
@@ -313,7 +353,7 @@ export default function EmployeeDashboardPage() {
         
         <button 
           className={activeTab === 'tasks' ? 'active' : ''} 
-          onClick={() => setActiveTab('tasks')}
+          onClick={() => changeTab('tasks')}
         >
           <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <polyline points="9 11 12 14 22 4"></polyline>
@@ -325,7 +365,7 @@ export default function EmployeeDashboardPage() {
         {permissions?.sales?.view && (
           <button 
             className={activeTab === 'sales' ? 'active' : ''} 
-            onClick={() => setActiveTab('sales')}
+            onClick={() => changeTab('sales')}
           >
             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <line x1="12" y1="1" x2="12" y2="23"></line>
@@ -342,7 +382,13 @@ export default function EmployeeDashboardPage() {
         {activeTab === 'attendance' && <AttendanceTab data={attendanceData} />}
         {activeTab === 'leaves' && <LeavesTab data={leavesData} employeeId={employee.id} permissions={permissions} />}
         {activeTab === 'salary' && <SalaryTab data={salaryData} employee={profileData} />}
-        {activeTab === 'projects' && <ProjectsTab data={projectsData} />}
+        {activeTab === 'projects' && (
+          <ProjectsTab
+            data={projectsData}
+            employee={employee}
+            onRefresh={() => loadEmployeeData(employee.id)}
+          />
+        )}
         {activeTab === 'tasks' && <TasksTab data={tasksData} employeeId={employee.id} onRefresh={() => loadEmployeeData(employee.id)} />}
         {activeTab === 'sales' && <SalesTab data={salesData} employeeId={employee.id} employee={profileData} onRefresh={() => loadEmployeeData(employee.id)} />}
       </main>
@@ -667,7 +713,7 @@ function SalaryTab({ data, employee }) {
                     fontSize: '13px',
                     textAlign: 'center'
                   }}>
-                    ℹ️ Third-party expenses commission se exclude hain
+                    ℹ️ Third-party expenses are excluded from the commission calculation and are not considered part of the commissionable project value.
                   </div>
                 )}
               </div>
@@ -761,7 +807,7 @@ function SalaryTab({ data, employee }) {
         <h2>Payment History</h2>
         {data.length === 0 ? (
           <div className="empty-state">
-            <p>Abhi tak koi salary record nahi hai</p>
+            <p>No salary records have been added yet.</p>
           </div>
         ) : (
           <div className="table-container">
@@ -803,7 +849,59 @@ function SalaryTab({ data, employee }) {
 }
 
 // Projects Tab Component
-function ProjectsTab({ data }) {
+function ProjectsTab({ data, employee, onRefresh }) {
+  const [selectedInstallment, setSelectedInstallment] = useState(null);
+  const [paymentMethod, setPaymentMethod] = useState('online');
+  const [paymentProof, setPaymentProof] = useState('');
+  const [paymentNote, setPaymentNote] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+
+  const openPaymentForm = (project, installment) => {
+    setSelectedInstallment({ project, installment });
+    setPaymentMethod('online');
+    setPaymentProof('');
+    setPaymentNote('');
+  };
+
+  const handleProofChange = (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => setPaymentProof(reader.result);
+    reader.readAsDataURL(file);
+  };
+
+  const submitPayment = async (event) => {
+    event.preventDefault();
+    if (!selectedInstallment) return;
+    setSubmitting(true);
+    try {
+      const response = await fetch('/api/employees/project-payments', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          projectId: selectedInstallment.project.id,
+          installmentId: selectedInstallment.installment.id,
+          method: paymentMethod,
+          amount: selectedInstallment.installment.amount,
+          proof: paymentProof,
+          note: paymentNote,
+          submittedBy: employee?.id,
+          submittedByName: employee?.name
+        })
+      });
+      const result = await response.json();
+      if (!result.success) throw new Error(result.message);
+      setSelectedInstallment(null);
+      await Swal.fire({ icon: 'success', title: 'Payment Submitted', text: 'Admin ko payment review ke liye bhej di gayi hai.', background: '#0d0d0d', color: '#fff', timer: 1800, showConfirmButton: false });
+      onRefresh();
+    } catch (error) {
+      Swal.fire({ icon: 'error', title: 'Payment Submit Failed', text: error.message, background: '#0d0d0d', color: '#fff' });
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   return (
     <div className="projects-tab">
       <h2>My Projects</h2>
@@ -813,8 +911,8 @@ function ProjectsTab({ data }) {
         </div>
       ) : (
         <div className="projects-grid">
-          {data.map((project, index) => (
-            <div key={index} className="project-card">
+          {data.map((project) => (
+            <div key={project.id} className="project-card">
               <div className="project-header">
                 <h3>{project.projectName}</h3>
                 <span className={`status-badge status-${project.status?.toLowerCase().replace(' ', '-')}`}>
@@ -823,8 +921,8 @@ function ProjectsTab({ data }) {
               </div>
               <p className="project-client">Client: {project.clientName}</p>
               <div className="project-dates">
-                <span>Start: {new Date(project.startDate).toLocaleDateString('en-GB')}</span>
-                <span>Deadline: {new Date(project.deadline).toLocaleDateString('en-GB')}</span>
+                <span>Start: {project.startDate ? new Date(project.startDate).toLocaleDateString('en-GB') : 'Not started'}</span>
+                <span>Deadline: {project.deadline ? new Date(project.deadline).toLocaleDateString('en-GB') : 'Not set'}</span>
               </div>
               <div className="project-footer">
                 <span className={`priority-badge priority-${project.priority?.toLowerCase()}`}>
@@ -832,8 +930,64 @@ function ProjectsTab({ data }) {
                 </span>
                 <span className="project-value">Rs. {project.projectValue?.toLocaleString()}</span>
               </div>
+              <div className="project-installments">
+                <h4>Payment Installments</h4>
+                {(project.installments || []).map((installment) => (
+                  <div key={installment.id} className={`installment-row ${installment.number > 1 && project.installments[installment.number - 2]?.status !== 'Approved' ? 'installment-locked' : ''}`}>
+                    <div>
+                      <strong>{installment.label}</strong>
+                      <span>{installment.percentage}% · PKR {installment.amount?.toLocaleString()}</span>
+                    </div>
+                    <div className="installment-action">
+                      {installment.number > 1 && project.installments[installment.number - 2]?.status !== 'Approved' && (
+                        <span className="installment-lock-note">Previous must clear</span>
+                      )}
+                      <span className={`payment-status payment-${installment.status?.toLowerCase().replaceAll(' ', '-')}`}>
+                        {installment.status}
+                      </span>
+                      {['Pending', 'Returned', 'Not Received'].includes(installment.status) &&
+                        (installment.number === 1 || project.installments[installment.number - 2]?.status === 'Approved') && (
+                        <button type="button" className="payment-submit-btn" onClick={() => openPaymentForm(project, installment)}>
+                          {installment.status === 'Pending' ? 'Add Payment' : 'Resubmit Payment'}
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           ))}
+        </div>
+      )}
+      {selectedInstallment && (
+        <div className="payment-modal-overlay" onClick={() => setSelectedInstallment(null)}>
+          <form className="payment-modal" onClick={(event) => event.stopPropagation()} onSubmit={submitPayment}>
+            <div className="payment-modal-header">
+              <div>
+                <span className="payment-modal-kicker">Payment Submission</span>
+                <h3>{selectedInstallment.installment.label}</h3>
+              </div>
+              <button type="button" onClick={() => setSelectedInstallment(null)}>×</button>
+            </div>
+            <p className="payment-modal-amount">PKR {selectedInstallment.installment.amount?.toLocaleString()}</p>
+            <label>Payment Method</label>
+            <select value={paymentMethod} onChange={(event) => setPaymentMethod(event.target.value)}>
+              <option value="online">Online Payment</option>
+              <option value="cheque">Cheque</option>
+              <option value="cash">Cash</option>
+            </select>
+            {paymentMethod !== 'cash' && (
+              <>
+                <label>Payment Screenshot / Cheque Picture *</label>
+                <input type="file" accept="image/*" onChange={handleProofChange} required />
+              </>
+            )}
+            <label>Payment Details</label>
+            <textarea value={paymentNote} onChange={(event) => setPaymentNote(event.target.value)} placeholder="Transaction ID, cheque number, or other details" rows="3" />
+            <button className="payment-submit-main" type="submit" disabled={submitting}>
+              {submitting ? 'Submitting...' : 'Submit Payment'}
+            </button>
+          </form>
         </div>
       )}
     </div>
@@ -1214,14 +1368,21 @@ function SalesTab({ data, employeeId, employee, onRefresh }) {
   const [selectedLead, setSelectedLead] = useState(null);
   
   useEffect(() => {
-    loadLeads();
+    if (employeeId) {
+      loadLeads();
+    }
   }, [employeeId]);
 
   const loadLeads = async () => {
+    if (!employeeId) {
+      return;
+    }
+    
     try {
       setLoading(true);
       const response = await fetch(`/api/leads?employeeId=${employeeId}`);
       const data = await response.json();
+      
       if (data.success) {
         setLeads(data.leads || []);
       }
@@ -1231,6 +1392,58 @@ function SalesTab({ data, employeeId, employee, onRefresh }) {
       setLoading(false);
     }
   };
+
+  const showLeadUpdatingPopup = () => {
+    Swal.fire({
+      title: 'Updating Lead...',
+      html: `
+        <div class="lead-update-animation" aria-hidden="true">
+          <div class="lead-update-ring"></div>
+          <svg class="lead-update-icon" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M24 6L39 12V22C39 31.5 32.6 39.8 24 42C15.4 39.8 9 31.5 9 22V12L24 6Z" stroke="currentColor" stroke-width="2.5"/>
+            <path class="lead-update-check" d="M16 24L21.5 29.5L32.5 18.5" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <p class="lead-update-copy">Saving your lead changes</p>
+        <div class="lead-update-dots" aria-hidden="true"><span></span><span></span><span></span></div>
+      `,
+      allowOutsideClick: false,
+      allowEscapeKey: false,
+      showConfirmButton: false,
+      background: '#0d0d0d',
+      color: '#fff',
+      customClass: {
+        popup: 'lead-update-popup',
+        title: 'lead-update-title',
+        htmlContainer: 'lead-update-content'
+      }
+    });
+  };
+
+  const showLeadUpdatedPopup = (message) => Swal.fire({
+    title: 'Lead Updated Successfully',
+    html: `
+      <div class="lead-success-animation" aria-hidden="true">
+        <div class="lead-success-burst"></div>
+        <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="32" cy="32" r="25" stroke="currentColor" stroke-width="3"/>
+          <path class="lead-success-check" d="M19 32L28 41L46 22" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <p class="lead-success-copy">${message}</p>
+    `,
+    background: '#0d0d0d',
+    color: '#fff',
+    timer: 2200,
+    timerProgressBar: true,
+    showConfirmButton: false,
+    customClass: {
+      popup: 'lead-success-popup',
+      title: 'lead-success-title',
+      htmlContainer: 'lead-success-content',
+      timerProgressBar: 'lead-success-progress'
+    }
+  });
 
   // Calculate Stats
   const stats = {
@@ -1252,16 +1465,7 @@ function SalesTab({ data, employeeId, employee, onRefresh }) {
     
     const stage = formData.get('stage');
     const wonPrice = formData.get('wonPrice');
-    
-    console.log('Form Data:', {
-      clientName: formData.get('clientName'),
-      serviceType: formData.get('serviceType'),
-      priority: formData.get('priority'),
-      source: formData.get('source'),
-      stage: stage,
-      employeeId: employee?.id,
-      employeeName: employee?.name
-    });
+    const expectedValue = formData.get('expectedValue');
     
     // Validate: If stage is Won, wonPrice is required
     if (stage === 'Won' && (!wonPrice || parseFloat(wonPrice) <= 0)) {
@@ -1269,6 +1473,18 @@ function SalesTab({ data, employeeId, employee, onRefresh }) {
         icon: 'error',
         title: 'Won Price Required',
         text: 'Please enter the final deal price when marking lead as Won',
+        confirmButtonColor: '#b14cff',
+        background: '#0d0d0d',
+        color: '#fff'
+      });
+      return;
+    }
+
+    if (stage === 'Quotation Sent' && (!expectedValue || parseFloat(expectedValue) <= 0)) {
+      await Swal.fire({
+        icon: 'error',
+        title: 'Expected Value Required',
+        text: 'Please enter the quotation value when marking lead as Quotation Sent',
         confirmButtonColor: '#b14cff',
         background: '#0d0d0d',
         color: '#fff'
@@ -1295,7 +1511,7 @@ function SalesTab({ data, employeeId, employee, onRefresh }) {
       phone: formData.get('phone'),
       companyName: formData.get('companyName'),
       serviceType: formData.get('serviceType'),
-      expectedValue: 0, // Set to 0 by default since we removed the field
+      expectedValue: expectedValue ? parseFloat(expectedValue) : 0,
       priority: formData.get('priority'),
       source: formData.get('source'),
       stage: stage,
@@ -1310,8 +1526,6 @@ function SalesTab({ data, employeeId, employee, onRefresh }) {
       leadData.wonPrice = parseFloat(wonPrice);
     }
 
-    console.log('Sending lead data:', leadData);
-
     try {
       const response = await fetch('/api/leads', {
         method: 'POST',
@@ -1319,9 +1533,7 @@ function SalesTab({ data, employeeId, employee, onRefresh }) {
         body: JSON.stringify(leadData)
       });
 
-      console.log('Response status:', response.status);
       const data = await response.json();
-      console.log('Response data:', data);
 
       if (data.success) {
         await Swal.fire({
@@ -1334,8 +1546,9 @@ function SalesTab({ data, employeeId, employee, onRefresh }) {
           timer: 2000,
           showConfirmButton: true
         });
+        e.target.reset(); // Reset form
         setShowAddLead(false);
-        loadLeads();
+        await loadLeads(); // Wait for leads to load
       } else {
         throw new Error(data.message);
       }
@@ -1354,19 +1567,66 @@ function SalesTab({ data, employeeId, employee, onRefresh }) {
 
   // Update Lead Stage
   const handleUpdateStage = async (lead, newStage) => {
-    // If Won, ask for won price
-    if (newStage === 'Won') {
+    let lossReason = '';
+
+    if (newStage === 'Lost') {
       const result = await Swal.fire({
-        title: 'Lead Won! 🎉',
+        icon: 'warning',
+        iconColor: '#f87171',
+        title: 'Why was this lead lost?',
+        input: 'textarea',
+        inputLabel: 'Loss reason',
+        inputPlaceholder: 'e.g. Budget issue, chose another provider...',
+        inputAttributes: {
+          'aria-label': 'Loss reason'
+        },
+        showCancelButton: true,
+        confirmButtonText: 'Mark as Lost',
+        cancelButtonText: 'Cancel',
+        confirmButtonColor: '#ef4444',
+        cancelButtonColor: '#6b7280',
+        background: '#0d0d0d',
+        color: '#fff',
+        customClass: {
+          popup: 'lost-lead-popup',
+          icon: 'lost-lead-icon',
+          title: 'lost-lead-title',
+          input: 'lost-lead-input',
+          confirmButton: 'lost-lead-confirm',
+          cancelButton: 'lost-lead-cancel'
+        },
+        preConfirm: (value) => {
+          const reason = value?.trim();
+          if (!reason) {
+            Swal.showValidationMessage('Please enter a reason before marking this lead as lost.');
+            return false;
+          }
+          return reason;
+        }
+      });
+
+      if (!result.isConfirmed) return;
+      lossReason = result.value;
+    }
+
+    // Ask for a value when a quotation or won deal is selected.
+    if (newStage === 'Won' || newStage === 'Quotation Sent') {
+      const isQuotation = newStage === 'Quotation Sent';
+      const inputId = isQuotation ? 'expected-value' : 'won-price';
+      const inputLabel = isQuotation ? 'Quotation Value (PKR) *' : 'Final Deal Price (PKR) *';
+      const dialogTitle = isQuotation ? 'Quotation Value Required' : 'Lead Won! 🎉';
+      const confirmText = isQuotation ? 'Save Quotation Value' : 'Mark as Won';
+      const result = await Swal.fire({
+        title: dialogTitle,
         html: `
           <div style="text-align: left; margin-top: 20px;">
             <label style="color: #fff; font-size: 14px; font-weight: 600; margin-bottom: 8px; display: block;">
-              Final Deal Price (PKR) *
+              ${inputLabel}
             </label>
             <input 
-              id="won-price" 
+              id="${inputId}" 
               type="number"
-              placeholder="Enter final deal price"
+              placeholder="Enter value"
               min="0"
               style="
                 width: 100%;
@@ -1380,41 +1640,31 @@ function SalesTab({ data, employeeId, employee, onRefresh }) {
               "
             />
             <p style="color: #888; font-size: 12px; margin-top: 8px;">
-              Expected Value: PKR ${lead.expectedValue?.toLocaleString()}
+              Current Value: PKR ${(lead.expectedValue || 0).toLocaleString()}
             </p>
           </div>
         `,
         showCancelButton: true,
-        confirmButtonText: 'Mark as Won',
+        confirmButtonText: confirmText,
         cancelButtonText: 'Cancel',
         confirmButtonColor: '#10b981',
         cancelButtonColor: '#6b7280',
         background: '#0d0d0d',
         color: '#fff',
         preConfirm: () => {
-          const wonPrice = document.getElementById('won-price').value;
-          if (!wonPrice || parseFloat(wonPrice) <= 0) {
-            Swal.showValidationMessage('Please enter a valid deal price!');
+          const value = document.getElementById(inputId).value;
+          if (!value || parseFloat(value) <= 0) {
+            Swal.showValidationMessage('Please enter a valid value!');
             return false;
           }
-          return { wonPrice: parseFloat(wonPrice) };
+          return { value: parseFloat(value) };
         }
       });
 
       if (!result.isConfirmed) return;
 
       // Show updating popup
-      Swal.fire({
-        title: 'Updating Lead...',
-        text: 'Please wait while we update the lead status',
-        allowOutsideClick: false,
-        allowEscapeKey: false,
-        didOpen: () => {
-          Swal.showLoading();
-        },
-        background: '#0d0d0d',
-        color: '#fff'
-      });
+      showLeadUpdatingPopup();
 
       try {
         const response = await fetch('/api/leads', {
@@ -1423,7 +1673,9 @@ function SalesTab({ data, employeeId, employee, onRefresh }) {
           body: JSON.stringify({
             id: lead.id,
             stage: newStage,
-            wonPrice: result.value.wonPrice,
+              ...(isQuotation
+                ? { expectedValue: result.value.value }
+                : { wonPrice: result.value.value }),
             updatedByName: employee?.name || 'Employee'
           })
         });
@@ -1431,17 +1683,9 @@ function SalesTab({ data, employeeId, employee, onRefresh }) {
         const data = await response.json();
 
         if (data.success) {
-          await Swal.fire({
-            icon: 'success',
-            title: 'Updated Successfully!',
-            text: `Lead marked as ${newStage}`,
-            confirmButtonColor: '#10b981',
-            background: '#0d0d0d',
-            color: '#fff',
-            timer: 2000,
-            showConfirmButton: true
-          });
+          await showLeadUpdatedPopup(`Lead marked as ${newStage}`);
           loadLeads();
+          onRefresh?.();
         } else {
           throw new Error(data.message);
         }
@@ -1458,17 +1702,7 @@ function SalesTab({ data, employeeId, employee, onRefresh }) {
     } else {
       // Regular stage update
       // Show updating popup
-      Swal.fire({
-        title: 'Updating Lead...',
-        text: 'Please wait while we update the lead status',
-        allowOutsideClick: false,
-        allowEscapeKey: false,
-        didOpen: () => {
-          Swal.showLoading();
-        },
-        background: '#0d0d0d',
-        color: '#fff'
-      });
+      showLeadUpdatingPopup();
 
       try {
         const response = await fetch('/api/leads', {
@@ -1477,6 +1711,7 @@ function SalesTab({ data, employeeId, employee, onRefresh }) {
           body: JSON.stringify({
             id: lead.id,
             stage: newStage,
+            ...(lossReason ? { lossReason } : {}),
             updatedByName: employee?.name || 'Employee'
           })
         });
@@ -1484,17 +1719,9 @@ function SalesTab({ data, employeeId, employee, onRefresh }) {
         const data = await response.json();
 
         if (data.success) {
-          await Swal.fire({
-            icon: 'success',
-            title: 'Updated Successfully!',
-            text: `Lead stage changed to ${newStage}`,
-            confirmButtonColor: '#10b981',
-            background: '#0d0d0d',
-            color: '#fff',
-            timer: 2000,
-            showConfirmButton: true
-          });
+          await showLeadUpdatedPopup(`Lead stage changed to ${newStage}`);
           loadLeads();
+          onRefresh?.();
         } else {
           throw new Error(data.message);
         }
@@ -1676,15 +1903,19 @@ function SalesTab({ data, employeeId, employee, onRefresh }) {
                     defaultValue="New" 
                     required
                     onChange={(e) => {
-                      const wonField = document.getElementById('wonPriceField');
+                      const wonField = document.getElementById('dealValueField');
                       const wonInput = document.getElementById('wonPriceInput');
+                      const dealLabel = document.getElementById('dealValueLabel');
+                      const isPriceRequired = ['Quotation Sent', 'Won'].includes(e.target.value);
                       
-                      if (e.target.value === 'Won') {
-                        // Show Won Price field and make it required
+                      if (isPriceRequired) {
                         wonField.style.display = 'flex';
                         wonInput.required = true;
+                        dealLabel.textContent = e.target.value === 'Quotation Sent'
+                          ? 'Quotation Value (PKR) *'
+                          : 'Won Price (PKR) *';
+                        wonInput.name = e.target.value === 'Quotation Sent' ? 'expectedValue' : 'wonPrice';
                       } else {
-                        // Hide Won Price field
                         wonField.style.display = 'none';
                         wonInput.required = false;
                         wonInput.value = '';
@@ -1731,13 +1962,13 @@ function SalesTab({ data, employeeId, employee, onRefresh }) {
                   />
                 </div>
 
-                {/* Conditional Won Price Field - Only shows when stage is Won */}
-                <div className="form-group" id="wonPriceField" style={{ display: 'none' }}>
-                  <label>Won Price (PKR) *</label>
+                {/* Conditional value field for quotation and won stages */}
+                <div className="form-group" id="dealValueField" style={{ display: 'none' }}>
+                  <label id="dealValueLabel">Deal Value (PKR) *</label>
                   <input 
                     type="number" 
-                    name="wonPrice" 
-                    placeholder="Final deal price"
+                    name="expectedValue" 
+                    placeholder="Enter quotation value"
                     min="0"
                     id="wonPriceInput"
                   />
@@ -1795,13 +2026,18 @@ function SalesTab({ data, employeeId, employee, onRefresh }) {
               </tr>
             </thead>
             <tbody>
-              {leads.map((lead) => (
+              {leads.map((lead, index) => {
+                return (
                 <tr key={lead.id}>
                   <td>
-                    <div className="client-info">
-                      <strong>{lead.clientName}</strong>
-                      {lead.companyName && <span className="company-name">{lead.companyName}</span>}
-                    </div>
+                    <strong style={{ color: '#fff', fontSize: '14px', display: 'block' }}>
+                      {lead.clientName || 'TEST CLIENT'}
+                    </strong>
+                    {lead.companyName && (
+                      <span style={{ fontSize: '12px', color: '#999', display: 'block', marginTop: '4px' }}>
+                        {lead.companyName}
+                      </span>
+                    )}
                   </td>
                   <td>{lead.serviceType}</td>
                   <td>
@@ -1850,7 +2086,8 @@ function SalesTab({ data, employeeId, employee, onRefresh }) {
                     </button>
                   </td>
                 </tr>
-              ))}
+                );
+              })}
             </tbody>
           </table>
         )}

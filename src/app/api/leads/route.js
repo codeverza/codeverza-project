@@ -91,6 +91,13 @@ export async function POST(request) {
       }, { status: 400 });
     }
 
+    if (data.stage === 'Quotation Sent' && (!data.expectedValue || parseFloat(data.expectedValue) <= 0)) {
+      return NextResponse.json({
+        success: false,
+        message: 'Expected value is required when stage is Quotation Sent'
+      }, { status: 400 });
+    }
+
     // Prepare lead data
     const leadData = {
       // Client Details
@@ -189,6 +196,26 @@ export async function PUT(request) {
       updateData.wonDate = new Date().toISOString();
     }
 
+    if (updateFields.stage === 'Quotation Sent') {
+      if (!updateFields.expectedValue || parseFloat(updateFields.expectedValue) <= 0) {
+        return NextResponse.json({
+          success: false,
+          message: 'Expected value is required when stage is Quotation Sent'
+        }, { status: 400 });
+      }
+      updateData.expectedValue = parseFloat(updateFields.expectedValue);
+    }
+
+    if (updateFields.stage === 'Lost') {
+      if (!updateFields.lossReason || !updateFields.lossReason.trim()) {
+        return NextResponse.json({
+          success: false,
+          message: 'A loss reason is required when marking a lead as Lost'
+        }, { status: 400 });
+      }
+      updateData.lossReason = updateFields.lossReason.trim();
+    }
+
     // Add activity log entry
     const activityLog = existingData.activityLog || [];
     
@@ -212,6 +239,45 @@ export async function PUT(request) {
     updateData.activityLog = activityLog;
 
     await updateDoc(leadRef, updateData);
+
+    // A won lead becomes a project assigned to the sales employee who created it.
+    if (updateFields.stage === 'Won' && existingData.stage !== 'Won') {
+      const existingProjects = await getDocs(query(
+        collection(db, 'employeeProjects'),
+        where('leadId', '==', id)
+      ));
+
+      if (existingProjects.empty) {
+        const projectValue = parseFloat(updateFields.wonPrice);
+        const installments = [
+          { id: 'installment-1', number: 1, label: 'First Installment', percentage: 30, amount: projectValue * 0.3, status: 'Pending', payment: null },
+          { id: 'installment-2', number: 2, label: 'Second Installment', percentage: 50, amount: projectValue * 0.5, status: 'Pending', payment: null },
+          { id: 'installment-3', number: 3, label: 'Final Installment', percentage: 20, amount: projectValue * 0.2, status: 'Pending', payment: null }
+        ];
+
+        await addDoc(collection(db, 'employeeProjects'), {
+          projectName: `${existingData.clientName || 'Client'} Project`,
+          description: existingData.notes || '',
+          clientName: existingData.clientName || '',
+          clientEmail: existingData.email || '',
+          clientPhone: existingData.phone || '',
+          leadId: id,
+          salesEmployeeId: existingData.createdBy,
+          salesEmployeeName: existingData.createdByName || 'Employee',
+          assignedEmployees: existingData.createdBy ? [existingData.createdBy] : [],
+          employeeDetails: existingData.createdBy ? [{ id: existingData.createdBy, name: existingData.createdByName || 'Employee' }] : [],
+          startDate: new Date().toISOString().split('T')[0],
+          deadline: null,
+          status: 'Active',
+          priority: existingData.priority || 'Medium',
+          projectValue,
+          progress: 0,
+          installments,
+          createdAt: Timestamp.now(),
+          updatedAt: Timestamp.now()
+        });
+      }
+    }
 
     return NextResponse.json({ 
       success: true, 

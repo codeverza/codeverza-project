@@ -1,8 +1,9 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #000000;
+  --foreground: #ffffff;
+  color-scheme: dark;
 }
 
 @theme inline {
@@ -23,6 +24,11 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-poppins);
+  min-height: 100vh;
+}
+
+html {
+  background: #000000;
 }
 
 /* ── Custom Scrollbar ── */

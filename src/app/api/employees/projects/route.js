@@ -5,6 +5,82 @@ import { NextResponse } from 'next/server';
 const PROJECTS_COLLECTION = 'employeeProjects';
 const EMPLOYEES_COLLECTION = 'employees';
 
+const createProjectFromWonLead = async (leadDoc) => {
+  const lead = leadDoc.data();
+  const projectValue = Number(lead.wonPrice || lead.expectedValue || 0);
+  if (!projectValue || projectValue <= 0) return false;
+
+  const existingProject = await getDocs(query(
+    collection(db, PROJECTS_COLLECTION),
+    where('leadId', '==', leadDoc.id)
+  ));
+  if (!existingProject.empty) return false;
+
+  const assignedEmployeeId = lead.createdBy || null;
+  const assignedEmployeeName = lead.createdByName || 'Sales Employee';
+  const installments = [
+    { id: 'installment-1', number: 1, label: 'First Installment', percentage: 30, amount: projectValue * 0.3, status: 'Pending', payment: null },
+    { id: 'installment-2', number: 2, label: 'Second Installment', percentage: 50, amount: projectValue * 0.5, status: 'Pending', payment: null },
+    { id: 'installment-3', number: 3, label: 'Final Installment', percentage: 20, amount: projectValue * 0.2, status: 'Pending', payment: null }
+  ];
+
+  await addDoc(collection(db, PROJECTS_COLLECTION), {
+    projectName: `${lead.clientName || 'Client'} Project`,
+    description: lead.notes || '',
+    clientName: lead.clientName || '',
+    clientEmail: lead.email || '',
+    clientPhone: lead.phone || '',
+    leadId: leadDoc.id,
+    salesEmployeeId: assignedEmployeeId,
+    salesEmployeeName: assignedEmployeeName,
+    assignedEmployees: assignedEmployeeId ? [assignedEmployeeId] : [],
+    employeeDetails: assignedEmployeeId ? [{ id: assignedEmployeeId, name: assignedEmployeeName }] : [],
+    startDate: new Date().toISOString().split('T')[0],
+    deadline: null,
+    status: 'Active',
+    priority: lead.priority || 'Medium',
+    projectValue,
+    progress: 0,
+    installments,
+    createdAt: Timestamp.now(),
+    updatedAt: Timestamp.now()
+  });
+  return true;
+};
+
+const migrateInstallmentPlan = async (projectDoc) => {
+  const project = projectDoc.data();
+  const projectValue = Number(project.projectValue || 0);
+  if (!projectValue || !Array.isArray(project.installments) || project.installments.length !== 3) return;
+
+  const percentages = [30, 50, 20];
+  const hasNewPlan = project.installments.every((installment, index) => installment.percentage === percentages[index]);
+  if (hasNewPlan) return;
+
+  const installments = project.installments.map((installment, index) => ({
+    ...installment,
+    percentage: percentages[index],
+    amount: projectValue * (percentages[index] / 100)
+  }));
+
+  await updateDoc(doc(db, PROJECTS_COLLECTION, projectDoc.id), {
+    installments,
+    updatedAt: Timestamp.now()
+  });
+};
+
+const syncWonLeadProjects = async () => {
+  const wonLeads = await getDocs(query(collection(db, 'leads'), where('stage', '==', 'Won')));
+  for (const leadDoc of wonLeads.docs) {
+    await createProjectFromWonLead(leadDoc);
+  }
+
+  const projects = await getDocs(collection(db, PROJECTS_COLLECTION));
+  for (const projectDoc of projects.docs) {
+    await migrateInstallmentPlan(projectDoc);
+  }
+};
+
 // GET - Fetch projects
 export async function GET(request) {
   try {
@@ -30,24 +106,30 @@ export async function GET(request) {
       });
     }
 
+    // Repair projects for Won leads created before automatic project creation was enabled.
+    await syncWonLeadProjects();
+
     // Build query
     let projectsQuery;
     
     if (employeeId) {
       projectsQuery = query(
         collection(db, PROJECTS_COLLECTION),
-        where('assignedEmployees', 'array-contains', employeeId),
-        orderBy('createdAt', 'desc')
+        where('assignedEmployees', 'array-contains', employeeId)
       );
     } else {
-      projectsQuery = query(collection(db, PROJECTS_COLLECTION), orderBy('createdAt', 'desc'));
+      projectsQuery = query(collection(db, PROJECTS_COLLECTION));
     }
 
     const querySnapshot = await getDocs(projectsQuery);
     let projects = querySnapshot.docs.map(doc => ({
       id: doc.id,
       ...doc.data()
-    }));
+    })).sort((first, second) => {
+      const firstDate = first.createdAt?.toMillis?.() || 0;
+      const secondDate = second.createdAt?.toMillis?.() || 0;
+      return secondDate - firstDate;
+    });
 
     // Apply status filter
     if (status) {

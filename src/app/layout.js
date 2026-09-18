@@ -83,7 +83,7 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en" className={poppins.variable}>
-      <body className="font-poppins antialiased" id="__next">
+      <body className="font-poppins antialiased" id="__next" style={{ backgroundColor: '#000000', color: '#ffffff' }}>
         <OneSignalInit />
         <NavigationLoader />
         {children}

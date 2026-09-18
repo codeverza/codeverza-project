@@ -43,25 +43,25 @@ export async function GET(request) {
     }
 
     // Build query
-    let q = query(followupsRef, orderBy('scheduledDate', 'asc'));
+    let q = query(followupsRef);
     
     if (employeeId) {
-      q = query(followupsRef, where('employeeId', '==', employeeId), orderBy('scheduledDate', 'asc'));
+      q = query(followupsRef, where('employeeId', '==', employeeId));
     }
     
     if (leadId) {
-      q = query(followupsRef, where('leadId', '==', leadId), orderBy('scheduledDate', 'asc'));
+      q = query(followupsRef, where('leadId', '==', leadId));
     }
 
     if (status) {
-      q = query(followupsRef, where('status', '==', status), orderBy('scheduledDate', 'asc'));
+      q = query(followupsRef, where('status', '==', status));
     }
 
     const querySnapshot = await getDocs(q);
     const followups = querySnapshot.docs.map(doc => ({
       id: doc.id,
       ...doc.data()
-    }));
+    })).sort((first, second) => String(first.scheduledDate || '').localeCompare(String(second.scheduledDate || '')));
 
     return NextResponse.json({
       success: true,

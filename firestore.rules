@@ -72,7 +72,12 @@ service cloud.firestore {
       allow read, write: if true;
     }
     
-    // Sales Leads
+    // Leads - New Lead Management System
+    match /leads/{leadId} {
+      allow read, write: if true;
+    }
+    
+    // Sales Leads (Legacy - keeping for backward compatibility)
     match /salesLeads/{leadId} {
       allow read, write: if true;
     }

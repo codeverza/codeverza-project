@@ -15,6 +15,7 @@ export default function ProjectsTasksPage() {
   const [loading, setLoading] = useState(true);
   const [showProjectForm, setShowProjectForm] = useState(false);
   const [showTaskForm, setShowTaskForm] = useState(false);
+  const [paymentUpdating, setPaymentUpdating] = useState(null);
 
   const [projectForm, setProjectForm] = useState({
     projectName: '',
@@ -146,6 +147,66 @@ export default function ProjectsTasksPage() {
     } catch (error) {
       console.error('Error updating task:', error);
     }
+  };
+
+  const handlePaymentAction = async (projectId, installmentId, action) => {
+    setPaymentUpdating(`${projectId}-${installmentId}`);
+    try {
+      const response = await fetch('/api/employees/project-payments', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ projectId, installmentId, action })
+      });
+      const data = await response.json();
+      if (!data.success) throw new Error(data.message);
+      await fetchProjects();
+    } catch (error) {
+      alert(error.message);
+    } finally {
+      setPaymentUpdating(null);
+    }
+  };
+
+  const paymentActions = (project, installment) => {
+    const paymentKey = `${project.id}-${installment.id}`;
+    const method = installment.payment?.method;
+    const actionButton = (action, label, className = 'submit-btn') => (
+      <button
+        type="button"
+        className={className}
+        disabled={paymentUpdating === paymentKey}
+        onClick={() => handlePaymentAction(project.id, installment.id, action)}
+      >
+        {paymentUpdating === paymentKey ? '...' : label}
+      </button>
+    );
+
+    if (!installment.payment) return <span className="payment-empty">Not submitted</span>;
+    if (installment.payment.proof) {
+      return (
+        <div className="payment-proof-actions">
+          <a href={installment.payment.proof} target="_blank" rel="noreferrer">View proof</a>
+          {method === 'online' && installment.status === 'Submitted' && actionButton('approve_online', 'Approve')}
+          {method === 'cheque' && installment.status === 'Submitted' && actionButton('cheque_received', 'Received')}
+          {method === 'cheque' && installment.status === 'Received' && actionButton('cheque_clearance', 'In Clearance')}
+          {method === 'cheque' && installment.status === 'In Clearance' && (
+            <>
+              {actionButton('cheque_clear', 'Clear')}
+              {actionButton('cheque_return', 'Return', 'cancel-btn')}
+            </>
+          )}
+        </div>
+      );
+    }
+    if (method === 'cash' && installment.status === 'Submitted') {
+      return (
+        <div className="payment-proof-actions">
+          {actionButton('cash_received', 'Received')}
+          {actionButton('cash_not_received', 'Not Received', 'cancel-btn')}
+        </div>
+      );
+    }
+    return <span className="payment-empty">{installment.status}</span>;
   };
 
   const resetProjectForm = () => {
@@ -474,6 +535,7 @@ export default function ProjectsTasksPage() {
                   <th>Value</th>
                   <th>Priority</th>
                   <th>Status</th>
+                  <th>Installment Payments</th>
                 </tr>
               </thead>
               <tbody>
@@ -488,6 +550,17 @@ export default function ProjectsTasksPage() {
                     <td>PKR {project.projectValue?.toLocaleString() || 0}</td>
                     <td><span className={getPriorityClass(project.priority)}>{project.priority}</span></td>
                     <td><span className={getStatusClass(project.status)}>{project.status}</span></td>
+                    <td>
+                      <div className="admin-installments">
+                        {(project.installments || []).map((installment) => (
+                          <div key={installment.id} className="admin-installment-row">
+                            <span><strong>{installment.label}</strong> {installment.status}</span>
+                            {paymentActions(project, installment)}
+                          </div>
+                        ))}
+                        {!project.installments?.length && <span className="payment-empty">No payment plan</span>}
+                      </div>
+                    </td>
                   </tr>
                 ))}
               </tbody>

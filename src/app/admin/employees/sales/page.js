@@ -551,39 +551,57 @@ function SalesManagementPageContent() {
             <div className="no-data"><p>No leads found</p></div>
           ) : (
             <table className="employees-table">
+              <colgroup>
+                <col style={{ width: '15%' }} />
+                <col style={{ width: '15%' }} />
+                <col style={{ width: '12%' }} />
+                <col style={{ width: '10%' }} />
+                <col style={{ width: '12%' }} />
+                <col style={{ width: '12%' }} />
+                <col style={{ width: '12%' }} />
+                <col style={{ width: '12%' }} />
+              </colgroup>
               <thead>
                 <tr>
-                  <th>Client</th>
-                  <th>Contact</th>
-                  <th>Service</th>
-                  <th>Value</th>
-                  <th>Assigned To</th>
-                  <th>Priority</th>
-                  <th>Status</th>
-                  <th>Actions</th>
+                  <th>CLIENT</th>
+                  <th>SERVICE</th>
+                  <th>EXPECTED VALUE</th>
+                  <th>PRIORITY</th>
+                  <th>STAGE</th>
+                  <th>SOURCE</th>
+                  <th>CREATED</th>
+                  <th>ACTIONS</th>
                 </tr>
               </thead>
               <tbody>
-                {leads.map((lead) => (
+                {leads.map((lead) => {
+                  console.log('Lead data:', lead); // Debug log
+                  return (
                   <tr key={lead.id}>
-                    <td>
-                      <strong>{lead.clientName}</strong>
-                      {lead.clientCompany && (
-                        <div style={{ fontSize: '0.85em', color: '#666' }}>
-                          {lead.clientCompany}
-                        </div>
-                      )}
-                    </td>
-                    <td>
-                      <div>{lead.clientPhone}</div>
-                      <div style={{ fontSize: '0.85em', color: '#666' }}>
-                        {lead.clientEmail}
+                    <td style={{ minWidth: '150px', background: 'rgba(255,0,0,0.1)' }}>
+                      <div>
+                        <strong style={{ color: '#fff' }}>{lead.clientName || 'NO NAME'}</strong>
+                        {lead.clientCompany && (
+                          <div style={{ fontSize: '0.85em', color: '#999' }}>
+                            {lead.clientCompany}
+                          </div>
+                        )}
                       </div>
                     </td>
                     <td>{lead.serviceRequired || 'N/A'}</td>
                     <td>PKR {lead.estimatedValue?.toLocaleString() || 0}</td>
-                    <td>{lead.assignedToName}</td>
-                    <td><span className={`status-badge ${lead.priority === 'High' ? 'status-resigned' : ''}`}>{lead.priority}</span></td>
+                    <td>
+                      <span className={`status-badge ${lead.priority === 'High' ? 'status-resigned' : ''}`}>
+                        {lead.priority}
+                      </span>
+                    </td>
+                    <td>
+                      <span className={getStatusClass(lead.status)}>
+                        {lead.status}
+                      </span>
+                    </td>
+                    <td>{lead.source || '-'}</td>
+                    <td>{lead.createdAt ? new Date(lead.createdAt).toLocaleDateString() : '-'}</td>
                     <td>
                       <select
                         value={lead.status}
@@ -597,13 +615,9 @@ function SalesManagementPageContent() {
                         <option value="Lost">Lost</option>
                       </select>
                     </td>
-                    <td>
-                      <span className={getStatusClass(lead.status)}>
-                        {lead.status}
-                      </span>
-                    </td>
                   </tr>
-                ))}
+                  );
+                })}
               </tbody>
             </table>
           )}
