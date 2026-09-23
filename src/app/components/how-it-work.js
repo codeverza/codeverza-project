@@ -64,7 +64,7 @@ function ParticleBg() {
 }
 
 const steps = [
-  { step: '01', title: 'Requirement Analysis', desc: 'We deeply understand your business goals and challenges.' },
+  { step: '01', title: 'Requirement Analysis', desc: 'We deeply understand your goals and challenges.' },
   { step: '02', title: 'Planning & Strategy', desc: 'We design scalable and efficient technical solutions.' },
   { step: '03', title: 'Design & Development', desc: 'Our team builds secure and high-performance software.' },
   { step: '04', title: 'Testing & QA', desc: 'We ensure everything works perfectly before launch.' },

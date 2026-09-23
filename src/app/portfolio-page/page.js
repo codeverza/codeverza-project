@@ -15,6 +15,7 @@ const CATEGORIES = [
   { id: 'Softwares', label: 'Softwares', icon: <Code2 size={15} /> },
   { id: 'design',      label: 'Graphic Design', icon: <Brush size={15} /> },
   { id: 'animation',   label: 'Animation',  icon: <Sparkles size={15} /> },
+  { id: 'streamers',   label: 'Streamers',  icon: <Sparkles size={15} /> },
 ];
 
 const moreProjects = [
@@ -95,6 +96,12 @@ const designProjects = [
 
 // Add new poster images here. Each image is shown directly in the Graphic Design tab.
 const graphicPosters = [
+  { id: 'poster-14', title: 'PFP', src: '/graphic-posters/graphic-8.jpeg' },
+  { id: 'poster-15', title: 'Badges', src: '/graphic-posters/graphic-9.jpeg' },
+  { id: 'poster-16', title: 'Twitch-overlay', src: '/graphic-posters/graphic-10.jpeg' },
+  { id: 'poster-17', title: 'Emotes', src: '/graphic-posters/graphic-11.jpeg' },
+  { id: 'poster-18', title: 'Live 2D Models', src: '/graphic-posters/graphic-12.jpeg' },
+  { id: 'poster-19', title: 'Live 2D Models', src: '/graphic-posters/graphic-13.jpeg' },
   { id: 'poster-01', title: 'Brand Campaign', src: '/graphic-posters/graphic-1.jpeg' },
   { id: 'poster-13', title: 'Brand Campaign', src: '/graphic-posters/visit-card4.png' },
   { id: 'poster-02', title: 'Brand Campaign', src: '/graphic-posters/graphic-2.jpeg' },
@@ -163,6 +170,84 @@ const softwareProjects = [
     tags: ['Gym Software', 'Memberships', 'Attendance'],
     liveUrl: 'https://gymtitan.codeverza.com',
   },
+];
+
+// Featured Streamer Project (like garments hero)
+const featuredStreamer = {
+  title: 'Deannie And Dragons — D&D Streaming Platform',
+  category: 'Custom Streaming Platform',
+  tags: ['Real-time Chat', 'Collaborative Drawing', 'Room Management', 'Character Creation'],
+  color: '#d946ef',
+  gradient: 'linear-gradient(135deg, #1a0a2e, #2d1b4e, #1a0a2e)',
+  liveUrl: 'https://deannieanddragons.com/',
+  desc: 'A fully custom collaborative platform built for D&D streamers and tabletop RPG creators. Admin creates rooms, players join in real-time, chat together, draw on a shared board, and create characters — all synced live across every participant.',
+  highlights: [
+    { icon: <Package size={18} />,    title: 'Room Management',      desc: 'Admin creates custom rooms for different campaigns and sessions.' },
+    { icon: <Globe size={18} />,      title: 'Real-time Chat',       desc: 'Live messaging system — players chat instantly in every room.' },
+    { icon: <Palette size={18} />,    title: 'Shared Drawing Board', desc: 'Collaborative whiteboard — everyone draws on the same canvas live.' },
+    { icon: <Sparkles size={18} />,   title: 'Character Creation',   desc: 'Build custom D&D characters with stats, traits, and backstories.' },
+    { icon: <Eye size={18} />,        title: 'Multi-User Sync',      desc: 'All actions sync in real-time — no refresh needed.' },
+    { icon: <Heart size={18} />,      title: 'User Roles',           desc: 'Admin controls, player permissions, and session moderation.' },
+    { icon: <Smartphone size={18} />, title: 'Fully Responsive',     desc: 'Works seamlessly on desktop, tablet, and mobile devices.' },
+    { icon: <Code2 size={18} />,      title: 'Custom Built',         desc: 'Tailored from scratch for D&D streaming and collaboration.' },
+  ],
+  screens: [
+    { label: 'Room Dashboard',     emoji: '🏠', bg: 'linear-gradient(135deg, #1a0a2e, #3d1b6e)' },
+    { label: 'Real-time Chat',     emoji: '💬', bg: 'linear-gradient(135deg, #0d0020, #2d1050)' },
+    { label: 'Drawing Board',      emoji: '🎨', bg: 'linear-gradient(135deg, #1a0a2e, #3d2b5e)' },
+    { label: 'Character Creator',  emoji: '⚔️', bg: 'linear-gradient(135deg, #0a0020, #201040)' },
+    { label: 'Admin Panel',        emoji: '⚙️', bg: 'linear-gradient(135deg, #0d0d1d, #1a0a3e)' },
+  ],
+};
+
+// More Streamer Projects (like moreProjects)
+const moreStreamerProjects = [
+  {
+    id: 'aerytiefling-portfolio',
+    title: 'AeryTiefling — Cosplay Artist Portfolio',
+    category: 'Content Creator Portfolio',
+    tags: ['Cosplay', 'Merch Store', 'Media Kit', 'Under Development'],
+    desc: 'A complete portfolio website for a professional cosplay artist and content creator. Features cosplay gallery, merch store, media kit, social links, and community hub — currently under active development with exciting updates coming soon.',
+    fullDesc: 'AeryTiefling is a fully custom portfolio and brand website built for a professional cosplay artist and content creator. The platform showcases her cosplay work, sells merchandise, provides a downloadable media kit for brand collaborations, and connects with her community across multiple platforms.\n\n⚠️ **Currently Under Development** — This project is actively being built and refined. Many features are being added, updated, and polished to create the ultimate content creator portfolio experience. New sections, enhanced visuals, and improved functionality are on the way!',
+    features: [
+      'Cosplay gallery with high-quality images',
+      'Integrated merch store with products',
+      'Downloadable media kit for collaborations',
+      'Social media integration (Twitch, Instagram, etc.)',
+      'Community hub and fan engagement',
+      'Responsive design across all devices',
+      '⚠️ Under active development',
+      'Regular updates and new features being added',
+    ],
+    color: '#ff6b9d',
+    gradient: 'linear-gradient(135deg, #2a0820, #4a1540, #2a0820)',
+    emoji: '🎭',
+    image: '/img/aery-img.jpeg',
+    liveUrl: 'http://aerytiefling.live/',
+    underDevelopment: true,
+  },
+  // {
+  //   id: 'music-streamer',
+  //   title: 'BeatFlow — Music Producer Stream',
+  //   category: 'Music Streamer',
+  //   tags: ['Audio Visualizers', 'Production Overlays', 'Soundcloud Integration'],
+  //   desc: 'A music production stream package with audio visualizers, beat-reactive overlays, and a portfolio website for showcasing tracks and beats.',
+  //   fullDesc: 'A complete streaming and brand package for music producers and DJs. Features audio-reactive visualizers, clean production overlays showing DAW workflow, custom alerts synced with beats, and a professional portfolio website to showcase tracks, mixes, and bookings.',
+  //   features: [
+  //     'Audio-reactive visualizers',
+  //     'DAW production overlays',
+  //     'Beat-synced animated alerts',
+  //     'Track showcase website',
+  //     'SoundCloud/Spotify integration',
+  //     'Booking & contact forms',
+  //     'Download links for beats',
+  //     'Mobile-responsive portfolio',
+  //   ],
+  //   color: '#1abc9c',
+  //   gradient: 'linear-gradient(135deg, #0a1a1a, #1a3d3a, #0a1a1a)',
+  //   emoji: '🎵',
+  //   liveUrl: '#',
+  // },
 ];
 
 /* ── Particle BG ── */
@@ -253,7 +338,7 @@ function PortfolioContent() {
   const [activeProject, setActiveProject] = useState(null);
   const [activePoster, setActivePoster] = useState(null);
   const [activeCategory, setActiveCategory] = useState(
-    () => searchParams.get('tab') ?? 'development'
+    () => searchParams.get('tab') ?? 'streamers'
   );
 
   return (
@@ -534,6 +619,181 @@ function PortfolioContent() {
             </div>
           )}
 
+          {/* ── STREAMER PROJECTS ── */}
+          {activeCategory === 'streamers' && (<>
+          <motion.div className="pp-project-hero"
+            initial={{ opacity: 0, y: 40 }} animate={inView ? { opacity: 1, y: 0 } : {}}
+            transition={{ duration: 0.7 }}
+          >
+            {/* visual */}
+            <div className="pp-project-visual" style={{ background: featuredStreamer.gradient, overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <motion.div 
+                style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}
+                animate={{ y: [0, -12, 0] }}
+                transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
+              >
+                <img 
+                  src="img/dennie-img.jpeg" 
+                  alt="Deannie And Dragons Platform" 
+                  style={{ 
+                    maxWidth: '100%', 
+                    maxHeight: '100%', 
+                    width: 'auto',
+                    height: 'auto',
+                    objectFit: 'contain', 
+                    borderRadius: '12px',
+                    boxShadow: '0 8px 32px rgba(0,0,0,0.3)'
+                  }}
+                />
+              </motion.div>
+
+              {/* floating badges */}
+              {['Real-time', 'Collaborative', 'Custom'].map((t, i) => (
+                <motion.div key={t} className="pp-float-tag"
+                  style={{ '--i': i }}
+                  animate={{ y: [0, -8, 0] }}
+                  transition={{ duration: 3 + i * 0.5, repeat: Infinity, ease: 'easeInOut', delay: i * 0.4 }}
+                >{t}</motion.div>
+              ))}
+
+              <div className="pp-featured-badge"><Star size={11} fill="currentColor" /> Featured Platform</div>
+            </div>
+
+            {/* info */}
+            <div className="pp-project-info">
+              <div className="pp-project-cat" style={{ color: featuredStreamer.color }}>{featuredStreamer.category}</div>
+              <h2 className="pp-project-title">{featuredStreamer.title}</h2>
+              <p className="pp-project-desc">{featuredStreamer.desc}</p>
+
+              <div className="pp-project-tags">
+                {featuredStreamer.tags.map(t => <span key={t} className="pp-tag">{t}</span>)}
+              </div>
+
+              <a href={featuredStreamer.liveUrl} target="_blank" rel="noopener noreferrer" className="pp-live-btn" style={{ background: `linear-gradient(135deg, ${featuredStreamer.color}, #6a00ff)` }}>
+                <Eye size={16} /> View Live Platform <ExternalLink size={14} />
+              </a>
+            </div>
+          </motion.div>
+
+          {/* screens */}
+          <motion.div className="pp-screens-section"
+            initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }} transition={{ duration: 0.6 }}
+          >
+            <div className="pp-section-label">Stream Scenes</div>
+            <h3 className="pp-section-title">What It <span className="pp-purple">Looks Like</span></h3>
+            <div className="pp-screens-grid">
+              {featuredStreamer.screens.map((s, i) => (
+                <motion.div key={i} className="pp-screen-card"
+                  style={{ background: s.bg }}
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  whileInView={{ opacity: 1, scale: 1 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: i * 0.08 }}
+                  whileHover={{ scale: 1.04, y: -4 }}
+                >
+                  <div className="pp-screen-emoji">{s.emoji}</div>
+                  <div className="pp-screen-label">{s.label}</div>
+                </motion.div>
+              ))}
+            </div>
+          </motion.div>
+
+          {/* highlights */}
+          <motion.div className="pp-highlights-section"
+            initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }} transition={{ duration: 0.6 }}
+          >
+            <div className="pp-section-label">Features</div>
+            <h3 className="pp-section-title">What We <span className="pp-purple">Built</span></h3>
+            <div className="pp-highlights-grid">
+              {featuredStreamer.highlights.map((h, i) => (
+                <motion.div key={i} className="pp-highlight-card"
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: i * 0.07 }}
+                  whileHover={{ y: -5 }}
+                >
+                  <div className="pp-highlight-icon" style={{ color: featuredStreamer.color }}>{h.icon}</div>
+                  <h4>{h.title}</h4>
+                  <p>{h.desc}</p>
+                </motion.div>
+              ))}
+            </div>
+          </motion.div>
+
+          {/* more streamer projects */}
+          <motion.div className="pp-more-section"
+            initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }} transition={{ duration: 0.6 }}
+          >
+            <div className="pp-section-label">More Streams</div>
+            <h3 className="pp-section-title">Other <span className="pp-purple">Stream Projects</span></h3>
+            <div className="pp-more-grid">
+              {moreStreamerProjects.map((p, i) => (
+                <motion.div key={p.id} className="pp-more-card"
+                  style={{ '--mc': p.color }}
+                  initial={{ opacity: 0, y: 30 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: i * 0.08 }}
+                  whileHover={{ y: -6 }}
+                  onClick={() => setActiveProject(p)}
+                >
+                  <div className="pp-more-visual" style={{ background: p.gradient }}>
+                    {p.image ? (
+                      <img 
+                        src={p.image} 
+                        alt={p.title}
+                        style={{
+                          width: '100%',
+                          height: '100%',
+                          objectFit: 'cover',
+                          borderRadius: '16px 16px 0 0'
+                        }}
+                      />
+                    ) : (
+                      <span className="pp-more-emoji">{p.emoji}</span>
+                    )}
+                    {p.underDevelopment && (
+                      <div style={{ 
+                        position: 'absolute', 
+                        top: '10px', 
+                        right: '10px', 
+                        background: 'linear-gradient(135deg, #ff6b35, #f7931e)', 
+                        color: '#fff', 
+                        padding: '4px 10px', 
+                        borderRadius: '20px', 
+                        fontSize: '11px', 
+                        fontWeight: '600',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '4px',
+                        boxShadow: '0 2px 8px rgba(255,107,53,0.4)'
+                      }}>
+                        🚧 In Progress
+                      </div>
+                    )}
+                  </div>
+                  <div className="pp-more-body">
+                    <div className="pp-more-cat" style={{ color: p.color }}>{p.category}</div>
+                    <h4 className="pp-more-title">{p.title}</h4>
+                    <p className="pp-more-desc">{p.desc}</p>
+                    <div className="pp-more-tags">
+                      {p.tags.map(t => <span key={t} className="pp-tag">{t}</span>)}
+                    </div>
+                    <button className="pp-more-link" style={{ color: p.color, background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontFamily: 'inherit' }}>
+                      <Eye size={13} /> View Project <ExternalLink size={12} />
+                    </button>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          </motion.div>
+
+          </>) /* end streamers */}
+
         </motion.div>
         </AnimatePresence>
 
@@ -570,9 +830,25 @@ function PortfolioContent() {
               style={{ '--mc': activeProject.color }}
             >
               {/* modal header */}
-              <div className="pp-modal-header" style={{ background: activeProject.gradient }}>
-                <div className="pp-modal-emoji">{activeProject.emoji}</div>
-                <button className="pp-modal-close" onClick={() => setActiveProject(null)}>✕</button>
+              <div className="pp-modal-header" style={{ background: activeProject.gradient, overflow: 'hidden', position: 'relative' }}>
+                {activeProject.image ? (
+                  <img 
+                    src={activeProject.image} 
+                    alt={activeProject.title}
+                    style={{
+                      width: '100%',
+                      height: '100%',
+                      objectFit: 'cover',
+                      position: 'absolute',
+                      top: 0,
+                      left: 0,
+                      opacity: 0.9
+                    }}
+                  />
+                ) : (
+                  <div className="pp-modal-emoji">{activeProject.emoji}</div>
+                )}
+                <button className="pp-modal-close" onClick={() => setActiveProject(null)} style={{ position: 'relative', zIndex: 10 }}>✕</button>
               </div>
 
               {/* modal body */}
@@ -585,6 +861,12 @@ function PortfolioContent() {
                 </div>
 
                 <p className="pp-modal-desc">{activeProject.fullDesc || activeProject.desc}</p>
+
+                {activeProject.underDevelopment && (
+                  <div className="pp-modal-disclaimer" style={{ background: 'linear-gradient(135deg, #ff6b35, #f7931e)', border: '2px solid #ff8c42' }}>
+                    🚧 <strong>Under Development:</strong> This project is actively being built and improved. Many exciting features and updates are coming soon!
+                  </div>
+                )}
 
                 {activeProject.disclaimer && (
                   <div className="pp-modal-disclaimer">
