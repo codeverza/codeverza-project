@@ -21,6 +21,8 @@ export default function EmployeeDashboardPage() {
   const [leavesData, setLeavesData] = useState([]);
   const [salaryData, setSalaryData] = useState([]);
   const [projectsData, setProjectsData] = useState([]);
+  const [employeeLeads, setEmployeeLeads] = useState([]);
+  const [projectsError, setProjectsError] = useState('');
   const [tasksData, setTasksData] = useState([]);
   const [salesData, setSalesData] = useState({
     leads: [],
@@ -32,6 +34,9 @@ export default function EmployeeDashboardPage() {
     setActiveTab(tab);
     if (typeof window !== 'undefined' && employee?.id) {
       localStorage.setItem(`employeeActiveTab_${employee.id}`, tab);
+    }
+    if (tab === 'salary' && employee?.id) {
+      loadEmployeeProjects(employee.id);
     }
   };
 
@@ -118,13 +123,9 @@ export default function EmployeeDashboardPage() {
         }
       }
 
-      // Load projects if permitted
-      if (employeePermissions?.projects?.view) {
-        const projRes = await fetch(`/api/employees/projects?employeeId=${employeeId}`);
-        const projData = await projRes.json();
-        if (projData.success) {
-          setProjectsData(projData.projects || []);
-        }
+      // Salary commission also depends on projects with all installments approved.
+      if (employeePermissions?.projects?.view || employeePermissions?.salary?.view) {
+        await loadEmployeeProjects(employeeId);
       }
 
       // Load tasks - ALWAYS LOAD (removed permission check for debugging)
@@ -187,6 +188,33 @@ export default function EmployeeDashboardPage() {
       }
     } catch (error) {
       console.error('Error loading employee data:', error);
+    }
+  };
+
+  const loadEmployeeProjects = async (employeeId) => {
+    try {
+      const [projectsResponse, leadsResponse] = await Promise.all([
+        fetch(`/api/employees/projects?employeeId=${employeeId}`),
+        fetch(`/api/leads?employeeId=${employeeId}`)
+      ]);
+      const [projectsResult, leadsResult] = await Promise.all([
+        projectsResponse.json(),
+        leadsResponse.json()
+      ]);
+      if (!projectsResponse.ok || !projectsResult.success) {
+        throw new Error(projectsResult.message || 'Failed to load employee projects');
+      }
+      if (!leadsResponse.ok || !leadsResult.success) {
+        throw new Error(leadsResult.message || 'Failed to load employee leads');
+      }
+      setProjectsData(projectsResult.projects || []);
+      setEmployeeLeads(leadsResult.leads || []);
+      setProjectsError('');
+    } catch (error) {
+      console.error('Error loading employee projects:', error);
+      setProjectsData([]);
+      setEmployeeLeads([]);
+      setProjectsError('Approved project commissions could not be loaded. Please try again.');
     }
   };
 
@@ -381,7 +409,15 @@ export default function EmployeeDashboardPage() {
         {activeTab === 'profile' && <ProfileTab data={profileData} permissions={permissions} />}
         {activeTab === 'attendance' && <AttendanceTab data={attendanceData} />}
         {activeTab === 'leaves' && <LeavesTab data={leavesData} employeeId={employee.id} permissions={permissions} />}
-        {activeTab === 'salary' && <SalaryTab data={salaryData} employee={profileData} />}
+        {activeTab === 'salary' && (
+          <SalaryTab
+            data={salaryData}
+            employee={profileData}
+            projects={projectsData}
+            leads={employeeLeads}
+            projectsError={projectsError}
+          />
+        )}
         {activeTab === 'projects' && (
           <ProjectsTab
             data={projectsData}
@@ -580,7 +616,7 @@ function LeavesTab({ data, employeeId, permissions }) {
 }
 
 // Salary Tab Component
-function SalaryTab({ data, employee }) {
+function SalaryTab({ data, employee, projects, leads, projectsError }) {
   if (!employee) return <div className="loading-text">Loading salary information...</div>;
 
   const salaryType = employee.salaryType || 'Fixed';
@@ -588,6 +624,58 @@ function SalaryTab({ data, employee }) {
   const commissionPercentage = employee.commissionPercentage || 0;
   const commissionSlabs = employee.commissionSlabs || [];
   const excludeThirdParty = employee.excludeThirdPartyExpenses || false;
+  const receivesProjectCommission = salaryType === 'Commission' || salaryType === 'Salary+Commission';
+  const normalizeClientName = (name) => String(name || '').trim().toLocaleLowerCase();
+  const isWonLead = (lead) => lead.stage === 'Won' || lead.status === 'Won';
+  const wonLeadNames = new Set(
+    (leads || [])
+      .filter(isWonLead)
+      .map((lead) => normalizeClientName(lead.clientName))
+      .filter(Boolean)
+  );
+  const approvedLeadProjects = (projects || []).filter((project) => {
+    const belongsToEmployee = project.salesEmployeeId === employee.id ||
+      (project.leadId && (leads || []).some((lead) => lead.id === project.leadId && isWonLead(lead))) ||
+      (project.assignedEmployees?.includes(employee.id) &&
+        wonLeadNames.has(normalizeClientName(project.clientName)));
+    return belongsToEmployee &&
+      Array.isArray(project.installments) &&
+      project.installments.length === 3 &&
+      project.installments.every((installment) => installment.status === 'Approved');
+  }).map((project) => {
+    const projectValue = Number(project.projectValue) ||
+      project.installments.reduce((total, installment) => total + Number(installment.amount || 0), 0);
+    const thirdPartyExpenses = Number(project.thirdPartyExpenses || 0);
+    const commissionableAmount = Math.max(
+      0,
+      projectValue - (excludeThirdParty ? thirdPartyExpenses : 0)
+    );
+    return { ...project, commissionableAmount };
+  });
+  const approvedProjectAmount = approvedLeadProjects.reduce(
+    (total, project) => total + project.commissionableAmount,
+    0
+  );
+  const matchedSlab = salaryType === 'Commission'
+    ? commissionSlabs.find((slab) =>
+      approvedProjectAmount >= Number(slab.minSales || 0) &&
+      (!Number(slab.maxSales) || approvedProjectAmount <= Number(slab.maxSales))
+    )
+    : null;
+  const projectCommissionRate = salaryType === 'Commission'
+    ? Number(matchedSlab?.percentage || 0)
+    : Number(commissionPercentage || 0);
+  const approvedProjectCommissions = approvedLeadProjects.map((project) => ({
+    ...project,
+    commission: project.commissionableAmount * projectCommissionRate / 100
+  }));
+  const totalProjectCommission = approvedProjectCommissions.reduce(
+    (total, project) => total + project.commission,
+    0
+  );
+  const formatMoney = (amount) => Number(amount || 0).toLocaleString('en-PK', {
+    maximumFractionDigits: 2
+  });
 
   return (
     <div className="salary-tab">
@@ -614,6 +702,39 @@ function SalaryTab({ data, employee }) {
             {salaryType === 'Salary+Commission' && '💰 Salary + Commission'}
           </div>
         </div>
+
+        {receivesProjectCommission && (
+          <div className="project-commission-summary">
+            <div className="project-commission-total">
+              <div>
+                <p>Commission from Fully Paid Projects</p>
+                <span>
+                  {approvedLeadProjects.length} lead project{approvedLeadProjects.length === 1 ? '' : 's'} · {projectCommissionRate}% commission
+                </span>
+              </div>
+              <strong>Rs. {formatMoney(totalProjectCommission)}</strong>
+            </div>
+            {projectsError ? (
+              <p className="project-commission-empty">{projectsError}</p>
+            ) : approvedProjectCommissions.length > 0 ? (
+              <div className="project-commission-list">
+                {approvedProjectCommissions.map((project) => (
+                  <div className="project-commission-row" key={project.id}>
+                    <div>
+                      <strong>{project.projectName}</strong>
+                      <span>{project.clientName || 'Client'} · Project value Rs. {formatMoney(project.commissionableAmount)}</span>
+                    </div>
+                    <strong>Rs. {formatMoney(project.commission)}</strong>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="project-commission-empty">
+                Aapki lead se linked project ki teeno installments approve honay par commission yahan show hogi.
+              </p>
+            )}
+          </div>
+        )}
 
         {/* Fixed Salary Display */}
         {salaryType === 'Fixed' && (
@@ -716,6 +837,7 @@ function SalaryTab({ data, employee }) {
                     ℹ️ Third-party expenses are excluded from the commission calculation and are not considered part of the commissionable project value.
                   </div>
                 )}
+
               </div>
             ) : (
               <div className="salary-details-card" style={{
@@ -800,6 +922,7 @@ function SalaryTab({ data, employee }) {
             )}
           </div>
         )}
+
       </div>
 
       {/* Salary History */}
@@ -2213,4 +2336,3 @@ function SalesTab({ data, employeeId, employee, onRefresh }) {
     </div>
   );
 }
-

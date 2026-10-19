@@ -1167,11 +1167,21 @@ export default function QuotationPreviewPage() {
           )}
 
           {/* Signature Block */}
-          <div className={`signature-section ${quotation.isEmployeeQuotation ? 'single-signature' : ''}`}>
+          <div className={`signature-section with-company-stamp ${quotation.isEmployeeQuotation ? 'employee-signature' : ''}`}>
             <div className="signature-box">
-              {quotation.isEmployeeQuotation && (
-                <div className="codeverza-stamp"><span>CODEVERZA</span></div>
-              )}
+              <div className="signature-image-area">
+                <Image
+                  src="/img/aqdas-signature-bg.png"
+                  alt="Muhammad Aqdas signature"
+                  width={190}
+                  height={56}
+                  draggable={false}
+                  onDragStart={(event) => event.preventDefault()}
+                  onDrop={(event) => event.preventDefault()}
+                  onContextMenu={(event) => event.preventDefault()}
+                  style={{ objectFit: 'contain', userSelect: 'none' }}
+                />
+              </div>
               <div className="signature-line"></div>
               <strong>Authorized Signature</strong>
               {quotation.isEmployeeQuotation ? (
@@ -1182,6 +1192,15 @@ export default function QuotationPreviewPage() {
               ) : (
                 <p>Codeverza</p>
               )}
+            </div>
+            <div className="signature-box company-stamp-box">
+              <div className="company-stamp-area">
+                <div className="codeverza-stamp"><span>CODEVERZA</span></div>
+              </div>
+              <div className="signature-line"></div>
+              <strong>Company Stamp</strong>
+              <p>Codeverza</p>
+              <p>Digital Solutions</p>
             </div>
             {!quotation.isEmployeeQuotation && (
               <div className="signature-box">

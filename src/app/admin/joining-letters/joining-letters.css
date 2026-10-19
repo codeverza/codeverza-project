@@ -693,7 +693,7 @@
 
 /* ── Doc Body ── */
 .jl-doc-body {
-  padding: 36px 40px 80px 40px; /* Increased bottom padding significantly to avoid footer overlap */
+  padding: 36px 40px 50px 40px; /* Bottom padding to avoid footer overlap */
   background: #fff;
   line-height: 1.8;
 }
@@ -884,11 +884,37 @@
   .jl-details-table tbody tr:nth-child(even) td { background: #fafbff !important; }
 
   .jl-document { min-height: 0; display: block; }
-  .jl-doc-body { padding: 36px 40px 90px 40px !important; }
-  .jl-commission-section { page-break-before: always !important; break-before: page !important; page-break-inside: avoid; break-inside: avoid; }
-  .jl-commission-terms-section { page-break-inside: avoid !important; break-inside: avoid !important; }
-  .jl-terms-section { page-break-inside: avoid !important; break-inside: avoid !important; }
-  .jl-details-table, .jl-doc-signature { page-break-inside: avoid; break-inside: avoid; }
+  .jl-doc-body { padding: 36px 40px 60px 40px !important; }
+  
+  /* Ensure proper page breaks */
+  .jl-commission-section { 
+    page-break-before: auto !important; 
+    break-before: auto !important; 
+    page-break-inside: avoid; 
+    break-inside: avoid; 
+  }
+  
+  .jl-commission-terms-section { 
+    page-break-inside: avoid !important; 
+    break-inside: avoid !important; 
+  }
+  
+  .jl-terms-section { 
+    page-break-inside: avoid !important; 
+    break-inside: avoid !important; 
+  }
+  
+  .jl-details-table { 
+    page-break-inside: auto; 
+    break-inside: auto; 
+  }
+  
+  .jl-doc-signature { 
+    page-break-inside: avoid; 
+    break-inside: avoid; 
+    margin-top: 30px;
+  }
+  
   .jl-doc-footer {
     position: fixed;
     left: 0;
@@ -921,4 +947,105 @@
   .jl-preview-actions { flex-direction: column; }
   .jl-form-actions { flex-direction: column; }
   .jl-form-actions button { width: 100%; justify-content: center; }
+}
+
+/* ==========================================
+   PDF PREVIEW MODE
+   ========================================== */
+
+.pdf-preview-mode {
+  background: #525659 !important;
+  padding: 20px 40px !important;
+}
+
+.pdf-preview-mode .jl-preview-actions {
+  margin-bottom: 20px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: rgba(0,0,0,0.95) !important;
+  backdrop-filter: blur(10px);
+}
+
+.pdf-preview-mode .jl-document {
+  max-width: 210mm; /* A4 width */
+  margin: 0 auto 30mm auto; /* Space between pages */
+  box-shadow: 0 4px 30px rgba(0,0,0,0.5);
+  page-break-after: always;
+  break-after: page;
+  min-height: 297mm; /* A4 height */
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+/* PDF Preview: Simulate page breaks */
+.pdf-preview-mode .jl-doc-body {
+  flex: 1;
+  padding-bottom: 50px !important;
+  overflow: visible;
+  min-height: calc(297mm - 42mm - 28mm - 60px); /* A4 height - header - footer - paddings */
+  max-height: calc(297mm - 42mm - 28mm - 60px);
+  display: flex;
+  flex-direction: column;
+}
+
+.pdf-preview-mode .jl-doc-footer {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  margin-top: auto;
+}
+
+/* Better page simulation with shadow between pages */
+.pdf-preview-mode .jl-document {
+  margin-bottom: 20px !important;
+}
+
+.pdf-preview-mode .jl-document:not(:last-child)::before {
+  content: '';
+  position: absolute;
+  bottom: -20px;
+  left: 0;
+  right: 0;
+  height: 20px;
+  background: linear-gradient(to bottom, rgba(0,0,0,0.3), transparent);
+  z-index: -1;
+}
+
+/* Add page number indicator in preview mode */
+.pdf-preview-mode .jl-document::after {
+  content: 'Page Preview - Scroll to see complete document';
+  position: absolute;
+  top: -30px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(177,76,255,0.15);
+  color: #e0aaff;
+  padding: 6px 16px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+}
+
+/* Responsive adjustments for PDF preview */
+@media (max-width: 1024px) {
+  .pdf-preview-mode {
+    padding: 15px 20px !important;
+  }
+  
+  .pdf-preview-mode .jl-document {
+    max-width: 100%;
+    transform: scale(0.85);
+    transform-origin: top center;
+  }
+}
+
+@media (max-width: 768px) {
+  .pdf-preview-mode .jl-document {
+    transform: scale(0.65);
+  }
 }

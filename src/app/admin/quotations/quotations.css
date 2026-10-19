@@ -1424,8 +1424,29 @@
   justify-content: center;
 }
 
+.signature-section.with-company-stamp {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.signature-section.with-company-stamp.employee-signature {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
 .signature-box {
   text-align: center;
+}
+
+.signature-image-area,
+.company-stamp-area {
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 8px;
+}
+
+.company-stamp-area .codeverza-stamp {
+  margin: 0 auto;
 }
 
 .codeverza-stamp {

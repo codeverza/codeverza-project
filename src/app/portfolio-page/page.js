@@ -338,7 +338,7 @@ function PortfolioContent() {
   const [activeProject, setActiveProject] = useState(null);
   const [activePoster, setActivePoster] = useState(null);
   const [activeCategory, setActiveCategory] = useState(
-    () => searchParams.get('tab') ?? 'streamers'
+    () => searchParams.get('tab') ?? 'development'
   );
 
   return (

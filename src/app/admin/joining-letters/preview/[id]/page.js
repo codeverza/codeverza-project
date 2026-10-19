@@ -12,6 +12,7 @@ import {
   FiMessageCircle,
   FiEdit,
   FiCopy,
+  FiFileText,
 } from 'react-icons/fi';
 import '../../joining-letters.css';
 
@@ -48,33 +49,20 @@ export default function JoiningLetterPreviewPage() {
   const fmtSalary = (amount, currency = 'PKR') =>
     new Intl.NumberFormat('en-PK', { style: 'currency', currency }).format(amount || 0);
 
-  // Build a human-readable compensation summary for display
-  const compensationSummary = (l) => {
-    if (!l) return '—';
-    const type = l.compensationType || 'Fixed Salary';
-    if (type === 'Fixed Salary')
-      return `${fmtSalary(l.salary, l.currency)} / ${l.salaryType || 'Monthly'}`;
-    if (type === 'Commission Only')
-      return `Commission-based (${(l.commissionSlabs || []).length} slab${(l.commissionSlabs||[]).length !== 1 ? 's' : ''})`;
-    if (type === 'Salary + Commission')
-      return `Base: ${fmtSalary(l.salary, l.currency)} / ${l.salaryType || 'Monthly'} + Commission slabs`;
-    return '—';
-  };
-
-  // Replace [POSITION] placeholder in text
   const fillTemplate = (text) =>
     (text || '').replace(/\[POSITION\]/g, letter?.position || 'the position');
 
   /* ── PRINT ── */
   const handlePrint = () => window.print();
 
-  /* ── PDF ── */
-  const generatePDF = async () => {
-    if (!letter) return;
-    setGenerating(true);
+  /* ── Generate PDF Document (returns PDF object) ── */
+  const generatePDFDocument = async () => {
+    if (!letter) return null;
 
     try {
       const html2canvas = (await import('html2canvas')).default;
+      const { jsPDF } = await import('jspdf');
+      
       const documentElement = document.querySelector('.jl-document');
       if (!documentElement) throw new Error('Joining letter document is not available');
 
@@ -88,108 +76,173 @@ export default function JoiningLetterPreviewPage() {
       
       if (headerElement) headerElement.style.padding = '12px 40px';
       if (footerElement) footerElement.style.padding = '10px 40px';
-      if (bodyElement) bodyElement.style.paddingBottom = '120px'; // Extra large padding for PDF
-      const headerCanvas = headerElement
-        ? await html2canvas(headerElement, {
-            backgroundColor: null,
-            scale: 2,
-            useCORS: true,
-            logging: false,
-          })
-        : null;
-      const footerCanvas = footerElement
-        ? await html2canvas(footerElement, {
-            backgroundColor: null,
-            scale: 2,
-            useCORS: true,
-            logging: false,
-          })
-        : null;
+      if (bodyElement) bodyElement.style.paddingBottom = '100px';
+
+      const headerCanvas = headerElement ? await html2canvas(headerElement, {
+        backgroundColor: null, scale: 2, useCORS: true, logging: false
+      }) : null;
+
+      const footerCanvas = footerElement ? await html2canvas(footerElement, {
+        backgroundColor: null, scale: 2, useCORS: true, logging: false
+      }) : null;
+
       if (headerElement) headerElement.style.padding = headerPadding;
       if (footerElement) footerElement.style.padding = footerPadding;
       if (bodyElement) bodyElement.style.paddingBottom = bodyPaddingBottom;
+
       const footerDisplay = footerElement?.style.display;
       if (footerElement) footerElement.style.display = 'none';
 
       const canvas = await html2canvas(documentElement, {
-        backgroundColor: '#ffffff',
-        scale: 2,
-        useCORS: true,
-        logging: false,
-        windowWidth: documentElement.scrollWidth,
-        windowHeight: documentElement.scrollHeight,
+        backgroundColor: '#ffffff', scale: 2, useCORS: true, logging: false,
+        windowWidth: documentElement.scrollWidth, windowHeight: documentElement.scrollHeight
       });
       
       if (footerElement) footerElement.style.display = footerDisplay;
-      if (bodyElement) bodyElement.style.paddingBottom = bodyPaddingBottom; // Restore padding
+      if (bodyElement) bodyElement.style.paddingBottom = bodyPaddingBottom;
 
-      const { jsPDF } = await import('jspdf');
       const pdf = new jsPDF('p', 'mm', 'a4');
       const pageWidth = pdf.internal.pageSize.getWidth();
       const pageHeight = pdf.internal.pageSize.getHeight();
       const headerHeight = headerCanvas ? (headerCanvas.height / headerCanvas.width) * pageWidth : 0;
       const footerHeight = footerCanvas ? (footerCanvas.height / footerCanvas.width) * pageWidth : 0;
       
-      // Available content height per page (excluding header and footer with extra buffer)
-      const footerBuffer = 20; // Very large buffer to ensure footer doesn't overlap content
+      const footerBuffer = 15;
       const availableContentHeight = pageHeight - footerHeight - footerBuffer;
-      const renderedPageHeight = Math.floor((availableContentHeight / pageWidth) * canvas.width);
-      
-      const documentRect = documentElement.getBoundingClientRect();
-      const scaleRatio = canvas.width / documentElement.scrollWidth;
-      const detailsElement = documentElement.querySelector('.jl-details-table');
-      const detailsBottom = detailsElement
-        ? Math.round((detailsElement.getBoundingClientRect().bottom - documentRect.top) * scaleRatio)
-        : 0;
-      const pageBreaks = detailsBottom > 0 && detailsBottom < canvas.height
-        ? [0, detailsBottom]
-        : [0];
-      while (pageBreaks[pageBreaks.length - 1] < canvas.height) {
-        pageBreaks.push(Math.min(canvas.height, pageBreaks[pageBreaks.length - 1] + renderedPageHeight));
-      }
-      for (let pageIndex = 0; pageIndex < pageBreaks.length - 1; pageIndex += 1) {
-        if (pageIndex > 0) pdf.addPage();
+      const pixelsPerMm = canvas.width / pageWidth;
+      const firstPageHeight = Math.floor(availableContentHeight * pixelsPerMm);
+      const followingPageHeight = Math.floor((availableContentHeight - headerHeight - 10) * pixelsPerMm);
 
+      // Smart page break detection - find blank rows to break naturally
+      const findSafePageBreak = (proposedBreak, pageStart, pageEnd) => {
+        const context = canvas.getContext('2d', { willReadFrequently: true });
+        const scanLeft = Math.floor(canvas.width * 0.1);
+        const scanRight = Math.floor(canvas.width * 0.9);
+        
+        const isBlankRow = (row) => {
+          if (row < 0 || row >= canvas.height) return false;
+          const pixels = context.getImageData(scanLeft, row, scanRight - scanLeft, 1).data;
+          let darkPixels = 0;
+          for (let index = 0; index < pixels.length; index += 16) {
+            if (pixels[index] < 235 || pixels[index + 1] < 235 || pixels[index + 2] < 235) {
+              darkPixels += 1;
+              if (darkPixels > 2) return false;
+            }
+          }
+          return true;
+        };
+
+        const searchStart = Math.min(proposedBreak - 1, pageEnd - 1);
+        const searchEnd = Math.max(pageStart + 4, searchStart - 200);
+        for (let row = searchStart; row >= searchEnd; row -= 1) {
+          if (isBlankRow(row - 2) && isBlankRow(row - 1) && isBlankRow(row) && isBlankRow(row + 1)) {
+            return row - 1;
+          }
+        }
+        return proposedBreak;
+      };
+      
+      const pageBreaks = [0];
+      while (pageBreaks[pageBreaks.length - 1] < canvas.height) {
+        const pageIndex = pageBreaks.length - 1;
+        const pageHeightInPixels = pageIndex === 0 ? firstPageHeight : followingPageHeight;
+        const pageStart = pageBreaks[pageBreaks.length - 1];
+        const proposedBreak = Math.min(canvas.height, pageStart + pageHeightInPixels);
+        const nextBreak = proposedBreak < canvas.height
+          ? findSafePageBreak(proposedBreak, pageStart, pageStart + pageHeightInPixels)
+          : proposedBreak;
+
+        if (nextBreak > pageBreaks[pageBreaks.length - 1]) pageBreaks.push(nextBreak);
+        else break;
+      }
+
+      for (let pageIndex = 0; pageIndex < pageBreaks.length - 1; pageIndex++) {
+        if (pageIndex > 0) pdf.addPage();
         const sourceY = pageBreaks[pageIndex];
-        const sourceHeight = Math.min(pageBreaks[pageIndex + 1] - sourceY, renderedPageHeight);
+        const sourceHeight = pageBreaks[pageIndex + 1] - sourceY;
         const topMargin = pageIndex > 0 ? headerHeight + 10 : 0;
+        
         const pageCanvas = document.createElement('canvas');
         pageCanvas.width = canvas.width;
         pageCanvas.height = sourceHeight;
-        pageCanvas.getContext('2d').drawImage(
-          canvas,
-          0, sourceY, canvas.width, sourceHeight,
-          0, 0, pageCanvas.width, pageCanvas.height,
-        );
+        pageCanvas.getContext('2d').drawImage(canvas, 0, sourceY, canvas.width, sourceHeight, 0, 0, pageCanvas.width, pageCanvas.height);
 
         const imageHeight = (sourceHeight / canvas.width) * pageWidth;
-        pdf.addImage(
-          pageCanvas.toDataURL('image/jpeg', 0.98),
-          'JPEG',
-          0,
-          topMargin,
-          pageWidth,
-          Math.min(availableContentHeight - (pageIndex > 0 ? 10 : 0), imageHeight),
-        );
+        pdf.addImage(pageCanvas.toDataURL('image/jpeg', 0.95), 'JPEG', 0, topMargin, pageWidth,
+          Math.min(availableContentHeight - (pageIndex > 0 ? 10 : 0), imageHeight));
       }
 
       if (footerCanvas) {
         const footerImage = footerCanvas.toDataURL('image/png');
-        for (let pageIndex = 1; pageIndex <= pdf.internal.getNumberOfPages(); pageIndex += 1) {
-          pdf.setPage(pageIndex);
+        for (let i = 1; i <= pdf.internal.getNumberOfPages(); i++) {
+          pdf.setPage(i);
           pdf.addImage(footerImage, 'PNG', 0, pageHeight - footerHeight, pageWidth, footerHeight);
         }
       }
 
       if (headerCanvas) {
         const headerImage = headerCanvas.toDataURL('image/png');
-        for (let pageIndex = 2; pageIndex <= pdf.internal.getNumberOfPages(); pageIndex += 1) {
-          pdf.setPage(pageIndex);
+        for (let i = 2; i <= pdf.internal.getNumberOfPages(); i++) {
+          pdf.setPage(i);
           pdf.addImage(headerImage, 'PNG', 0, 0, pageWidth, headerHeight);
         }
       }
 
+      return pdf;
+    } catch (error) {
+      console.error('Error generating PDF document:', error);
+      throw error;
+    }
+  };
+
+  /* ── PDF Preview ── */
+  const previewPDF = async () => {
+    setGenerating(true);
+    
+    try {
+      const pdf = await generatePDFDocument();
+      if (!pdf) throw new Error('Failed to generate PDF');
+      
+      // Open PDF in new window/tab for preview
+      const pdfBlob = pdf.output('blob');
+      const pdfUrl = URL.createObjectURL(pdfBlob);
+      window.open(pdfUrl, '_blank');
+      
+      Swal.fire({
+        icon: 'success',
+        title: 'PDF Preview',
+        text: 'Opening PDF in new window',
+        timer: 2000,
+        background: '#0d0d0d',
+        color: '#fff',
+        confirmButtonColor: '#b14cff',
+        iconColor: '#28c840'
+      });
+    } catch (error) {
+      console.error('Error previewing PDF:', error);
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'Failed to preview PDF',
+        background: '#0d0d0d',
+        color: '#fff',
+        confirmButtonColor: '#b14cff'
+      });
+    } finally {
+      setGenerating(false);
+    }
+  };
+
+  /* ── Download PDF ── */
+  const generatePDF = async () => {
+    setGenerating(true);
+    
+    try {
+      const pdf = await generatePDFDocument();
+      if (!pdf) throw new Error('Failed to generate PDF');
+      
       pdf.save(`JoiningLetter_${letter.letterNumber}.pdf`);
+      
       Swal.fire({
         icon: 'success',
         title: 'PDF Downloaded ✅',
@@ -198,483 +251,17 @@ export default function JoiningLetterPreviewPage() {
         background: '#0d0d0d',
         color: '#fff',
         confirmButtonColor: '#b14cff',
-        iconColor: '#28c840',
+        iconColor: '#28c840'
       });
-      return;
-
-      {
-      const { jsPDF } = await import('jspdf');
-      await import('jspdf-autotable');
-
-      const pdf       = new jsPDF('p', 'mm', 'a4');
-      const PW        = pdf.internal.pageSize.getWidth();
-      const PH        = pdf.internal.pageSize.getHeight();
-      const MARGIN    = 14;
-      const FOOTER_HEIGHT = 26;
-      const MAX_Y     = PH - FOOTER_HEIGHT - 10; // Reserve space for footer + buffer
-      let   y         = 20;
-      let   currentPage = 1;
-
-      // Helper to check and add new page
-      const checkPageBreak = (requiredSpace) => {
-        if (y + requiredSpace > MAX_Y) {
-          addFooter();
-          pdf.addPage();
-          currentPage++;
-          addHeader();
-          y = 52;
-          return true;
-        }
-        return false;
-      };
-
-      // Helper to add footer on each page
-      const addFooter = () => {
-        const fY = PH - 20;
-        pdf.setFillColor(13, 27, 62);
-        pdf.rect(0, fY - 6, PW, 26, 'F');
-        pdf.setTextColor(255, 255, 255); 
-        pdf.setFontSize(9); 
-        pdf.setFont('helvetica', 'bold');
-        pdf.text('CodeVerza – Building Digital Excellence', PW / 2, fY, { align: 'center' });
-        pdf.setFontSize(7.5); 
-        pdf.setFont('helvetica', 'normal'); 
-        pdf.setTextColor(200, 200, 200);
-        pdf.text('www.codeverza.com | info@codeverza.com | +92 325 1507557', PW / 2, fY + 5, { align: 'center' });
-      };
-
-      // Helper to add header on each page
-      const addHeader = () => {
-        pdf.setFillColor(13, 27, 62);
-        pdf.rect(0, 0, PW, 42, 'F');
-
-        if (logoLoaded) {
-          try { pdf.addImage(logoImg, 'PNG', 12, 10, 20, 20); } catch { }
-        } else {
-          pdf.setFillColor(255, 255, 255);
-          pdf.roundedRect(12, 12, 12, 12, 2, 2, 'F');
-          pdf.setTextColor(13, 27, 62);
-          pdf.setFontSize(14); pdf.setFont('helvetica', 'bold');
-          pdf.text('C', 18, 21, { align: 'center' });
-        }
-
-        pdf.setTextColor(255, 255, 255);
-        pdf.setFontSize(20); pdf.setFont('helvetica', 'bold');
-        pdf.text('CODEVERZA', 36, 18);
-        pdf.setFontSize(8); pdf.setFont('helvetica', 'normal');
-        pdf.text('Professional Web Development Solutions', 36, 24);
-
-        // contact right
-        pdf.setFontSize(8);
-        ['www.codeverza.com', 'info@codeverza.com', '+92 325 1507557'].forEach((t, i) => {
-          pdf.text(t, PW - 14, 14 + i * 5, { align: 'right' });
-        });
-      };
-
-      /* ── logo ── */
-      let logoLoaded = false;
-      const logoImg  = new window.Image();
-      logoImg.crossOrigin = 'anonymous';
-      logoImg.src = '/img/codeverza-logo.png';
-      await Promise.race([
-        new Promise(res => { logoImg.onload = () => { logoLoaded = true; res(); }; logoImg.onerror = res; }),
-        new Promise(res => setTimeout(res, 2000)),
-      ]);
-
-      /* ── Header Band ── */
-      addHeader();
-
-      y = 52;
-
-      /* ── Title Band ── */
-      pdf.setFillColor(240, 244, 255);
-      pdf.rect(0, y - 2, PW, 14, 'F');
-      pdf.setTextColor(13, 27, 62);
-      pdf.setFontSize(16); pdf.setFont('helvetica', 'bold');
-      pdf.text('JOINING LETTER', 14, y + 6);
-      pdf.setFontSize(9); pdf.setFont('helvetica', 'normal');
-      pdf.setTextColor(100, 100, 100);
-      pdf.text(`Ref: ${letter.letterNumber}`, PW - 14, y + 6, { align: 'right' });
-
-      y += 20;
-
-      /* ── Date line ── */
-      pdf.setTextColor(80, 80, 80);
-      pdf.setFontSize(10); pdf.setFont('helvetica', 'normal');
-      pdf.text(`Date: ${fmtDate(letter.joiningDate)}`, PW - 14, y, { align: 'right' });
-
-      y += 10;
-
-      /* ── Subject ── */
-      checkPageBreak(15);
-      pdf.setTextColor(13, 27, 62);
-      pdf.setFontSize(11); pdf.setFont('helvetica', 'bold');
-      pdf.text(`SUBJECT: APPOINTMENT LETTER – ${(letter.position || '').toUpperCase()}`, 14, y);
-      pdf.setLineWidth(0.4); pdf.setDrawColor(200, 210, 240);
-      pdf.line(14, y + 2, PW - 14, y + 2);
-
-      y += 12;
-
-      /* ── Salutation ── */
-      checkPageBreak(10);
-      pdf.setTextColor(40, 40, 40);
-      pdf.setFontSize(10); pdf.setFont('helvetica', 'bold');
-      pdf.text(`Dear ${letter.employeeName},`, 14, y);
-
-      y += 10;
-
-      /* ── Opening Para ── */
-      pdf.setFont('helvetica', 'normal');
-      const openLines = pdf.splitTextToSize(fillTemplate(letter.openingParagraph), PW - 28);
-      checkPageBreak(openLines.length * 5 + 8);
-      pdf.text(openLines, 14, y);
-      y += openLines.length * 5 + 8;
-
-      /* ── Details Table ── */
-      const tableRows = [
-        ['Full Name',         letter.employeeName  || '-'],
-        ...(letter.fatherName ? [['Father\'s Name', letter.fatherName]] : []),
-        ...(letter.cnicNumber ? [['CNIC Number', letter.cnicNumber]] : []),
-        ['Email Address',     letter.employeeEmail  || '-'],
-        ...(letter.employeePhone ? [['Phone Number', letter.employeePhone]] : []),
-        ['Designation',       letter.position       || '-'],
-        ['Department',        letter.department     || '-'],
-        ['Employment Type',   letter.employmentType || '-'],
-        ['Work Location',     letter.workLocation   || '-'],
-        ...(letter.reportingTo ? [['Reporting To', letter.reportingTo]] : []),
-        ['Date of Joining',   fmtDate(letter.joiningDate)],
-        ...(letter.probationPeriod ? [['Probation Period', letter.probationPeriod]] : []),
-        ['Compensation Type', letter.compensationType || 'Fixed Salary'],
-      ];
-
-      // Add compensation-specific rows
-      if (letter.compensationType === 'Fixed Salary' || !letter.compensationType) {
-        tableRows.push(['Salary', `${fmtSalary(letter.salary, letter.currency)} / ${letter.salaryType || 'Monthly'}`]);
-      } else if (letter.compensationType === 'Commission Only') {
-        tableRows.push(
-          ['Commission Structure', `${(letter.commissionSlabs||[]).length} slab(s) — see table below`],
-          ['Commission Released', letter.commissionTrigger || '—']
-        );
-        if (letter.commissionCap) {
-          tableRows.push(['Monthly Cap', fmtSalary(letter.commissionCap, letter.currency)]);
-        }
-      } else { // Salary + Commission
-        tableRows.push(
-          ['Base Salary', `${fmtSalary(letter.salary, letter.currency)} / ${letter.salaryType || 'Monthly'}`],
-          ['Commission Structure', `${(letter.commissionSlabs||[]).length} slab(s) — see table below`],
-          ['Commission Released', letter.commissionTrigger || '—']
-        );
-        if (letter.commissionCap) {
-          tableRows.push(['Monthly Cap', fmtSalary(letter.commissionCap, letter.currency)]);
-        }
-      }
-
-      checkPageBreak(50);
-      const tableStartPage = currentPage;
-      if (typeof pdf.autoTable === 'function') {
-        pdf.autoTable({
-          startY: y,
-          body: tableRows,
-          theme: 'striped',
-          styles: { fontSize: 9, cellPadding: 4, lineColor: [221, 230, 255], lineWidth: 0.1 },
-          headStyles: { fillColor: [13, 27, 62], textColor: 255, fontStyle: 'bold' },
-          columnStyles: {
-            0: { fontStyle: 'bold', textColor: [13, 27, 62], cellWidth: 60 },
-            1: { textColor: [30, 30, 30] },
-          },
-          alternateRowStyles: { fillColor: [250, 251, 255] },
-          margin: { left: MARGIN, right: MARGIN, top: 52, bottom: MAX_Y },
-          didDrawPage: (data) => {
-            // Add header and footer on new pages created by table overflow
-            const tableCurrentPage = data.pageNumber;
-            const actualPdfPage = tableStartPage + tableCurrentPage - 1;
-            
-            if (tableCurrentPage > 1) {
-              currentPage = actualPdfPage;
-              addHeader();
-              addFooter();
-            }
-          }
-        });
-        y = pdf.lastAutoTable.finalY + 10;
-        currentPage = pdf.internal.getCurrentPageInfo().pageNumber;
-      } else {
-        // Fallback manual table
-        tableRows.forEach(([k, v]) => {
-          checkPageBreak(8);
-          pdf.setFont('helvetica', 'bold'); pdf.setTextColor(13, 27, 62);
-          pdf.text(k + ':', 14, y);
-          pdf.setFont('helvetica', 'normal'); pdf.setTextColor(40, 40, 40);
-          pdf.text(v, 75, y);
-          y += 6;
-        });
-        y += 4;
-      }
-
-      /* ── Commission Slabs Table ── */
-      if ((letter.compensationType === 'Commission Only' || letter.compensationType === 'Salary + Commission') &&
-          letter.commissionSlabs && letter.commissionSlabs.length > 0) {
-        addFooter();
-        pdf.addPage();
-        currentPage++;
-        addHeader();
-        y = 52;
-        
-        // Title
-        pdf.setFont('helvetica', 'bold');
-        pdf.setFontSize(10);
-        pdf.setTextColor(13, 27, 62);
-        pdf.text('Commission Slab Structure', MARGIN, y);
-        
-        if (letter.commissionTrigger) {
-          pdf.setFontSize(8);
-          pdf.setFont('helvetica', 'normal');
-          pdf.setTextColor(26, 47, 107);
-          pdf.text(`(Released on: ${letter.commissionTrigger})`, MARGIN + 55, y);
-        }
-        
-        y += 3;
-        
-        // Underline for title
-        pdf.setDrawColor(200, 210, 240);
-        pdf.setLineWidth(0.4);
-        pdf.line(MARGIN, y, PW - MARGIN, y);
-        
-        y += 8;
-
-        // Commission slabs table
-        const commissionTableData = letter.commissionSlabs.map((slab, i) => {
-          const from = Number(slab.from || 0).toLocaleString('en-PK');
-          const to   = slab.to ? Number(slab.to).toLocaleString('en-PK') : 'No Limit';
-          const rate = slab.rateType === '%'
-            ? `${slab.rate}%`
-            : `${letter.currency || 'PKR'} ${Number(slab.rate || 0).toLocaleString('en-PK')}`;
-          const rateType = slab.rateType === '%' ? 'Percentage' : 'Flat Amount';
-          
-          return [
-            `${i + 1}`,
-            `${letter.currency || 'PKR'} ${from}`,
-            slab.to ? `${letter.currency || 'PKR'} ${to}` : 'No Limit',
-            rate,
-            rateType
-          ];
-        });
-
-        if (typeof pdf.autoTable === 'function') {
-          pdf.autoTable({
-            startY: y,
-            head: [['#', 'From', 'To', 'Rate', 'Type']],
-            body: commissionTableData,
-            theme: 'striped',
-            styles: { 
-              fontSize: 8, 
-              cellPadding: 3,
-              lineColor: [221, 230, 255],
-              lineWidth: 0.1,
-              overflow: 'linebreak',
-              cellWidth: 'wrap'
-            },
-            headStyles: { 
-              fillColor: [13, 27, 62], 
-              textColor: 255, 
-              fontStyle: 'bold',
-              halign: 'center'
-            },
-            columnStyles: {
-              0: { fontStyle: 'bold', textColor: [26, 47, 107], cellWidth: 12, halign: 'center' },
-              1: { textColor: [51, 51, 51], cellWidth: 40 },
-              2: { textColor: [51, 51, 51], cellWidth: 40 },
-              3: { textColor: [13, 27, 62], fontStyle: 'bold', cellWidth: 30, halign: 'center' },
-              4: { textColor: [100, 100, 100], cellWidth: 28, fontSize: 7, halign: 'center' },
-            },
-            alternateRowStyles: { fillColor: [250, 251, 255] },
-            margin: { left: MARGIN, right: MARGIN },
-            didDrawPage: (data) => {
-              y = data.cursor.y;
-            }
-          });
-          y = pdf.lastAutoTable.finalY + 8;
-        }
-
-        // Commission cap note
-        if (letter.commissionCap) {
-          checkPageBreak(10);
-          pdf.setFontSize(8.5);
-          pdf.setFont('helvetica', 'bold');
-          pdf.setTextColor(26, 47, 107);
-          pdf.text('Monthly Cap: ', MARGIN, y);
-          pdf.setFont('helvetica', 'normal');
-          pdf.setTextColor(85, 85, 85);
-          const capText = `${fmtSalary(letter.commissionCap, letter.currency)} - Maximum commission payable per month`;
-          pdf.text(capText, MARGIN + 25, y);
-          y += 10;
-        }
-      }
-
-      /* ── Benefits ── */
-      if (letter.benefits) {
-        checkPageBreak(30);
-        pdf.setFont('helvetica', 'bold'); 
-        pdf.setTextColor(13, 27, 62);
-        pdf.setFontSize(10);
-        pdf.text('Benefits & Perks:', MARGIN, y); 
-        y += 7;
-        pdf.setFont('helvetica', 'normal'); 
-        pdf.setTextColor(50, 50, 50);
-        pdf.setFontSize(9);
-        const bLines = pdf.splitTextToSize(letter.benefits, PW - 28);
-        
-        bLines.forEach(line => {
-          checkPageBreak(5);
-          pdf.text(line, MARGIN, y);
-          y += 4.5;
-        });
-        
-        y += 8;
-      }
-
-      /* ── Commission Notes ── */
-      if ((letter.compensationType === 'Commission Only' || letter.compensationType === 'Salary + Commission') && 
-          letter.commissionNotes) {
-        checkPageBreak(30);
-        pdf.setFont('helvetica', 'bold'); 
-        pdf.setFontSize(10); 
-        pdf.setTextColor(13, 27, 62);
-        pdf.text('Commission Terms & Conditions:', MARGIN, y); 
-        y += 7;
-        pdf.setFont('helvetica', 'normal'); 
-        pdf.setFontSize(8.5); 
-        pdf.setTextColor(51, 51, 51);
-        const cnLines = pdf.splitTextToSize(letter.commissionNotes, PW - 28);
-        
-        cnLines.forEach(line => {
-          checkPageBreak(5);
-          pdf.text(line, MARGIN, y);
-          y += 4.5;
-        });
-        
-        y += 8;
-      }
-
-      /* ── Closing Para ── */
-      checkPageBreak(30);
-      pdf.setFont('helvetica', 'normal'); 
-      pdf.setFontSize(10); 
-      pdf.setTextColor(40, 40, 40);
-      const closeLines = pdf.splitTextToSize(fillTemplate(letter.closingParagraph), PW - 28);
-      
-      closeLines.forEach(line => {
-        checkPageBreak(6);
-        pdf.text(line, MARGIN, y);
-        y += 5;
-      });
-      
-      y += 8;
-
-      /* ── T&C ── */
-      if (letter.termsAndConditions) {
-        checkPageBreak(30);
-        pdf.setFont('helvetica', 'bold'); 
-        pdf.setFontSize(10); 
-        pdf.setTextColor(13, 27, 62);
-        pdf.text('Terms & Conditions:', MARGIN, y); 
-        y += 7;
-        pdf.setFont('helvetica', 'normal'); 
-        pdf.setFontSize(8.5); 
-        pdf.setTextColor(60, 60, 60);
-        const tcLines = pdf.splitTextToSize(letter.termsAndConditions, PW - 28);
-        
-        tcLines.forEach(line => {
-          checkPageBreak(5);
-          pdf.text(line, MARGIN, y);
-          y += 4.2;
-        });
-        
-        y += 10;
-      }
-
-      /* ── Signatures ── */
-      checkPageBreak(50);
-      y += 6;
-      
-      // Add CodeVerza stamp (text style) ABOVE the signature line
-      pdf.setDrawColor(177, 76, 255); // Purple border
-      pdf.setLineWidth(0.6);
-      pdf.setTextColor(177, 76, 255); // Purple text
-      pdf.setFont('helvetica', 'bold');
-      pdf.setFontSize(11);
-      
-      // Draw stamp box
-      const stampText = 'CODEVERZA';
-      const stampWidth = pdf.getTextWidth(stampText) + 12;
-      const stampX = MARGIN + (61 - stampWidth) / 2; // Center in left column
-      const stampY = y;
-      
-      // Stamp rectangle
-      pdf.saveGraphicsState();
-      pdf.setLineDash([]);
-      pdf.rect(stampX, stampY, stampWidth, 10);
-      pdf.restoreGraphicsState();
-      
-      // Stamp text
-      pdf.text(stampText, stampX + 6, stampY + 7);
-      
-      // Move Y down after stamp
-      y += 15;
-      
-      // Signature lines
-      pdf.setDrawColor(100, 100, 100); 
-      pdf.setLineWidth(0.3);
-      pdf.line(MARGIN, y + 18, 75, y + 18);
-      pdf.line(PW - 75, y + 18, PW - MARGIN, y + 18);
-      
-      // Labels
-      pdf.setTextColor(40, 40, 40);
-      pdf.setFont('helvetica', 'bold'); 
-      pdf.setFontSize(9); 
-      pdf.text('Authorized Signatory', MARGIN, y + 24);
-      pdf.text('Employee Acceptance', PW - 75, y + 24);
-      
-      // Names
-      pdf.setFont('helvetica', 'normal'); 
-      pdf.setFontSize(8); 
-      pdf.setTextColor(100, 100, 100);
-      pdf.text('CodeVerza', MARGIN, y + 29);
-      pdf.text(letter.employeeName || '', PW - 75, y + 29);
-
-      /* ── Add footers to all pages ── */
-      const totalPages = pdf.internal.getNumberOfPages();
-      for (let i = 1; i <= totalPages; i++) {
-        pdf.setPage(i);
-        addFooter();
-        // Page numbers
-        pdf.setFontSize(7.5); 
-        pdf.setTextColor(150, 150, 150);
-        pdf.text(`Page ${i} of ${totalPages}`, PW - MARGIN, PH - 8, { align: 'right' });
-      }
-
-      pdf.save(`JoiningLetter_${letter.letterNumber}.pdf`);
-      }
-
-      Swal.fire({ 
-        icon: 'success', 
-        title: 'PDF Downloaded ✅', 
-        text: 'Joining letter saved successfully.', 
-        timer: 2000, 
-        background: '#0d0d0d', 
-        color: '#fff', 
-        confirmButtonColor: '#b14cff', 
-        iconColor: '#28c840' 
-      });
-    } catch (err) {
-      console.error('PDF error:', err);
-      Swal.fire({ 
-        icon: 'error', 
-        title: 'PDF Error', 
-        text: 'Could not generate PDF.', 
-        background: '#0d0d0d', 
-        color: '#fff', 
-        confirmButtonColor: '#b14cff' 
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      Swal.fire({
+        icon: 'error',
+        title: 'PDF Error',
+        text: 'Could not generate PDF.',
+        background: '#0d0d0d',
+        color: '#fff',
+        confirmButtonColor: '#b14cff'
       });
     } finally {
       setGenerating(false);
@@ -720,7 +307,7 @@ export default function JoiningLetterPreviewPage() {
   };
 
   /* ── Loading ── */
-  if (loading) return null; // Global loader will handle this
+  if (loading) return null;
 
   if (!letter) return (
     <div className="jl-preview-page">
@@ -751,6 +338,9 @@ export default function JoiningLetterPreviewPage() {
           </button>
           <button className="jl-btn-icon-text" onClick={handleEmail}>
             <FiMail /> Email
+          </button>
+          <button className="jl-btn-icon-text" onClick={previewPDF} disabled={generating}>
+            {generating ? <><span className="spinner-small" /> Generating...</> : <><FiFileText /> Preview PDF</>}
           </button>
           <button className="jl-btn-icon-text" onClick={handlePrint}>
             <FiPrinter /> Print
@@ -839,30 +429,29 @@ export default function JoiningLetterPreviewPage() {
                 letter.reportingTo ? ['Reporting To',   letter.reportingTo] : null,
                 ['Date of Joining', fmtDate(letter.joiningDate)],
                 letter.probationPeriod ? ['Probation Period', letter.probationPeriod] : null,
-                // ── Compensation rows ──
                 ['Compensation Type', letter.compensationType || 'Fixed Salary'],
                 ...(
                   (letter.compensationType === 'Fixed Salary' || !letter.compensationType)
                     ? [['Salary', `${fmtSalary(letter.salary, letter.currency)} / ${letter.salaryType || 'Monthly'}`]]
                     : letter.compensationType === 'Commission Only'
                     ? [
-                        ['Commission Structure', `${(letter.commissionSlabs||[]).length} slab(s) — see table below`, true],
+                        ['Commission Structure', `${(letter.commissionSlabs||[]).length} slab(s) — see table below`],
                         ['Commission Released',  letter.commissionTrigger || '—'],
                         ...(letter.commissionCap ? [['Monthly Cap', fmtSalary(letter.commissionCap, letter.currency)]] : []),
                       ]
-                    : [ // Salary + Commission
+                    : [
                         ['Base Salary',          `${fmtSalary(letter.salary, letter.currency)} / ${letter.salaryType || 'Monthly'}`],
-                        ['Commission Structure', `${(letter.commissionSlabs||[]).length} slab(s) — see table below`, true],
+                        ['Commission Structure', `${(letter.commissionSlabs||[]).length} slab(s) — see table below`],
                         ['Commission Released',  letter.commissionTrigger || '—'],
                         ...(letter.commissionCap ? [['Monthly Cap', fmtSalary(letter.commissionCap, letter.currency)]] : []),
                       ]
                 ),
               ]
                 .filter(Boolean)
-                .map(([key, val, needMargin], i) => (
-                  <tr key={i} style={needMargin ? { marginTop: '30px' } : {}}>
-                    <td style={needMargin ? { paddingTop: '180px' } : {}}>{key}</td>
-                    <td style={needMargin ? { paddingTop: '180px' } : {}}>{val || '—'}</td>
+                .map(([key, val], i) => (
+                  <tr key={i}>
+                    <td>{key}</td>
+                    <td>{val || '—'}</td>
                   </tr>
                 ))}
             </tbody>
@@ -951,11 +540,11 @@ export default function JoiningLetterPreviewPage() {
 
           {/* Terms & Conditions */}
           {letter.termsAndConditions && (
-            <div style={{ background: '#fafbff', border: '1px solid #dde6ff', borderRadius: 8, padding: '0px 18px', marginBottom: 24, marginTop: "80px" }}>
-              <div style={{ fontWeight: 700, color: '#1a2f6b', fontSize: 11, textTransform: 'uppercase', letterSpacing: '1px', marginBottom: 8, marginTop: 50 }}>
+            <div style={{ background: '#fafbff', border: '1px solid #dde6ff', borderRadius: 8, padding: '16px 18px', marginBottom: 24, marginTop: "20px" }}>
+              <div style={{ fontWeight: 700, color: '#1a2f6b', fontSize: 11, textTransform: 'uppercase', letterSpacing: '1px', marginBottom: 8 }}>
                 Terms &amp; Conditions
               </div>
-              <p style={{ margin: 0, fontSize: 12, color: '#444', lineHeight: 1.8, whiteSpace: 'pre-line', marginBottom: "20px" }}>
+              <p style={{ margin: 0, fontSize: 12, color: '#444', lineHeight: 1.8, whiteSpace: 'pre-line' }}>
                 {letter.termsAndConditions}
               </p>
             </div>
@@ -966,48 +555,76 @@ export default function JoiningLetterPreviewPage() {
             <span className="jl-confidential">Confidential</span>
           </div>
 
-          {/* Signatures */}
-          <div className="jl-doc-signature">
-            <div className="jl-sig-box">
-              {/* CodeVerza Stamp (text style like CONFIDENTIAL) - ABOVE the line */}
-              <div style={{ height: '50px', display: 'flex', alignItems: 'flex-end', justifyContent: 'center', marginBottom: '8px' }}>
-                <span style={{ 
+          {/* Signatures - 3 Columns */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '20px', marginTop: '40px' }}>
+            
+            {/* Left - Authorized Signatory */}
+            <div style={{ textAlign: 'center' }}>
+              {/* Signature Image Space */}
+              <div style={{ height: '60px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '8px' }}>
+                <Image
+                  src="/img/aqdas-signature-bg.png"
+                  alt="Muhammad Aqdas signature"
+                  width={200}
+                  height={60}
+                  draggable={false}
+                  onDragStart={(event) => event.preventDefault()}
+                  onDrop={(event) => event.preventDefault()}
+                  onContextMenu={(event) => event.preventDefault()}
+                  style={{ objectFit: 'contain', userSelect: 'none' }}
+                />
+              </div>
+              <div style={{ borderTop: '1px solid #333', paddingTop: '8px', marginTop: '0' }} />
+              <strong style={{ fontSize: '13px', color: '#333' }}>Authorized Signatory</strong><br/>
+              <span style={{ fontSize: '12px', fontWeight: 600, color: '#0d1b3e' }}>Muhammad Aqdas</span><br/>
+              <span style={{ fontSize: '11px', color: '#666' }}>CEO</span>
+            </div>
+
+            {/* Center - Company Stamp */}
+            <div style={{ textAlign: 'center' }}>
+              {/* Company Stamp */}
+              <div style={{ height: '60px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '8px' }}>
+                <div style={{ 
                   display: 'inline-block',
-                  padding: '8px 20px', 
-                  border: '2px solid #b14cff', 
-                  borderRadius: '6px',
+                  padding: '10px 22px', 
+                  border: '3px solid #b14cff', 
+                  borderRadius: '8px',
                   color: '#b14cff',
                   fontWeight: 700,
-                  fontSize: '14px',
-                  letterSpacing: '2px',
+                  fontSize: '15px',
+                  letterSpacing: '3px',
                   textTransform: 'uppercase',
-                  transform: 'rotate(-5deg)'
+                  transform: 'rotate(-8deg)',
+                  boxShadow: '0 2px 8px rgba(177,76,255,0.2)'
                 }}>
                   CodeVerza
-                </span>
+                </div>
               </div>
-              <div className="jl-sig-line" />
-              <strong>Authorized Signatory</strong>
-              <span className='font-bold'>Muhammad Aqdas</span> <br/>
-              <span className='font-bold'>CEO</span>
+              <div style={{ borderTop: '1px solid #333', paddingTop: '8px', marginTop: '0' }} />
+              <strong style={{ fontSize: '13px', color: '#333' }}>Company Stamp</strong><br/>
+              <span style={{ fontSize: '12px', fontWeight: 600, color: '#0d1b3e' }}>CodeVerza</span><br/>
+              <span style={{ fontSize: '11px', color: '#666' }}>Digital Solutions</span>
             </div>
-            <div className="jl-sig-box">
-              {/* Empty space to match height */}
-              <div style={{ height: '50px', marginBottom: '8px' }}></div>
-              <div className="jl-sig-line" />
-              <strong>Employee Acceptance</strong>
-              <span className='font-bold'>{letter.employeeName}</span> <br/>
-              <span className='font-bold'>{letter.position}</span>
+
+            {/* Right - Employee Acceptance */}
+            <div style={{ textAlign: 'center' }}>
+              {/* Empty space for employee signature */}
+              <div style={{ height: '60px', marginBottom: '8px' }}></div>
+              <div style={{ borderTop: '1px solid #333', paddingTop: '8px', marginTop: '0' }} />
+              <strong style={{ fontSize: '13px', color: '#333' }}>Employee Acceptance</strong><br/>
+              <span style={{ fontSize: '12px', fontWeight: 600, color: '#0d1b3e' }}>{letter.employeeName}</span><br/>
+              <span style={{ fontSize: '11px', color: '#666' }}>{letter.position}</span>
             </div>
+
           </div>
 
-        </div>{/* end body */}
+        </div>
 
         {/* ── Footer ── */}
         <div className="jl-doc-footer">
           <div className="jl-doc-footer-left">
             <h3>CodeVerza – Building Digital Excellence</h3>
-            <p>Delivering excellence in web development since 2020</p>
+            <p>Delivering excellence in Digital Services since 2020</p>
           </div>
           <div className="jl-doc-footer-right">
             <p>www.codeverza.com</p>
@@ -1016,7 +633,7 @@ export default function JoiningLetterPreviewPage() {
           </div>
         </div>
 
-      </div>{/* end document */}
+      </div>
     </div>
   );
 }
