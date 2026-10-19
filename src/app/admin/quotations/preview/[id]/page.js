@@ -995,8 +995,14 @@ export default function QuotationPreviewPage() {
           </div>
           <div className="company-contact">
             <p>{quotation.companyWebsite || 'www.codeverza.com'}</p>
-            <p>{quotation.companyEmail || 'info@codeverza.com'}</p>
-            <p>{quotation.companyPhone || '+92 325 1507557'}</p>
+            {quotation.isEmployeeQuotation
+              ? <p>{quotation.employeeEmail || quotation.companyEmail || 'info@codeverza.com'}</p>
+              : <p>{quotation.companyEmail || 'info@codeverza.com'}</p>
+            }
+            {quotation.isEmployeeQuotation
+              ? <p>{quotation.employeePhone || quotation.companyPhone || ''}</p>
+              : <p>{quotation.companyPhone || '+92 325 1507557'}</p>
+            }
           </div>
         </div>
 
@@ -1186,11 +1192,14 @@ export default function QuotationPreviewPage() {
               <strong>Authorized Signature</strong>
               {quotation.isEmployeeQuotation ? (
                 <>
-                  <p>{quotation.employeeName || (quotation.clientName === 'Employee Quotation' ? 'Muhammad Aqdas' : quotation.clientName)}</p>
-                  <p>{quotation.employeeDesignation || 'CEO'}</p>
+                  <p>{quotation.authorizedSignatureName || 'Muhammad Aqdas'}</p>
+                  <p>{quotation.authorizedSignatureTitle || 'CEO'}</p>
                 </>
               ) : (
-                <p>Codeverza</p>
+                <>
+                  <p>Muhammad Aqdas</p>
+                  <p>CEO</p>
+                </>
               )}
             </div>
             <div className="signature-box company-stamp-box">
@@ -1221,8 +1230,14 @@ export default function QuotationPreviewPage() {
           </div>
           <div className="footer-right">
             <p>{quotation.companyWebsite || 'www.codeverza.com'}</p>
-            <p>{quotation.companyEmail || 'info@codeverza.com'}</p>
-            <p>{quotation.companyPhone || '+92 325 1507557'}</p>
+            {quotation.isEmployeeQuotation
+              ? <p>{quotation.employeeEmail || quotation.companyEmail || 'info@codeverza.com'}</p>
+              : <p>{quotation.companyEmail || 'info@codeverza.com'}</p>
+            }
+            {quotation.isEmployeeQuotation
+              ? <p>{quotation.employeePhone || quotation.companyPhone || ''}</p>
+              : <p>{quotation.companyPhone || '+92 325 1507557'}</p>
+            }
           </div>
         </div>
 

@@ -18,10 +18,17 @@ import {
 const COLLECTION_NAME = 'quotations';
 
 // Generate quotation number
-// Client:   QT-SSDDMMYY   (e.g. QT-0108092026)
-// Employee: QT-EMP-SSDDMMYY (e.g. QT-EMP-0108092026)
-// Each type has its own independent serial counter — they never mix.
-async function generateQuotationNumber(isEmployee = false) {
+// New format (global, both admin & employee):  CV-QT-CLI-SSDDMMYYYY
+//   CV-QT-CLI  = fixed prefix
+//   SS         = 2-digit global serial (starts at 01, increments across ALL quotations)
+//   DD         = day (2-digit)
+//   MM         = month (2-digit)
+//   YYYY       = full 4-digit year
+// e.g.  CV-QT-CLI-01201026  →  serial 01, day 20, month 10, year 2026
+//
+// Legacy formats still in Firestore are ignored during counter scan so
+// the new serial starts cleanly from 01 if none exist yet.
+async function generateQuotationNumber() {
   const quotationsRef = collection(db, COLLECTION_NAME);
   const q = query(quotationsRef, orderBy('createdAt', 'desc'));
   const snapshot = await getDocs(q);
@@ -31,34 +38,22 @@ async function generateQuotationNumber(isEmployee = false) {
   snapshot.forEach((docSnap) => {
     const data = docSnap.data();
     const num = data.quotationNumber || '';
-
-    if (isEmployee) {
-      // Match employee format: QT-EMP-SSDDMMYY
-      const match = num.match(/^QT-EMP-(\d{2})\d{6}$/);
-      if (match) {
-        const serial = parseInt(match[1], 10);
-        if (serial > maxSerial) maxSerial = serial;
-      }
-    } else {
-      // Match client format: QT-SSDDMMYY (must NOT have EMP)
-      const match = num.match(/^QT-(\d{2})\d{6}$/);
-      if (match) {
-        const serial = parseInt(match[1], 10);
-        if (serial > maxSerial) maxSerial = serial;
-      }
+    // Match new format: CV-QT-CLI-SSDDMMYYYY  (SS = exactly 2 digits, then 8 more digits for DDMMYYYY)
+    const match = num.match(/^CV-QT-CLI-(\d{2})\d{8}$/);
+    if (match) {
+      const serial = parseInt(match[1], 10);
+      if (serial > maxSerial) maxSerial = serial;
     }
   });
 
   const nextSerial = String(maxSerial + 1).padStart(2, '0');
 
   const now = new Date();
-  const dd = String(now.getDate()).padStart(2, '0');
-  const mm = String(now.getMonth() + 1).padStart(2, '0');
-  const yy = String(now.getFullYear()).slice(-2);
+  const dd   = String(now.getDate()).padStart(2, '0');
+  const mm   = String(now.getMonth() + 1).padStart(2, '0');
+  const yyyy = String(now.getFullYear());
 
-  return isEmployee
-    ? `QT-EMP-${nextSerial}${dd}${mm}${yy}`
-    : `QT-${nextSerial}${dd}${mm}${yy}`;
+  return `CV-QT-CLI-${nextSerial}${dd}${mm}${yyyy}`;
 }
 
 // GET - Fetch all quotations or a single quotation by ID
@@ -135,8 +130,8 @@ export async function POST(request) {
       }, { status: 400 });
     }
 
-    // Generate quotation number — separate counter for client vs employee
-    const quotationNumber = await generateQuotationNumber(data.isEmployeeQuotation === true);
+    // Generate quotation number — single global counter for all quotations
+    const quotationNumber = await generateQuotationNumber();
 
     // Calculate totals
     const totalsByCurrency = data.services.reduce((totals, service) => {

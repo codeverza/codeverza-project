@@ -24,9 +24,11 @@ export default function QuotationsPage() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('All');
+  const [pendingEmployeeCount, setPendingEmployeeCount] = useState(0);
 
   useEffect(() => {
     fetchQuotations();
+    fetchPendingEmployeeCount();
   }, []);
 
   useEffect(() => {
@@ -53,6 +55,14 @@ export default function QuotationsPage() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const fetchPendingEmployeeCount = async () => {
+    try {
+      const res = await fetch('/api/employee-quotations?pending=1');
+      const data = await res.json();
+      if (data.success) setPendingEmployeeCount(data.data.length);
+    } catch {}
   };
 
   const filterQuotations = () => {
@@ -190,12 +200,52 @@ export default function QuotationsPage() {
           <h1>Quotation Management</h1>
           <p>Manage all your client quotations</p>
         </div>
-        <button 
-          className="btn-primary"
-          onClick={() => router.push('/admin/quotations/create')}
-        >
-          <FiPlus /> Create Quotation
-        </button>
+        <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+          <button
+            style={{
+              display: 'flex', alignItems: 'center', gap: '7px',
+              padding: '11px 20px',
+              background: 'rgba(251,191,36,0.1)',
+              border: '1px solid rgba(251,191,36,0.35)',
+              color: '#fbbf24',
+              borderRadius: '12px',
+              cursor: 'pointer',
+              fontSize: '14px',
+              fontWeight: '700',
+              fontFamily: 'inherit',
+              transition: 'all 0.25s',
+              position: 'relative',
+            }}
+            onMouseEnter={e => { e.currentTarget.style.background = 'rgba(251,191,36,0.2)'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
+            onMouseLeave={e => { e.currentTarget.style.background = 'rgba(251,191,36,0.1)'; e.currentTarget.style.transform = 'translateY(0)'; }}
+            onClick={() => router.push('/admin/quotations/employee-approval')}
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+              <circle cx="9" cy="7" r="4"></circle>
+              <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+              <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+            </svg>
+            Employee Approvals
+            {pendingEmployeeCount > 0 && (
+              <span style={{
+                position: 'absolute', top: '-6px', right: '-6px',
+                background: '#ef4444', color: '#fff',
+                borderRadius: '50%', width: '20px', height: '20px',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontSize: '11px', fontWeight: '800',
+              }}>
+                {pendingEmployeeCount}
+              </span>
+            )}
+          </button>
+          <button
+            className="btn-primary"
+            onClick={() => router.push('/admin/quotations/create')}
+          >
+            <FiPlus /> Create Quotation
+          </button>
+        </div>
       </div>
 
       <div className="quotations-filters">

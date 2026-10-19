@@ -43,8 +43,13 @@ export default function EditEmployeePage() {
             salary: { view: true },
             projects: { view: true },
             tasks: { view: true, add: true, edit: true },
-            sales: { view: true, add: true, edit: true }
+            sales: { view: true, add: true, edit: true },
+            quotations: { view: true, add: true }
           };
+        }
+        // Ensure quotations permission exists for older records
+        if (!data.employee.permissions.quotations) {
+          data.employee.permissions.quotations = { view: false, add: false };
         }
         setFormData(data.employee);
       } else {
@@ -836,6 +841,29 @@ export default function EditEmployeePage() {
               </label>
               <small style={{ color: '#718096', marginTop: '5px', display: 'block' }}>
                 Employee can manage leads, follow-ups, and view commission
+              </small>
+            </div>
+
+            <div className="form-group">
+              <label>
+                <input
+                  type="checkbox"
+                  checked={formData.permissions?.quotations?.view || false}
+                  onChange={(e) => setFormData(prev => ({
+                    ...prev,
+                    permissions: {
+                      ...prev.permissions,
+                      quotations: { 
+                        view: e.target.checked,
+                        add: e.target.checked
+                      }
+                    }
+                  }))}
+                />
+                {' '}Allow Quotations Access
+              </label>
+              <small style={{ color: '#718096', marginTop: '5px', display: 'block' }}>
+                Employee can create quotations for clients (require admin approval before sending)
               </small>
             </div>
           </div>

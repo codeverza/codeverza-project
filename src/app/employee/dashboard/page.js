@@ -1,11 +1,13 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { getEmployeeAuth, clearEmployeeAuth, getSessionTimeRemaining } from '@/lib/employeeAuth';
 import ProtectedRoute from '../components/ProtectedRoute';
 import Swal from 'sweetalert2';
+import Image from 'next/image';
 import './dashboard.css';
+import '../quotations/quotations.css';
 
 export default function EmployeeDashboardPage() {
   const router = useRouter();
@@ -29,6 +31,7 @@ export default function EmployeeDashboardPage() {
     followups: [],
     stats: { total: 0, won: 0, expected: 0, commission: 0 }
   });
+  const [quotationsData, setQuotationsData] = useState([]);
 
   const changeTab = (tab) => {
     setActiveTab(tab);
@@ -37,6 +40,9 @@ export default function EmployeeDashboardPage() {
     }
     if (tab === 'salary' && employee?.id) {
       loadEmployeeProjects(employee.id);
+    }
+    if (tab === 'quotations' && employee?.id) {
+      loadQuotationsData(employee.id);
     }
   };
 
@@ -76,7 +82,8 @@ export default function EmployeeDashboardPage() {
       (savedTab === 'leaves' && empData.permissions?.leaves?.view) ||
       (savedTab === 'salary' && empData.permissions?.salary?.view) ||
       (savedTab === 'projects' && empData.permissions?.projects?.view) ||
-      (savedTab === 'sales' && empData.permissions?.sales?.view);
+      (savedTab === 'sales' && empData.permissions?.sales?.view) ||
+      (savedTab === 'quotations' && empData.permissions?.quotations?.view);
     if (savedTab && savedTabAllowed) setActiveTab(savedTab);
     setSessionTime(getSessionTimeRemaining());
 
@@ -215,6 +222,18 @@ export default function EmployeeDashboardPage() {
       setProjectsData([]);
       setEmployeeLeads([]);
       setProjectsError('Approved project commissions could not be loaded. Please try again.');
+    }
+  };
+
+  const loadQuotationsData = async (employeeId) => {
+    try {
+      const res = await fetch(`/api/employee-quotations?employeeId=${employeeId}`);
+      const data = await res.json();
+      if (data.success) {
+        setQuotationsData(data.data || []);
+      }
+    } catch (error) {
+      console.error('Error loading quotations:', error);
     }
   };
 
@@ -402,6 +421,22 @@ export default function EmployeeDashboardPage() {
             Sales
           </button>
         )}
+
+        {permissions?.quotations?.view && (
+          <button
+            className={activeTab === 'quotations' ? 'active' : ''}
+            onClick={() => changeTab('quotations')}
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+              <polyline points="14 2 14 8 20 8"></polyline>
+              <line x1="16" y1="13" x2="8" y2="13"></line>
+              <line x1="16" y1="17" x2="8" y2="17"></line>
+              <polyline points="10 9 9 9 8 9"></polyline>
+            </svg>
+            Quotations
+          </button>
+        )}
       </nav>
 
       {/* Content Area */}
@@ -427,6 +462,13 @@ export default function EmployeeDashboardPage() {
         )}
         {activeTab === 'tasks' && <TasksTab data={tasksData} employeeId={employee.id} onRefresh={() => loadEmployeeData(employee.id)} />}
         {activeTab === 'sales' && <SalesTab data={salesData} employeeId={employee.id} employee={profileData} onRefresh={() => loadEmployeeData(employee.id)} />}
+        {activeTab === 'quotations' && (
+          <QuotationsTab
+            data={quotationsData}
+            employee={profileData || employee}
+            onRefresh={() => loadQuotationsData(employee.id)}
+          />
+        )}
       </main>
     </div>
     </ProtectedRoute>
@@ -2333,6 +2375,365 @@ function SalesTab({ data, employeeId, employee, onRefresh }) {
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Quotations Tab Component
+// ─────────────────────────────────────────────────────────────────────────────
+function QuotationsTab({ data, employee, onRefresh }) {
+  const router = useRouter();
+  const [quotations, setQuotations] = useState(data || []);
+  const [loadingList, setLoadingList] = useState(false);
+  const [previewQt, setPreviewQt] = useState(null); // quotation to preview in modal
+
+  // Keep in sync when parent data changes
+  useEffect(() => { setQuotations(data || []); }, [data]);
+
+  const fmtDate = (d) => {
+    if (!d) return 'N/A';
+    return new Date(d).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+  };
+
+  const fmtCur = (n, c = 'PKR') => {
+    if (!n && n !== 0) return '—';
+    if (n === 0) return 'FREE';
+    return new Intl.NumberFormat('en-PK', { style: 'currency', currency: c, minimumFractionDigits: 0 }).format(n);
+  };
+
+  const handleDelete = async (qt) => {
+    // Only pending quotations can be deleted by employee
+    if (qt.approvalStatus !== 'Pending') {
+      Swal.fire({ icon: 'info', title: 'Cannot Delete', text: 'Sirf pending quotations delete ki ja sakti hain.', background: '#0d0d0d', color: '#fff', confirmButtonColor: '#b14cff' });
+      return;
+    }
+    const res = await Swal.fire({
+      icon: 'warning', title: 'Delete Quotation?', text: `${qt.quotationNumber} delete ho jayegi.`,
+      showCancelButton: true, confirmButtonText: 'Delete', confirmButtonColor: '#ef4444',
+      cancelButtonColor: '#4b5563', background: '#0d0d0d', color: '#fff',
+    });
+    if (!res.isConfirmed) return;
+    try {
+      const r = await fetch(`/api/employee-quotations?id=${qt.id}`, { method: 'DELETE' });
+      const d = await r.json();
+      if (d.success) {
+        setQuotations(prev => prev.filter(q => q.id !== qt.id));
+        Swal.fire({ icon: 'success', title: 'Deleted', timer: 1500, showConfirmButton: false, background: '#0d0d0d', color: '#fff' });
+        onRefresh?.();
+      } else throw new Error(d.message);
+    } catch (e) {
+      Swal.fire({ icon: 'error', title: 'Delete Failed', text: e.message, background: '#0d0d0d', color: '#fff', confirmButtonColor: '#b14cff' });
+    }
+  };
+
+  const approvalPill = (status) => {
+    const cls = status?.toLowerCase() || 'pending';
+    return <span className={`emp-qt-pill ${cls}`}>{status || 'Pending'}</span>;
+  };
+
+  return (
+    <div className="emp-qt-tab">
+      <div className="emp-qt-tab-header">
+        <h2>My Quotations</h2>
+        <button className="emp-qt-create-new-btn" onClick={() => router.push('/employee/quotations/create')}>
+          <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+          New Quotation
+        </button>
+      </div>
+
+      {/* Approval info notice */}
+      <div className="emp-qt-notice" style={{ marginBottom: '20px' }}>
+        <span className="emp-qt-notice-icon">ℹ️</span>
+        <span>Admin approval ke baad hi aap quotation share kar saktay hain. Approved quotations mein sign & stamp auto-fill ho jata hai.</span>
+      </div>
+
+      {quotations.length === 0 ? (
+        <div className="emp-qt-empty">
+          <div className="emp-qt-empty-icon">📄</div>
+          <p>Abhi tak koi quotation nahi banayi</p>
+          <button className="emp-qt-create-new-btn" onClick={() => router.push('/employee/quotations/create')}>
+            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+            Create First Quotation
+          </button>
+        </div>
+      ) : (
+        <div className="emp-qt-list">
+          {quotations.map((qt) => (
+            <div key={qt.id} className="emp-qt-card">
+              <div className="emp-qt-card-meta">
+                <span className="emp-qt-card-ref">{qt.quotationNumber}</span>
+                <span className="emp-qt-card-client">{qt.clientName}</span>
+                {qt.clientCompany && <span className="emp-qt-card-sub">{qt.clientCompany}</span>}
+                <span className="emp-qt-card-date">Created: {fmtDate(qt.createdAt?.toDate ? qt.createdAt.toDate() : qt.createdAt)}</span>
+                {qt.approvalStatus === 'Approved' && (
+                  <span className="emp-qt-locked-note">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                    Approved — ready to share
+                  </span>
+                )}
+              </div>
+              <div className="emp-qt-card-right">
+                <span className="emp-qt-card-total">{fmtCur(qt.grandTotal, qt.currency)}</span>
+                {approvalPill(qt.approvalStatus)}
+                <div className="emp-qt-card-actions">
+                  <button className="emp-qt-view-btn" onClick={() => setPreviewQt(qt)}>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                    View
+                  </button>
+                  {qt.approvalStatus === 'Pending' && (
+                    <button className="emp-qt-delete-btn" onClick={() => handleDelete(qt)}>
+                      <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"></path></svg>
+                      Delete
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Preview Modal */}
+      {previewQt && (
+        <QuotationPreviewModal quotation={previewQt} onClose={() => setPreviewQt(null)} />
+      )}
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Inline quotation preview modal (read-only, shown inside employee dashboard)
+// ─────────────────────────────────────────────────────────────────────────────
+function QuotationPreviewModal({ quotation: qt, onClose }) {
+  const printRef = useRef();
+
+  const fmtDate = (d) => {
+    if (!d) return 'N/A';
+    return new Date(d).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+  };
+  const fmtCur = (n, c = 'PKR') => {
+    if (n === 0) return 'FREE';
+    return new Intl.NumberFormat('en-PK', { style: 'currency', currency: c, minimumFractionDigits: 2 }).format(n);
+  };
+  const getCurrencyTotals = () => {
+    if (qt.totalsByCurrency) return qt.totalsByCurrency;
+    return (qt.services || []).reduce((t, s) => {
+      const c = s.currency || qt.currency || 'PKR';
+      t[c] = (t[c] || 0) + s.quantity * s.price;
+      return t;
+    }, {});
+  };
+
+  // Close on backdrop click
+  const handleOverlayClick = (e) => { if (e.target === e.currentTarget) onClose(); };
+
+  return (
+    <div className="emp-qt-preview-modal-overlay" onClick={handleOverlayClick}>
+      <div className="emp-qt-preview-modal">
+        <div className="emp-qt-preview-modal-header">
+          <h3>Quotation Preview — {qt.quotationNumber}</h3>
+          <button className="emp-qt-preview-close" onClick={onClose}>✕</button>
+        </div>
+        <div className="emp-qt-preview-modal-body">
+          {/* Pending banner */}
+          {qt.approvalStatus === 'Pending' && (
+            <div className="emp-qt-pending-banner">
+              ⏳ Yeh quotation admin approval ka intezaar kar rahi hai. Approve honay ke baad share kar saktay hain.
+            </div>
+          )}
+          {qt.approvalStatus === 'Rejected' && (
+            <div className="emp-qt-pending-banner" style={{ background: 'rgba(239,68,68,0.1)', borderColor: 'rgba(239,68,68,0.3)', color: '#ef4444' }}>
+              ❌ Yeh quotation admin ne reject kar di. Nayi quotation banayein.
+            </div>
+          )}
+
+          {/* Actual document */}
+          <div className="quotation-document" ref={printRef}>
+
+            {/* Header — employee branding */}
+            <div className="quotation-header">
+              <div className="company-info">
+                <div className="company-logo">
+                  <Image src="/img/codeverza-logo.png" alt="Codeverza" width={60} height={60} style={{ objectFit: 'contain' }} />
+                </div>
+                <div className="company-details">
+                  <h1 className="company-name">CODEVERZA</h1>
+                  <p className="company-tagline">Professional Web Development Solutions</p>
+                </div>
+              </div>
+              <div className="company-contact">
+                <p>{qt.companyWebsite || 'www.codeverza.com'}</p>
+                <p>{qt.employeeEmail || 'info@codeverza.com'}</p>
+                <p>{qt.employeePhone || ''}</p>
+              </div>
+            </div>
+
+            {/* Title band */}
+            <div className="document-title-band">
+              <h2>QUOTATION</h2>
+              <div className="doc-number-label">Ref No: <span>{qt.quotationNumber}</span></div>
+            </div>
+
+            <div className="document-body">
+              {/* Details */}
+              <div className="details-section">
+                <div className="details-box">
+                  <div className="details-box-header"><h3>Quotation Details</h3></div>
+                  <div className="details-box-body">
+                    {qt.issueDate && <p><strong>Issue Date</strong>{fmtDate(qt.issueDate)}</p>}
+                    {qt.validityDate && <p><strong>Valid Until</strong>{fmtDate(qt.validityDate)}</p>}
+                    <p><strong>Status</strong><span className={`status-badge ${qt.status?.toLowerCase()}`}>{qt.status}</span></p>
+                    {qt.currency && <p><strong>Currency</strong>{qt.currency}</p>}
+                  </div>
+                </div>
+                <div className="details-box">
+                  <div className="details-box-header"><h3>Billed To</h3></div>
+                  <div className="details-box-body">
+                    <span className="client-name">{qt.clientName}</span>
+                    {qt.clientCompany && <span className="client-company">{qt.clientCompany}</span>}
+                    <span className="client-contact">{qt.clientEmail}</span>
+                    {qt.clientPhone && <span className="client-contact">{qt.clientPhone}</span>}
+                    {qt.clientAddress && <span className="address">{qt.clientAddress}</span>}
+                  </div>
+                </div>
+              </div>
+
+              {/* Services */}
+              <div className="services-section">
+                <p className="section-label">Services &amp; Deliverables</p>
+                <table className="services-table">
+                  <thead>
+                    <tr>
+                      <th style={{ width: '22%' }}>Service</th>
+                      <th style={{ width: '34%' }}>Description</th>
+                      <th style={{ width: '7%', textAlign: 'center' }}>Qty</th>
+                      <th style={{ width: '13%', textAlign: 'right' }}>Unit Price</th>
+                      <th style={{ width: '10%' }}>Billing</th>
+                      <th style={{ width: '14%', textAlign: 'right' }}>Total</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {(qt.services || []).map((svc, i) => (
+                      <tr key={i}>
+                        <td><strong>{svc.name}</strong></td>
+                        <td>{svc.description ? <span className="service-desc">{svc.description}</span> : '—'}</td>
+                        <td className="text-center">{svc.quantity}</td>
+                        <td className="text-right">{fmtCur(svc.price, svc.currency || qt.currency)}</td>
+                        <td style={{ textTransform: 'capitalize', fontSize: '11.5px', color: '#666' }}>{svc.billingCycle}</td>
+                        <td className="text-right">{fmtCur(svc.quantity * svc.price, svc.currency || qt.currency)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Totals */}
+              <div className="totals-wrapper">
+                <div className="pricing-summary-section">
+                  {Object.entries(getCurrencyTotals()).map(([currency, subtotal]) => {
+                    const disc = (subtotal * (qt.discount || 0)) / 100;
+                    const tax  = ((subtotal - disc) * (qt.tax || 0)) / 100;
+                    return (
+                      <div key={currency} className="currency-summary-group">
+                        <div className="sum-row"><span>{currency} Subtotal</span><span>{fmtCur(subtotal, currency)}</span></div>
+                        {qt.discount > 0 && <div className="sum-row discount"><span>Discount ({qt.discount}%)</span><span>− {fmtCur(disc, currency)}</span></div>}
+                        {qt.tax > 0 && <div className="sum-row"><span>Tax ({qt.tax}%)</span><span>{fmtCur(tax, currency)}</span></div>}
+                        <div className="sum-row grand-total"><span>{currency} Grand Total</span><span>{fmtCur(subtotal - disc + tax, currency)}</span></div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Payment & Timeline */}
+              {(qt.paymentTerms || qt.projectTimeline) && (
+                <div className="info-grid">
+                  {qt.paymentTerms && (
+                    <div className="info-section">
+                      <div className="info-section-header"><h3>Payment Terms</h3></div>
+                      <div className="info-section-body"><p>{qt.paymentTerms}</p></div>
+                    </div>
+                  )}
+                  {qt.projectTimeline && (
+                    <div className="info-section">
+                      <div className="info-section-header"><h3>Project Timeline</h3></div>
+                      <div className="info-section-body"><p>{qt.projectTimeline}</p></div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {qt.notes && (
+                <div className="info-section">
+                  <div className="info-section-header"><h3>Notes</h3></div>
+                  <div className="info-section-body"><p>{qt.notes}</p></div>
+                </div>
+              )}
+              {qt.termsAndConditions && (
+                <div className="info-section">
+                  <div className="info-section-header"><h3>Terms &amp; Conditions</h3></div>
+                  <div className="info-section-body"><p className="terms-text">{qt.termsAndConditions}</p></div>
+                </div>
+              )}
+
+              {/* Signature block — empty fields until approved */}
+              <div className="signature-section with-company-stamp employee-signature">
+                <div className="signature-box">
+                  <div className="signature-image-area" style={{ minHeight: '60px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    {qt.approvalStatus === 'Approved' ? (
+                      <Image src="/img/aqdas-signature-bg.png" alt="Authorized signature" width={190} height={56} style={{ objectFit: 'contain' }} draggable={false} />
+                    ) : (
+                      <div style={{ width: '190px', height: '56px', borderBottom: '1px dashed #ccc', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <span style={{ fontSize: '10px', color: '#aaa' }}>Pending approval</span>
+                      </div>
+                    )}
+                  </div>
+                  <div className="signature-line"></div>
+                  <strong>Authorized Signature</strong>
+                  {qt.approvalStatus === 'Approved' ? (
+                    <>
+                      <p>{qt.authorizedSignatureName || 'Muhammad Aqdas'}</p>
+                      <p>{qt.authorizedSignatureTitle || 'CEO'}</p>
+                    </>
+                  ) : (
+                    <p style={{ color: '#aaa', fontSize: '11px' }}>Pending admin approval</p>
+                  )}
+                </div>
+                <div className="signature-box company-stamp-box">
+                  <div className="company-stamp-area">
+                    {qt.approvalStatus === 'Approved' ? (
+                      <div className="codeverza-stamp"><span>CODEVERZA</span></div>
+                    ) : (
+                      <div style={{ width: '100px', height: '60px', border: '1px dashed #ccc', borderRadius: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <span style={{ fontSize: '10px', color: '#aaa' }}>Stamp pending</span>
+                      </div>
+                    )}
+                  </div>
+                  <div className="signature-line"></div>
+                  <strong>Company Stamp</strong>
+                  <p>Codeverza</p>
+                  <p>Digital Solutions</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Footer — employee branding */}
+            <div className="quotation-footer">
+              <div className="footer-left">
+                <h3>Thank you for choosing Codeverza!</h3>
+                <p>Delivering excellence in web development since 2020</p>
+              </div>
+              <div className="footer-right">
+                <p>{qt.companyWebsite || 'www.codeverza.com'}</p>
+                <p>{qt.employeeEmail || 'info@codeverza.com'}</p>
+                <p>{qt.employeePhone || ''}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
