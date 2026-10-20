@@ -225,7 +225,7 @@ export default function EmployeeEditQuotationPage() {
         await Swal.fire({
           icon: 'success',
           title: 'Quotation Updated!',
-          html: `<p style="color:#fff">Ref: <strong style="color:#b14cff">${quotation.quotationNumber}</strong></p><p style="color:#aaa;font-size:13px">Changes saved successfully. Admin ab updated quotation review karega.</p>`,
+          html: `<p style="color:#fff">Ref: <strong style="color:#b14cff">${quotation.quotationNumber}</strong></p><p style="color:#aaa;font-size:13px">Changes saved successfully. The admin will now review the updated quotation.</p>`,
           background: '#0d0d0d', 
           color: '#fff', 
           confirmButtonColor: '#b14cff', 
