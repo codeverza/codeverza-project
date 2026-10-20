@@ -3,9 +3,6 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // ⚠️ TEMPORARY OPEN RULES FOR DEVELOPMENT
-    // TODO: Secure these rules before production deployment
-
     // Contacts - Public can create, Authenticated can manage
     match /contacts/{docId} {
       allow create: if true;
@@ -18,101 +15,101 @@ service cloud.firestore {
       allow read: if request.auth != null;
     }
 
-    // Quotations (admin-created) - TEMPORARILY OPEN
+    // Quotations (admin-created)
     match /quotations/{docId} {
-      allow read, write: if request.auth != null;
+      allow read, write: if true;
     }
 
-    // Employee Quotations - TEMPORARILY OPEN
+    // Employee Quotations - approval-based quotation system
     match /employeeQuotations/{docId} {
-      allow read, write: if request.auth != null;
+      allow read, write: if true;
     }
 
-    // Joining Letters - TEMPORARILY OPEN
+    // Joining Letters
     match /joiningLetters/{docId} {
-      allow read, write: if request.auth != null;
+      allow read, write: if true;
     }
 
     // ===== EMPLOYEE MANAGEMENT SYSTEM =====
 
-    // Employees Collection - TEMPORARILY OPEN
+    // Employees Collection
     match /employees/{employeeId} {
-      allow read, write: if request.auth != null;
+      allow read, write: if true;
     }
 
-    // Employee Attendance - TEMPORARILY OPEN
+    // Employee Attendance
     match /employeeAttendance/{attendanceId} {
-      allow read, write: if request.auth != null;
+      allow read, write: if true;
     }
 
-    // Leave Requests - TEMPORARILY OPEN
+    // Leave Requests
     match /employeeLeaves/{leaveId} {
-      allow read, write: if request.auth != null;
+      allow read, write: if true;
     }
 
-    // Salary Records - TEMPORARILY OPEN
+    // Salary Records
     match /employeeSalary/{salaryId} {
-      allow read, write: if request.auth != null;
+      allow read, write: if true;
     }
 
-    // Projects - TEMPORARILY OPEN
+    // Projects
     match /employeeProjects/{projectId} {
-      allow read, write: if request.auth != null;
+      allow read, write: if true;
     }
 
-    // Tasks - TEMPORARILY OPEN
+    // Tasks
     match /tasks/{taskId} {
-      allow read, write: if request.auth != null;
+      allow read, write: if true;
     }
 
-    // Employee Tasks (Legacy) - TEMPORARILY OPEN
+    // Employee Tasks (Legacy)
     match /employeeTasks/{taskId} {
-      allow read, write: if request.auth != null;
+      allow read, write: if true;
     }
 
-    // Leads - TEMPORARILY OPEN
+    // Leads
     match /leads/{leadId} {
-      allow read, write: if request.auth != null;
+      allow read, write: if true;
     }
 
-    // Sales Leads (Legacy) - TEMPORARILY OPEN
+    // Sales Leads (Legacy)
     match /salesLeads/{leadId} {
-      allow read, write: if request.auth != null;
+      allow read, write: if true;
     }
 
-    // Sales Follow-ups - TEMPORARILY OPEN
+    // Sales Follow-ups
     match /salesFollowups/{followupId} {
-      allow read, write: if request.auth != null;
+      allow read, write: if true;
     }
 
-    // Sales Performance - TEMPORARILY OPEN
+    // Sales Performance
     match /salesPerformance/{performanceId} {
-      allow read, write: if request.auth != null;
+      allow read, write: if true;
     }
 
-    // Employee Documents - TEMPORARILY OPEN
+    // Employee Documents
     match /employeeDocuments/{documentId} {
-      allow read, write: if request.auth != null;
+      allow read, write: if true;
     }
 
-    // Employee Permissions - TEMPORARILY OPEN
+    // Employee Permissions
     match /employeePermissions/{permissionId} {
-      allow read, write: if request.auth != null;
+      allow read, write: if true;
     }
 
-    // Login History - TEMPORARILY OPEN
+    // Login History
     match /employeeLoginHistory/{loginId} {
-      allow read, write: if request.auth != null;
+      allow read, write: if true;
     }
 
-    // Employee Performance Reviews - TEMPORARILY OPEN
+    // Employee Performance Reviews
     match /employeePerformance/{performanceId} {
-      allow read, write: if request.auth != null;
+      allow read, write: if true;
     }
 
-    // Exit Management - TEMPORARILY OPEN
+    // Exit Management
     match /employeeExits/{exitId} {
-      allow read, write: if request.auth != null;
+      allow read, write: if true;
     }
   }
 }

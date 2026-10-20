@@ -3,8 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { signInWithEmailAndPassword } from 'firebase/auth';
-import { auth, db } from '@/lib/firebase';
-import { doc, getDoc } from 'firebase/firestore';
+import { auth } from '@/lib/firebase';
 import { Lock, Mail, Eye, EyeOff } from 'lucide-react';
 
 export default function AdminLogin() {
@@ -19,39 +18,13 @@ export default function AdminLogin() {
     e.preventDefault();
     setError('');
     setLoading(true);
-    
     try {
-      // Authenticate with Firebase
-      const userCredential = await signInWithEmailAndPassword(auth, email, password);
-      const user = userCredential.user;
-
-      // Store admin session
-      if (typeof window !== 'undefined') {
-        sessionStorage.setItem('adminAuth', JSON.stringify({
-          uid: user.uid,
-          email: user.email,
-          role: 'admin',
-          loginTime: new Date().toISOString()
-        }));
-      }
-
-      // Redirect to dashboard
+      await signInWithEmailAndPassword(auth, email, password);
       router.push('/admin/dashboard');
-      
     } catch (err) {
-      console.error('Login error:', err);
-      
-      // User-friendly error messages
-      if (err.code === 'auth/user-not-found' || err.code === 'auth/wrong-password' || err.code === 'auth/invalid-credential') {
-        setError('Invalid email or password.');
-      } else if (err.code === 'auth/too-many-requests') {
-        setError('Too many failed attempts. Please try again later.');
-      } else if (err.code === 'auth/network-request-failed') {
-        setError('Network error. Please check your connection.');
-      } else {
-        setError('Login failed. Please try again.');
-      }
-      
+      setError('Invalid email or password.');
+      router.push('/');
+    } finally {
       setLoading(false);
     }
   };
