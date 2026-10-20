@@ -117,14 +117,35 @@ export async function GET(request) {
 
     // All quotations for a specific employee
     if (employeeId) {
-      const q = query(
-        collection(db, COLLECTION_NAME),
-        where('employeeId', '==', employeeId),
-        orderBy('createdAt', 'desc')
-      );
-      const snap = await getDocs(q);
-      const quotations = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
-      return NextResponse.json({ success: true, data: quotations });
+      console.log('Fetching quotations for employeeId:', employeeId);
+      try {
+        const q = query(
+          collection(db, COLLECTION_NAME),
+          where('employeeId', '==', employeeId),
+          orderBy('createdAt', 'desc')
+        );
+        const snap = await getDocs(q);
+        const quotations = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+        console.log('Found quotations:', quotations.length);
+        return NextResponse.json({ success: true, data: quotations });
+      } catch (queryError) {
+        console.error('Query error:', queryError);
+        // If index is missing, try without orderBy
+        console.log('Trying query without orderBy...');
+        const q = query(
+          collection(db, COLLECTION_NAME),
+          where('employeeId', '==', employeeId)
+        );
+        const snap = await getDocs(q);
+        const quotations = snap.docs.map((d) => ({ id: d.id, ...d.data() }))
+          .sort((a, b) => {
+            const aTime = a.createdAt?.toMillis?.() || 0;
+            const bTime = b.createdAt?.toMillis?.() || 0;
+            return bTime - aTime;
+          });
+        console.log('Found quotations (without orderBy):', quotations.length);
+        return NextResponse.json({ success: true, data: quotations });
+      }
     }
 
     // All employee quotations (admin view — all)
@@ -264,6 +285,20 @@ export async function PUT(request) {
         updateData.authorizedSignatureName  = 'Muhammad Aqdas';
         updateData.authorizedSignatureTitle = 'CEO';
         updateData.companyStampLabel        = 'CODEVERZA';
+      }
+    }
+
+    // If employee is editing a rejected quotation, reset to Pending and clear rejection reason
+    if (!updateData.approvalStatus && updateData.services) {
+      // Fetch current quotation to check if it was rejected
+      const docRef = doc(db, COLLECTION_NAME, id);
+      const docSnap = await getDoc(docRef);
+      if (docSnap.exists()) {
+        const currentData = docSnap.data();
+        if (currentData.approvalStatus === 'Rejected') {
+          updateData.approvalStatus = 'Pending';
+          updateData.rejectionReason = '';
+        }
       }
     }
 

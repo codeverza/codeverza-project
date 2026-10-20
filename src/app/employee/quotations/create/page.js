@@ -60,7 +60,7 @@ export default function EmployeeCreateQuotationPage() {
     const emp = getEmployeeAuth();
     if (!emp) { router.push('/employee/login'); return; }
     if (!emp.permissions?.quotations?.add) {
-      Swal.fire({ icon: 'error', title: 'Access Denied', text: 'Aapke paas quotation create karne ki permission nahi hai.', background: '#0d0d0d', color: '#fff', confirmButtonColor: '#b14cff' })
+      Swal.fire({ icon: 'error', title: 'Access Denied', text: 'You do not have permission to create quotations.', background: '#0d0d0d', color: '#fff', confirmButtonColor: '#b14cff' })
         .then(() => router.push('/employee/dashboard'));
       return;
     }
@@ -132,7 +132,7 @@ export default function EmployeeCreateQuotationPage() {
         services: validServices,
         employeeId:          employee.id,
         employeeName:        employee.name,
-        employeeEmail:       employee.companyEmail || employee.personalEmail || '',
+        employeeEmail:       employee.companyEmail || employee.email || employee.personalEmail || '',
         employeePhone:       employee.contactNumber || '',
         employeeDesignation: employee.designation || '',
       };
@@ -145,7 +145,7 @@ export default function EmployeeCreateQuotationPage() {
         await Swal.fire({
           icon: 'success',
           title: 'Quotation Submitted!',
-          html: `<p style="color:#fff">Ref: <strong style="color:#b14cff">${data.data.quotationNumber}</strong></p><p style="color:#aaa;font-size:13px">Admin approval ke baad yeh send ho sakegi.</p>`,
+          html: `<p style="color:#fff">Ref: <strong style="color:#b14cff">${data.data.quotationNumber}</strong></p><p style="color:#aaa;font-size:13px">This can be sent only after admin approval.</p>`,
           background: '#0d0d0d', color: '#fff', confirmButtonColor: '#b14cff', confirmButtonText: 'View My Quotations',
         });
         router.push('/employee/dashboard');
@@ -170,14 +170,14 @@ export default function EmployeeCreateQuotationPage() {
         </button>
         <div>
           <h1>Create Quotation</h1>
-          <p>Client ke liye quotation banayein — admin approval ke baad send hogi</p>
+          <p>Create a quotation for the client — it can be sent after admin approval.</p>
         </div>
       </div>
 
       {/* ── Approval notice ── */}
       <div className="emp-qt-notice">
         <span className="emp-qt-notice-icon">ℹ️</span>
-        <span>Aap jo quotation banayenge wo pehlay admin review karenga. Approve honay ke baad hi aap ussay share kar saktay hain.</span>
+        <span>The quotation you create will first be reviewed by the admin. You can share it only after it has been approved.</span>
       </div>
 
       <form onSubmit={handleSubmit} className="emp-qt-form">

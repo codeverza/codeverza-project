@@ -155,6 +155,7 @@
   background-position: right 12px center;
   padding-right: 36px;
   cursor: pointer;
+  max-width: 100% !important;
 }
 .emp-qt-field select option { background: #111; color: #fff; }
 
@@ -233,8 +234,19 @@
 
 .emp-qt-service-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-  gap: 14px;
+  grid-template-columns: 1.2fr 2fr 90px 1.2fr 200px 150px;
+  gap: 16px;
+  align-items: end;
+}
+
+/* Responsive for smaller screens */
+@media (max-width: 1200px) {
+  .emp-qt-service-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+  .emp-qt-service-grid .emp-qt-field.emp-qt-full {
+    grid-column: 1 / -1;
+  }
 }
 
 .emp-qt-price-row {
@@ -419,13 +431,13 @@
 .emp-qt-card-ref { font-size: 13px; font-weight: 700; color: #b14cff; font-family: monospace; }
 .emp-qt-card-client { font-size: 15px; font-weight: 700; color: #fff; }
 .emp-qt-card-sub { font-size: 12px; color: #888; }
-.emp-qt-card-date { font-size: 11px; color: #666; }
+.emp-qt-card-date { font-size: 11px; color: #ddd; font-weight: 500; }
 
 .emp-qt-card-right { display: flex; flex-direction: column; align-items: flex-end; gap: 10px; }
 .emp-qt-card-total { font-size: 16px; font-weight: 800; color: #fff; }
 
 .emp-qt-card-actions { display: flex; gap: 8px; }
-.emp-qt-view-btn, .emp-qt-delete-btn {
+.emp-qt-view-btn, .emp-qt-edit-btn, .emp-qt-delete-btn {
   display: flex; align-items: center; gap: 5px;
   padding: 7px 14px;
   border-radius: 8px;
@@ -441,6 +453,12 @@
   color: #e0aaff;
 }
 .emp-qt-view-btn:hover { background: rgba(177,76,255,0.2); }
+.emp-qt-edit-btn {
+  background: rgba(59,130,246,0.1);
+  border: 1px solid rgba(59,130,246,0.25);
+  color: #60a5fa;
+}
+.emp-qt-edit-btn:hover { background: rgba(59,130,246,0.2); }
 .emp-qt-delete-btn {
   background: rgba(239,68,68,0.1);
   border: 1px solid rgba(239,68,68,0.25);

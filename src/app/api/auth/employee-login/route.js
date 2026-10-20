@@ -25,7 +25,7 @@ export async function POST(request) {
 
     if (querySnapshot.empty) {
       return NextResponse.json(
-        { success: false, message: 'Employee ID ya Password galat hai' },
+        { success: false, message: 'Invalid Employee ID or Password.' },
         { status: 401 }
       );
     }
@@ -52,7 +52,7 @@ export async function POST(request) {
     // Verify password
     if (employeeData.password !== password) {
       return NextResponse.json(
-        { success: false, message: 'Employee ID ya Password galat hai' },
+        { success: false, message: 'Invalid Employee ID or Password.' },
         { status: 401 }
       );
     }
@@ -80,6 +80,9 @@ export async function POST(request) {
       name: employeeData.name,
       photo: employeeData.photo,
       email: employeeData.companyEmail || employeeData.personalEmail,
+      companyEmail: employeeData.companyEmail, // Add this for quotations
+      personalEmail: employeeData.personalEmail,
+      contactNumber: employeeData.contactNumber,
       designation: employeeData.designation,
       department: employeeData.department,
       role: employeeData.role,

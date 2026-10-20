@@ -193,6 +193,12 @@ export default function EmployeeDashboardPage() {
           console.error('Error loading sales data:', error);
         }
       }
+
+      // Load quotations if permitted
+      if (employeePermissions?.quotations?.view) {
+        await loadQuotationsData(employeeId);
+      }
+
     } catch (error) {
       console.error('Error loading employee data:', error);
     }
@@ -227,10 +233,15 @@ export default function EmployeeDashboardPage() {
 
   const loadQuotationsData = async (employeeId) => {
     try {
+      console.log('Loading quotations for employee:', employeeId);
       const res = await fetch(`/api/employee-quotations?employeeId=${employeeId}`);
       const data = await res.json();
+      console.log('Quotations API response:', data);
       if (data.success) {
+        console.log('Quotations loaded:', data.data.length);
         setQuotationsData(data.data || []);
+      } else {
+        console.error('Quotations API failed:', data.message);
       }
     } catch (error) {
       console.error('Error loading quotations:', error);
@@ -243,7 +254,7 @@ export default function EmployeeDashboardPage() {
         icon: 'warning',
         iconColor: '#fbbf24',
         title: 'Logout from account?',
-        text: 'Aap apne employee dashboard se logout honay walay hain.',
+        text: 'You are about to log out of your employee dashboard.',
         showCancelButton: true,
         confirmButtonText: 'Yes, Logout',
         cancelButtonText: 'Stay Logged In',
@@ -1058,7 +1069,7 @@ function ProjectsTab({ data, employee, onRefresh }) {
       const result = await response.json();
       if (!result.success) throw new Error(result.message);
       setSelectedInstallment(null);
-      await Swal.fire({ icon: 'success', title: 'Payment Submitted', text: 'Admin ko payment review ke liye bhej di gayi hai.', background: '#0d0d0d', color: '#fff', timer: 1800, showConfirmButton: false });
+      await Swal.fire({ icon: 'success', title: 'Payment Submitted', text: 'The payment has been submitted to the admin for review.', background: '#0d0d0d', color: '#fff', timer: 1800, showConfirmButton: false });
       onRefresh();
     } catch (error) {
       Swal.fire({ icon: 'error', title: 'Payment Submit Failed', text: error.message, background: '#0d0d0d', color: '#fff' });
@@ -2394,7 +2405,17 @@ function QuotationsTab({ data, employee, onRefresh }) {
 
   const fmtDate = (d) => {
     if (!d) return 'N/A';
-    return new Date(d).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+    try {
+      // Handle Firestore Timestamp
+      const date = d?.toDate ? d.toDate() : (d?.seconds ? new Date(d.seconds * 1000) : new Date(d));
+      if (isNaN(date.getTime())) return 'N/A';
+      const dateStr = date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+      const timeStr = date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
+      return `${dateStr}, ${timeStr}`;
+    } catch (e) {
+      console.error('Date formatting error:', e, d);
+      return 'N/A';
+    }
   };
 
   const fmtCur = (n, c = 'PKR') => {
@@ -2404,9 +2425,9 @@ function QuotationsTab({ data, employee, onRefresh }) {
   };
 
   const handleDelete = async (qt) => {
-    // Only pending quotations can be deleted by employee
-    if (qt.approvalStatus !== 'Pending') {
-      Swal.fire({ icon: 'info', title: 'Cannot Delete', text: 'Sirf pending quotations delete ki ja sakti hain.', background: '#0d0d0d', color: '#fff', confirmButtonColor: '#b14cff' });
+    // Only pending and rejected quotations can be deleted by employee
+    if (qt.approvalStatus !== 'Pending' && qt.approvalStatus !== 'Rejected') {
+      Swal.fire({ icon: 'info', title: 'Cannot Delete', text: 'Only pending or rejected quotations can be deleted.', background: '#0d0d0d', color: '#fff', confirmButtonColor: '#b14cff' });
       return;
     }
     const res = await Swal.fire({
@@ -2446,7 +2467,7 @@ function QuotationsTab({ data, employee, onRefresh }) {
       {/* Approval info notice */}
       <div className="emp-qt-notice" style={{ marginBottom: '20px' }}>
         <span className="emp-qt-notice-icon">ℹ️</span>
-        <span>Admin approval ke baad hi aap quotation share kar saktay hain. Approved quotations mein sign & stamp auto-fill ho jata hai.</span>
+        <span>You can share the quotation only after admin approval. The signature and stamp are automatically added to approved quotations.</span>
       </div>
 
       {quotations.length === 0 ? (
@@ -2473,31 +2494,45 @@ function QuotationsTab({ data, employee, onRefresh }) {
                     Approved — ready to share
                   </span>
                 )}
+                {qt.approvalStatus === 'Rejected' && qt.rejectionReason && (
+                  <div style={{
+                    marginTop: '8px',
+                    padding: '10px 12px',
+                    background: 'rgba(239, 68, 68, 0.1)',
+                    border: '1px solid rgba(239, 68, 68, 0.3)',
+                    borderRadius: '8px',
+                    fontSize: '12px'
+                  }}>
+                    <strong style={{ color: '#ef4444', display: 'block', marginBottom: '4px' }}>❌ Rejection Reason:</strong>
+                    <span style={{ color: '#ef4444', whiteSpace: 'pre-wrap', lineHeight: '1.5' }}>{qt.rejectionReason}</span>
+                  </div>
+                )}
               </div>
               <div className="emp-qt-card-right">
                 <span className="emp-qt-card-total">{fmtCur(qt.grandTotal, qt.currency)}</span>
                 {approvalPill(qt.approvalStatus)}
                 <div className="emp-qt-card-actions">
-                  <button className="emp-qt-view-btn" onClick={() => setPreviewQt(qt)}>
+                  <button className="emp-qt-view-btn" onClick={() => router.push(`/employee/quotations/preview/${qt.id}`)}>
                     <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
                     View
                   </button>
-                  {qt.approvalStatus === 'Pending' && (
-                    <button className="emp-qt-delete-btn" onClick={() => handleDelete(qt)}>
-                      <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"></path></svg>
-                      Delete
-                    </button>
+                  {(qt.approvalStatus === 'Pending' || qt.approvalStatus === 'Rejected') && (
+                    <>
+                      <button className="emp-qt-edit-btn" onClick={() => router.push(`/employee/quotations/edit/${qt.id}`)}>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                        Edit
+                      </button>
+                      <button className="emp-qt-delete-btn" onClick={() => handleDelete(qt)}>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"></path></svg>
+                        Delete
+                      </button>
+                    </>
                   )}
                 </div>
               </div>
             </div>
           ))}
         </div>
-      )}
-
-      {/* Preview Modal */}
-      {previewQt && (
-        <QuotationPreviewModal quotation={previewQt} onClose={() => setPreviewQt(null)} />
       )}
     </div>
   );

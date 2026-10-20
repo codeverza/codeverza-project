@@ -81,8 +81,44 @@ export const metadata = {
 };
 
 export default function RootLayout({ children }) {
+  const isProduction = process.env.NODE_ENV === 'production' || process.env.VERCEL_ENV === 'production';
+  
   return (
     <html lang="en" className={poppins.variable}>
+      <head>
+        {/* Disable console in production (including Vercel deployment) */}
+        {isProduction && (
+          <script
+            dangerouslySetInnerHTML={{
+              __html: `
+                (function() {
+                  const noop = function() {};
+                  const methods = ['log', 'debug', 'info', 'dir', 'dirxml', 'trace', 'profile', 'profileEnd', 'table', 'group', 'groupEnd', 'groupCollapsed', 'time', 'timeEnd'];
+                  for (let i = 0; i < methods.length; i++) {
+                    console[methods[i]] = noop;
+                  }
+                  // Also override console.error and console.warn to show minimal info
+                  const originalError = console.error;
+                  const originalWarn = console.warn;
+                  console.error = function() {
+                    // Only log in development tools, not visible to users
+                    if (typeof window !== 'undefined' && !window.__PRODUCTION_CONSOLE_VISIBLE__) {
+                      return;
+                    }
+                    originalError.apply(console, arguments);
+                  };
+                  console.warn = function() {
+                    if (typeof window !== 'undefined' && !window.__PRODUCTION_CONSOLE_VISIBLE__) {
+                      return;
+                    }
+                    originalWarn.apply(console, arguments);
+                  };
+                })();
+              `,
+            }}
+          />
+        )}
+      </head>
       <body className="font-poppins antialiased" id="__next" style={{ backgroundColor: '#000000', color: '#ffffff' }}>
         <OneSignalInit />
         <NavigationLoader />

@@ -133,24 +133,24 @@ export default function EmployeesPage() {
       <div className="stats-grid">
         <div className="stat-card">
           <h3>Total Employees</h3>
-          <p className="stat-number">{employees.length}</p>
+          <p className="stat-number">{loading ? '...' : employees.length}</p>
         </div>
         <div className="stat-card">
           <h3>Active</h3>
           <p className="stat-number stat-active">
-            {employees.filter(e => e.status === 'Active').length}
+            {loading ? '...' : employees.filter(e => e.status === 'Active').length}
           </p>
         </div>
         <div className="stat-card">
           <h3>On Leave</h3>
           <p className="stat-number stat-warning">
-            {employees.filter(e => e.status === 'Suspended').length}
+            {loading ? '...' : employees.filter(e => e.status === 'Suspended').length}
           </p>
         </div>
         <div className="stat-card">
           <h3>Resigned/Terminated</h3>
           <p className="stat-number stat-danger">
-            {employees.filter(e => e.status === 'Resigned' || e.status === 'Terminated').length}
+            {loading ? '...' : employees.filter(e => e.status === 'Resigned' || e.status === 'Terminated').length}
           </p>
         </div>
       </div>

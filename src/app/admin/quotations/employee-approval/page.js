@@ -160,8 +160,17 @@ export default function EmployeeQuotationApprovalPage() {
 
   const fmtDate = (d) => {
     if (!d) return '—';
-    const date = d?.toDate ? d.toDate() : new Date(d);
-    return date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+    try {
+      // Handle Firestore Timestamp
+      const date = d?.toDate ? d.toDate() : (d?.seconds ? new Date(d.seconds * 1000) : new Date(d));
+      if (isNaN(date.getTime())) return '—';
+      const dateStr = date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+      const timeStr = date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
+      return `${dateStr}, ${timeStr}`;
+    } catch (e) {
+      console.error('Date formatting error:', e, d);
+      return '—';
+    }
   };
 
   const fmtCur = (n, c = 'PKR') => {
@@ -340,6 +349,31 @@ export default function EmployeeQuotationApprovalPage() {
    PREVIEW MODAL
 ═══════════════════════════════════════════════════════════════ */
 function QuotationPreviewModal({ quotation: qt, onClose, onApprove, onReject, actionLoading }) {
+  const [employeeEmail, setEmployeeEmail] = useState(qt.employeeEmail || '');
+  const [employeePhone, setEmployeePhone] = useState(qt.employeePhone || '');
+
+  // Fetch employee email if missing
+  useEffect(() => {
+    const fetchEmployeeData = async () => {
+      if (!qt.employeeEmail && qt.employeeId) {
+        try {
+          const res = await fetch(`/api/employees?id=${qt.employeeId}`);
+          const data = await res.json();
+          if (data.success && data.employee) {
+            setEmployeeEmail(data.employee.companyEmail || data.employee.email || '');
+            setEmployeePhone(qt.employeePhone || data.employee.contactNumber || '');
+          }
+        } catch (err) {
+          console.error('Failed to fetch employee data:', err);
+        }
+      } else {
+        setEmployeeEmail(qt.employeeEmail || '');
+        setEmployeePhone(qt.employeePhone || '');
+      }
+    };
+    fetchEmployeeData();
+  }, [qt.employeeId, qt.employeeEmail, qt.employeePhone]);
+  
   const fmtDate = (d) => {
     if (!d) return 'N/A';
     return new Date(d).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
@@ -390,8 +424,8 @@ function QuotationPreviewModal({ quotation: qt, onClose, onApprove, onReject, ac
           <span className="eq-modal-emp-sep">·</span>
           <span>{qt.employeeDesignation}</span>
           <span className="eq-modal-emp-sep">·</span>
-          <span>{qt.employeeEmail}</span>
-          {qt.employeePhone && <><span className="eq-modal-emp-sep">·</span><span>{qt.employeePhone}</span></>}
+          <span>{employeeEmail || 'N/A'}</span>
+          {employeePhone && <><span className="eq-modal-emp-sep">·</span><span>{employeePhone}</span></>}
         </div>
 
         {/* Document */}
@@ -410,9 +444,9 @@ function QuotationPreviewModal({ quotation: qt, onClose, onApprove, onReject, ac
                 </div>
               </div>
               <div className="company-contact">
-                <p>{qt.companyWebsite || 'www.codeverza.com'}</p>
-                <p>{qt.employeeEmail || 'info@codeverza.com'}</p>
-                <p>{qt.employeePhone || ''}</p>
+                <p>www.codeverza.com</p>
+                <p>info@codeverza.com</p>
+                <p>+923251507557</p>
               </div>
             </div>
 
@@ -430,18 +464,18 @@ function QuotationPreviewModal({ quotation: qt, onClose, onApprove, onReject, ac
                   <div className="details-box-body">
                     {qt.issueDate && <p><strong>Issue Date</strong>{fmtDate(qt.issueDate)}</p>}
                     {qt.validityDate && <p><strong>Valid Until</strong>{fmtDate(qt.validityDate)}</p>}
-                    <p><strong>Status</strong><span className={`status-badge ${qt.status?.toLowerCase()}`}>{qt.status}</span></p>
-                    {qt.currency && <p><strong>Currency</strong>{qt.currency}</p>}
+                    {qt.employeeName && <p><strong>Contact Person</strong>{qt.employeeName}</p>}
+                    {employeeEmail && <p><strong>Email</strong>{employeeEmail}</p>}
                   </div>
                 </div>
                 <div className="details-box">
-                  <div className="details-box-header"><h3>Billed To</h3></div>
+                  <div className="details-box-header"><h3>Client Information</h3></div>
                   <div className="details-box-body">
-                    <span className="client-name">{qt.clientName}</span>
-                    {qt.clientCompany && <span className="client-company">{qt.clientCompany}</span>}
-                    <span className="client-contact">{qt.clientEmail}</span>
-                    {qt.clientPhone && <span className="client-contact">{qt.clientPhone}</span>}
-                    {qt.clientAddress && <span className="address">{qt.clientAddress}</span>}
+                    <p><strong>Name</strong>{qt.clientName}</p>
+                    {qt.clientCompany && <p><strong>Company</strong>{qt.clientCompany}</p>}
+                    <p><strong>Email</strong>{qt.clientEmail}</p>
+                    {qt.clientPhone && <p><strong>Phone</strong>{qt.clientPhone}</p>}
+                    {qt.clientAddress && <p><strong>Address</strong>{qt.clientAddress}</p>}
                   </div>
                 </div>
               </div>
@@ -545,9 +579,9 @@ function QuotationPreviewModal({ quotation: qt, onClose, onApprove, onReject, ac
                 <p>Delivering excellence in web development since 2020</p>
               </div>
               <div className="footer-right">
-                <p>{qt.companyWebsite || 'www.codeverza.com'}</p>
-                <p>{qt.employeeEmail || 'info@codeverza.com'}</p>
-                <p>{qt.employeePhone || ''}</p>
+                <p>www.codeverza.com</p>
+                <p>info@codeverza.com</p>
+                <p>+923251507557</p>
               </div>
             </div>
           </div>
@@ -573,6 +607,18 @@ function QuotationEditDrawer({ quotation, onClose, onSave, saving }) {
   };
 
   const handleSave = () => onSave(form);
+
+  // Calculate totals
+  const subtotal = (form.services || []).reduce((sum, svc) => sum + (svc.quantity * svc.price), 0);
+  const discountAmt = (subtotal * (form.discount || 0)) / 100;
+  const taxableAmt = subtotal - discountAmt;
+  const taxAmt = (taxableAmt * (form.tax || 0)) / 100;
+  const grandTotal = taxableAmt + taxAmt;
+
+  const fmtCur = (n) => {
+    if (n === 0) return 'FREE';
+    return new Intl.NumberFormat('en-PK', { style: 'currency', currency: form.currency || 'PKR', minimumFractionDigits: 0 }).format(n);
+  };
 
   return (
     <div className="eq-drawer-overlay" onClick={e => e.target === e.currentTarget && onClose()}>
@@ -623,6 +669,72 @@ function QuotationEditDrawer({ quotation, onClose, onSave, saving }) {
                 </div>
               </div>
             ))}
+          </div>
+
+          {/* Pricing: Discount & Tax */}
+          <div className="eq-drawer-section">
+            <h4>Pricing</h4>
+            <div className="eq-drawer-grid">
+              <div className="eq-drawer-field">
+                <label>Discount (%)</label>
+                <input 
+                  type="number" 
+                  value={form.discount || 0} 
+                  min="0" 
+                  max="100" 
+                  onChange={e => setField('discount', parseFloat(e.target.value) || 0)} 
+                />
+              </div>
+              <div className="eq-drawer-field">
+                <label>Tax (%)</label>
+                <input 
+                  type="number" 
+                  value={form.tax || 0} 
+                  min="0" 
+                  max="100" 
+                  onChange={e => setField('tax', parseFloat(e.target.value) || 0)} 
+                />
+              </div>
+            </div>
+
+            {/* Live Pricing Summary */}
+            <div style={{
+              marginTop: '16px',
+              padding: '16px',
+              background: 'rgba(177, 76, 255, 0.05)',
+              border: '1px solid rgba(177, 76, 255, 0.2)',
+              borderRadius: '10px'
+            }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', fontSize: '14px', color: '#fff' }}>
+                <span>Subtotal:</span>
+                <strong>{fmtCur(subtotal)}</strong>
+              </div>
+              {form.discount > 0 && (
+                <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', fontSize: '14px', color: '#ef4444' }}>
+                  <span>Discount ({form.discount}%):</span>
+                  <strong>− {fmtCur(discountAmt)}</strong>
+                </div>
+              )}
+              {form.tax > 0 && (
+                <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', fontSize: '14px', color: '#22c55e' }}>
+                  <span>Tax ({form.tax}%):</span>
+                  <strong>+ {fmtCur(taxAmt)}</strong>
+                </div>
+              )}
+              <div style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                padding: '12px 0 0 0',
+                marginTop: '8px',
+                borderTop: '1px solid rgba(177, 76, 255, 0.3)',
+                fontSize: '16px',
+                fontWeight: '700',
+                color: '#b14cff'
+              }}>
+                <span>Grand Total:</span>
+                <span>{fmtCur(grandTotal)}</span>
+              </div>
+            </div>
           </div>
 
           {/* Extra info */}

@@ -3,11 +3,13 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { getEmployeeAuth, setEmployeeAuth } from '@/lib/employeeAuth';
+import { FiEye, FiEyeOff } from 'react-icons/fi';
 import './login.css';
 
 export default function EmployeeLoginPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
     employeeId: '',
     password: ''
@@ -69,26 +71,26 @@ export default function EmployeeLoginPage() {
       <div className="login-box">
         <div className="login-header">
           <div className="logo-section">
-            <img 
-              src="/img/codeverza-logo.png" 
-              alt="Codeverza Logo" 
+            <img
+              src="/img/codeverza-logo.png"
+              alt="Codeverza Logo"
               className="company-logo"
             />
           </div>
           <h1>Employee Login</h1>
-          <p>Apni Employee ID aur Password se login karein</p>
+          <p>Log in using your Employee ID and Password.</p>
         </div>
 
         <form onSubmit={handleSubmit} className="login-form">
           {error && (
             <div className="error-message">
-              <svg 
-                xmlns="http://www.w3.org/2000/svg" 
-                width="20" 
-                height="20" 
-                viewBox="0 0 24 24" 
-                fill="none" 
-                stroke="currentColor" 
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
                 strokeWidth="2"
               >
                 <circle cx="12" cy="12" r="10"></circle>
@@ -101,13 +103,13 @@ export default function EmployeeLoginPage() {
 
           <div className="form-group">
             <label htmlFor="employeeId">
-              <svg 
-                xmlns="http://www.w3.org/2000/svg" 
-                width="18" 
-                height="18" 
-                viewBox="0 0 24 24" 
-                fill="none" 
-                stroke="currentColor" 
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
                 strokeWidth="2"
               >
                 <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
@@ -130,13 +132,13 @@ export default function EmployeeLoginPage() {
 
           <div className="form-group">
             <label htmlFor="password">
-              <svg 
-                xmlns="http://www.w3.org/2000/svg" 
-                width="18" 
-                height="18" 
-                viewBox="0 0 24 24" 
-                fill="none" 
-                stroke="currentColor" 
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
                 strokeWidth="2"
               >
                 <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
@@ -144,21 +146,47 @@ export default function EmployeeLoginPage() {
               </svg>
               Password
             </label>
-            <input
-              type="password"
-              id="password"
-              name="password"
-              value={formData.password}
-              onChange={handleChange}
-              placeholder="••••••••"
-              required
-              autoComplete="current-password"
-              disabled={loading}
-            />
+            <div style={{ position: 'relative' }}>
+              <input
+                type={showPassword ? 'text' : 'password'}
+                id="password"
+                name="password"
+                value={formData.password}
+                onChange={handleChange}
+                placeholder="••••••••"
+                required
+                autoComplete="current-password"
+                disabled={loading}
+                style={{ paddingRight: '45px' }}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                style={{
+                  position: 'absolute',
+                  right: '12px',
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  color: '#7c3aed',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  padding: '4px',
+                  transition: 'color 0.2s'
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.color = '#9333ea'}
+                onMouseLeave={(e) => e.currentTarget.style.color = '#7c3aed'}
+              >
+                {showPassword ? <FiEyeOff size={20} /> : <FiEye size={20} />}
+              </button>
+            </div>
           </div>
 
-          <button 
-            type="submit" 
+          <button
+            type="submit"
             className="login-btn"
             disabled={loading}
           >
@@ -169,13 +197,13 @@ export default function EmployeeLoginPage() {
               </>
             ) : (
               <>
-                <svg 
-                  xmlns="http://www.w3.org/2000/svg" 
-                  width="18" 
-                  height="18" 
-                  viewBox="0 0 24 24" 
-                  fill="none" 
-                  stroke="currentColor" 
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="18"
+                  height="18"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
                   strokeWidth="2"
                 >
                   <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path>
@@ -190,22 +218,21 @@ export default function EmployeeLoginPage() {
 
         <div className="login-footer">
           <p>
-            <svg 
-              xmlns="http://www.w3.org/2000/svg" 
-              width="16" 
-              height="16" 
-              viewBox="0 0 24 24" 
-              fill="none" 
-              stroke="currentColor" 
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
               strokeWidth="2"
             >
               <circle cx="12" cy="12" r="10"></circle>
               <line x1="12" y1="16" x2="12" y2="12"></line>
               <line x1="12" y1="8" x2="12.01" y2="8"></line>
             </svg>
-            Agar login mein problem ho to apne admin se contact karein
-          </p>
-          <button 
+            If you experience any login issues, please contact your admin.          </p>
+          <button
             type="button"
             className="back-home-btn"
             onClick={() => router.push('/')}
