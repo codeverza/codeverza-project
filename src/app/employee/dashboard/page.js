@@ -1615,6 +1615,8 @@ function SalesTab({ data, employeeId, employee, onRefresh }) {
   const [loading, setLoading] = useState(true);
   const [showAddLead, setShowAddLead] = useState(false);
   const [selectedLead, setSelectedLead] = useState(null);
+  const [editingLead, setEditingLead] = useState(null);
+  const [showEditLead, setShowEditLead] = useState(false);
   
   useEffect(() => {
     if (employeeId) {
@@ -1807,6 +1809,114 @@ function SalesTab({ data, employeeId, employee, onRefresh }) {
         icon: 'error',
         title: 'Failed to Add Lead',
         text: error.message || 'Could not create lead. Please try again.',
+        confirmButtonColor: '#ef4444',
+        background: '#0d0d0d',
+        color: '#fff'
+      });
+    }
+  };
+
+  // Edit Lead Handler
+  const handleEditLead = async (e) => {
+    e.preventDefault();
+    const formData = new FormData(e.target);
+    
+    const stage = formData.get('stage');
+    const wonPrice = formData.get('wonPrice');
+    const expectedValue = formData.get('expectedValue');
+    
+    // Validate: If stage is Won, wonPrice is required
+    if (stage === 'Won' && (!wonPrice || parseFloat(wonPrice) <= 0)) {
+      await Swal.fire({
+        icon: 'error',
+        title: 'Won Price Required',
+        text: 'Please enter the final deal price when marking lead as Won',
+        confirmButtonColor: '#b14cff',
+        background: '#0d0d0d',
+        color: '#fff'
+      });
+      return;
+    }
+
+    if (stage === 'Quotation Sent' && (!expectedValue || parseFloat(expectedValue) <= 0)) {
+      await Swal.fire({
+        icon: 'error',
+        title: 'Expected Value Required',
+        text: 'Please enter the quotation value when marking lead as Quotation Sent',
+        confirmButtonColor: '#b14cff',
+        background: '#0d0d0d',
+        color: '#fff'
+      });
+      return;
+    }
+    
+    // Show loading popup
+    Swal.fire({
+      title: 'Updating Lead...',
+      text: 'Please wait while we update your lead',
+      allowOutsideClick: false,
+      allowEscapeKey: false,
+      didOpen: () => {
+        Swal.showLoading();
+      },
+      background: '#0d0d0d',
+      color: '#fff'
+    });
+    
+    const leadData = {
+      id: editingLead.id,
+      clientName: formData.get('clientName'),
+      email: formData.get('email'),
+      phone: formData.get('phone'),
+      companyName: formData.get('companyName'),
+      serviceType: formData.get('serviceType'),
+      expectedValue: expectedValue ? parseFloat(expectedValue) : editingLead.expectedValue || 0,
+      priority: formData.get('priority'),
+      source: formData.get('source'),
+      stage: stage,
+      nextFollowUp: formData.get('nextFollowUp') || null,
+      notes: formData.get('notes'),
+      updatedByName: employee?.name || 'Employee'
+    };
+
+    // Add wonPrice if stage is Won
+    if (stage === 'Won' && wonPrice) {
+      leadData.wonPrice = parseFloat(wonPrice);
+    }
+
+    try {
+      const response = await fetch('/api/leads', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(leadData)
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        await Swal.fire({
+          icon: 'success',
+          title: 'Lead Updated Successfully!',
+          text: 'Lead details have been updated',
+          confirmButtonColor: '#10b981',
+          background: '#0d0d0d',
+          color: '#fff',
+          timer: 2000,
+          showConfirmButton: true
+        });
+        setShowEditLead(false);
+        setEditingLead(null);
+        await loadLeads();
+        onRefresh?.();
+      } else {
+        throw new Error(data.message);
+      }
+    } catch (error) {
+      console.error('Error updating lead:', error);
+      Swal.fire({
+        icon: 'error',
+        title: 'Failed to Update Lead',
+        text: error.message || 'Could not update lead. Please try again.',
         confirmButtonColor: '#ef4444',
         background: '#0d0d0d',
         color: '#fff'
@@ -2246,6 +2356,189 @@ function SalesTab({ data, employeeId, employee, onRefresh }) {
         </div>
       )}
 
+      {/* Edit Lead Modal */}
+      {showEditLead && editingLead && (
+        <div className="modal-overlay" onClick={() => setShowEditLead(false)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>Edit Lead</h2>
+              <button className="modal-close" onClick={() => setShowEditLead(false)}>×</button>
+            </div>
+            <form onSubmit={handleEditLead} className="lead-form">
+              <div className="form-grid">
+                <div className="form-group full-width">
+                  <label>Client Name *</label>
+                  <input 
+                    type="text" 
+                    name="clientName" 
+                    placeholder="Enter client full name"
+                    defaultValue={editingLead.clientName}
+                    required 
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label>Email</label>
+                  <input 
+                    type="email" 
+                    name="email" 
+                    placeholder="email@example.com"
+                    defaultValue={editingLead.email}
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label>Phone</label>
+                  <input 
+                    type="tel" 
+                    name="phone" 
+                    placeholder="+92 300 1234567"
+                    defaultValue={editingLead.phone}
+                  />
+                </div>
+
+                <div className="form-group full-width">
+                  <label>Company Name</label>
+                  <input 
+                    type="text" 
+                    name="companyName" 
+                    placeholder="Company or organization name"
+                    defaultValue={editingLead.companyName}
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label>Service Type *</label>
+                  <select name="serviceType" defaultValue={editingLead.serviceType} required>
+                    <option value="">Select Service</option>
+                    <option value="Website Development">Website Development</option>
+                    <option value="Mobile App">Mobile App</option>
+                    <option value="ERP System">ERP System</option>
+                    <option value="E-Commerce">E-Commerce</option>
+                    <option value="SEO Services">SEO Services</option>
+                    <option value="Digital Marketing">Digital Marketing</option>
+                    <option value="Graphic Design">Graphic Design</option>
+                    <option value="Custom Software">Custom Software</option>
+                    <option value="Other">Other</option>
+                  </select>
+                </div>
+
+                <div className="form-group">
+                  <label>Current Stage *</label>
+                  <select 
+                    name="stage" 
+                    defaultValue={editingLead.stage}
+                    required
+                    onChange={(e) => {
+                      const wonField = document.getElementById('editDealValueField');
+                      const wonInput = document.getElementById('editWonPriceInput');
+                      const dealLabel = document.getElementById('editDealValueLabel');
+                      const isPriceRequired = ['Quotation Sent', 'Won'].includes(e.target.value);
+                      
+                      if (isPriceRequired) {
+                        wonField.style.display = 'flex';
+                        wonInput.required = true;
+                        dealLabel.textContent = e.target.value === 'Quotation Sent'
+                          ? 'Quotation Value (PKR) *'
+                          : 'Won Price (PKR) *';
+                        wonInput.name = e.target.value === 'Quotation Sent' ? 'expectedValue' : 'wonPrice';
+                      } else {
+                        wonField.style.display = 'none';
+                        wonInput.required = false;
+                      }
+                    }}
+                  >
+                    <option value="New">New</option>
+                    <option value="Contacted">Contacted</option>
+                    <option value="Quotation Sent">Quotation Sent</option>
+                    <option value="Negotiation">Negotiation</option>
+                    <option value="Won">Won</option>
+                    <option value="Lost">Lost</option>
+                  </select>
+                </div>
+
+                <div className="form-group">
+                  <label>Priority</label>
+                  <select name="priority" defaultValue={editingLead.priority}>
+                    <option value="Low">Low</option>
+                    <option value="Medium">Medium</option>
+                    <option value="High">High</option>
+                    <option value="Urgent">Urgent</option>
+                  </select>
+                </div>
+
+                <div className="form-group">
+                  <label>Source</label>
+                  <select name="source" defaultValue={editingLead.source}>
+                    <option value="Direct">Direct</option>
+                    <option value="Referral">Referral</option>
+                    <option value="Website">Website</option>
+                    <option value="Social Media">Social Media</option>
+                    <option value="Cold Call">Cold Call</option>
+                    <option value="Other">Other</option>
+                  </select>
+                </div>
+
+                <div className="form-group">
+                  <label>Next Follow-up</label>
+                  <input 
+                    type="date" 
+                    name="nextFollowUp"
+                    defaultValue={editingLead.nextFollowUp ? new Date(editingLead.nextFollowUp).toISOString().split('T')[0] : ''}
+                    min={new Date().toISOString().split('T')[0]}
+                  />
+                </div>
+
+                {/* Conditional value field for quotation and won stages */}
+                <div 
+                  className="form-group" 
+                  id="editDealValueField" 
+                  style={{ 
+                    display: ['Quotation Sent', 'Won'].includes(editingLead.stage) ? 'flex' : 'none' 
+                  }}
+                >
+                  <label id="editDealValueLabel">
+                    {editingLead.stage === 'Quotation Sent' ? 'Quotation Value (PKR) *' : 'Won Price (PKR) *'}
+                  </label>
+                  <input 
+                    type="number" 
+                    name={editingLead.stage === 'Quotation Sent' ? 'expectedValue' : 'wonPrice'}
+                    placeholder="Enter value"
+                    min="0"
+                    id="editWonPriceInput"
+                    defaultValue={
+                      editingLead.stage === 'Won' 
+                        ? editingLead.wonPrice 
+                        : editingLead.expectedValue
+                    }
+                    required={['Quotation Sent', 'Won'].includes(editingLead.stage)}
+                  />
+                </div>
+
+                <div className="form-group full-width">
+                  <label>Notes</label>
+                  <textarea 
+                    name="notes" 
+                    placeholder="Any additional information about this lead..."
+                    rows="3"
+                    defaultValue={editingLead.notes}
+                  ></textarea>
+                </div>
+              </div>
+
+              <div className="form-actions">
+                <button type="button" className="btn-cancel" onClick={() => setShowEditLead(false)}>
+                  Cancel
+                </button>
+                <button type="submit" className="btn-submit">
+                  Update Lead
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
       {/* Leads Table */}
       <div className="leads-table-container">
         {loading ? (
@@ -2271,7 +2564,7 @@ function SalesTab({ data, employeeId, employee, onRefresh }) {
                 <th>Stage</th>
                 <th>Source</th>
                 <th>Created</th>
-                <th>Actions</th>
+                <th style={{ minWidth: '120px', width: '120px' }}>Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -2309,6 +2602,11 @@ function SalesTab({ data, employeeId, employee, onRefresh }) {
                       className={`stage-select ${getStageBadgeClass(lead.stage)}`}
                       value={lead.stage}
                       onChange={(e) => handleUpdateStage(lead, e.target.value)}
+                      disabled={lead.stage === 'Won'}
+                      style={{
+                        cursor: lead.stage === 'Won' ? 'not-allowed' : 'pointer',
+                        opacity: lead.stage === 'Won' ? 0.6 : 1
+                      }}
                     >
                       <option value="New">New</option>
                       <option value="Contacted">Contacted</option>
@@ -2323,16 +2621,89 @@ function SalesTab({ data, employeeId, employee, onRefresh }) {
                     {new Date(lead.createdAt).toLocaleDateString()}
                   </td>
                   <td>
-                    <button 
-                      className="btn-view-lead"
-                      onClick={() => setSelectedLead(lead)}
-                      title="View Details"
-                    >
-                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-                        <circle cx="12" cy="12" r="3"></circle>
-                      </svg>
-                    </button>
+                    <div style={{ 
+                      display: 'flex', 
+                      gap: '8px', 
+                      alignItems: 'center',
+                      justifyContent: 'flex-start',
+                      minWidth: '100px',
+                      width: 'fit-content'
+                    }}>
+                      <button 
+                        className="btn-view-lead"
+                        onClick={() => setSelectedLead(lead)}
+                        title="View Details"
+                        style={{
+                          padding: '6px 10px',
+                          background: 'rgba(177, 76, 255, 0.15)',
+                          border: '1px solid rgba(177, 76, 255, 0.3)',
+                          borderRadius: '6px',
+                          color: '#b14cff',
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          transition: 'all 0.2s ease',
+                          flexShrink: 0
+                        }}
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                          <circle cx="12" cy="12" r="3"></circle>
+                        </svg>
+                      </button>
+                      {lead.stage !== 'Won' && (
+                        <button 
+                          className="btn-edit-lead"
+                          onClick={() => {
+                            setEditingLead(lead);
+                            setShowEditLead(true);
+                          }}
+                          title="Edit Lead"
+                          style={{
+                            padding: '6px 10px',
+                            background: 'rgba(59, 130, 246, 0.15)',
+                            border: '1px solid rgba(59, 130, 246, 0.3)',
+                            borderRadius: '6px',
+                            color: '#3b82f6',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            transition: 'all 0.2s ease',
+                            flexShrink: 0
+                          }}
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                          </svg>
+                        </button>
+                      )}
+                      {lead.stage === 'Won' && (
+                        <button 
+                          disabled
+                          title="Cannot edit won leads"
+                          style={{
+                            padding: '6px 10px',
+                            background: 'rgba(107, 114, 128, 0.15)',
+                            border: '1px solid rgba(107, 114, 128, 0.3)',
+                            borderRadius: '6px',
+                            color: '#6b7280',
+                            cursor: 'not-allowed',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            flexShrink: 0
+                          }}
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                            <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                          </svg>
+                        </button>
+                      )}
+                    </div>
                   </td>
                 </tr>
                 );
