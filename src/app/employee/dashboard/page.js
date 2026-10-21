@@ -1025,11 +1025,28 @@ function SalaryTab({ data, employee, projects, leads, projectsError }) {
 }
 
 // Projects Tab Component
+const MAX_PAYMENT_PROOF_UPLOAD_BYTES = 1024 * 1024;
+
+const showPaymentAlert = (options) => Swal.fire({
+  background: '#100d16',
+  color: '#fff',
+  confirmButtonColor: '#8b5cf6',
+  customClass: {
+    container: 'payment-alert-container',
+    popup: 'payment-alert-popup',
+    title: 'payment-alert-title',
+    htmlContainer: 'payment-alert-text',
+    confirmButton: 'payment-alert-confirm'
+  },
+  ...options
+});
+
 function ProjectsTab({ data, employee, onRefresh }) {
   const [selectedInstallment, setSelectedInstallment] = useState(null);
   const [paymentMethod, setPaymentMethod] = useState('online');
   const [paymentProof, setPaymentProof] = useState('');
   const [paymentNote, setPaymentNote] = useState('');
+  const [proofProcessing, setProofProcessing] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
   const openPaymentForm = (project, installment) => {
@@ -1042,9 +1059,65 @@ function ProjectsTab({ data, employee, onRefresh }) {
   const handleProofChange = (event) => {
     const file = event.target.files?.[0];
     if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () => setPaymentProof(reader.result);
-    reader.readAsDataURL(file);
+    if (file.size >= MAX_PAYMENT_PROOF_UPLOAD_BYTES) {
+      event.target.value = '';
+      setPaymentProof('');
+      showPaymentAlert({
+        icon: 'error',
+        title: 'Image Too Large',
+        text: 'Payment proof image must be smaller than 1 MB. Please choose an image under 1 MB.'
+      });
+      return;
+    }
+
+    setProofProcessing(true);
+    const compressProof = async () => {
+      let bitmap;
+      try {
+        bitmap = await createImageBitmap(file);
+        const canvas = document.createElement('canvas');
+        const maxDimension = 1280;
+        let scale = Math.min(1, maxDimension / Math.max(bitmap.width, bitmap.height));
+        let proofBlob;
+        for (let attempt = 0; attempt < 12; attempt++) {
+          canvas.width = Math.round(bitmap.width * scale);
+          canvas.height = Math.round(bitmap.height * scale);
+          const context = canvas.getContext('2d');
+          if (!context) throw new Error('Could not process the payment proof image.');
+          context.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+
+          for (let quality = 0.82; quality >= 0.42; quality -= 0.1) {
+            proofBlob = await new Promise((resolve) => canvas.toBlob(resolve, 'image/jpeg', quality));
+            if (proofBlob && proofBlob.size <= 600 * 1024) break;
+          }
+          if (proofBlob && proofBlob.size <= 600 * 1024) break;
+          scale *= 0.8;
+        }
+        if (!proofBlob || proofBlob.size > 600 * 1024) {
+          throw new Error('Image is too large to process. Please choose a smaller payment proof.');
+        }
+
+        const reader = new FileReader();
+        const proofDataUrl = await new Promise((resolve, reject) => {
+          reader.onload = () => resolve(reader.result);
+          reader.onerror = () => reject(new Error('Please select the payment proof image again.'));
+          reader.readAsDataURL(proofBlob);
+        });
+        setPaymentProof(proofDataUrl);
+      } catch (error) {
+        setPaymentProof('');
+        showPaymentAlert({
+          icon: 'error',
+          title: 'Image Processing Failed',
+          text: error.message
+        });
+      } finally {
+        bitmap?.close();
+        setProofProcessing(false);
+      }
+    };
+
+    compressProof();
   };
 
   const submitPayment = async (event) => {
@@ -1069,10 +1142,10 @@ function ProjectsTab({ data, employee, onRefresh }) {
       const result = await response.json();
       if (!result.success) throw new Error(result.message);
       setSelectedInstallment(null);
-      await Swal.fire({ icon: 'success', title: 'Payment Submitted', text: 'The payment has been submitted to the admin for review.', background: '#0d0d0d', color: '#fff', timer: 1800, showConfirmButton: false });
+      await showPaymentAlert({ icon: 'success', title: 'Payment Submitted', text: 'The payment has been submitted to the admin for review.', timer: 1800, showConfirmButton: false });
       onRefresh();
     } catch (error) {
-      Swal.fire({ icon: 'error', title: 'Payment Submit Failed', text: error.message, background: '#0d0d0d', color: '#fff' });
+      showPaymentAlert({ icon: 'error', title: 'Payment Submit Failed', text: error.message });
     } finally {
       setSubmitting(false);
     }
@@ -1160,8 +1233,8 @@ function ProjectsTab({ data, employee, onRefresh }) {
             )}
             <label>Payment Details</label>
             <textarea value={paymentNote} onChange={(event) => setPaymentNote(event.target.value)} placeholder="Transaction ID, cheque number, or other details" rows="3" />
-            <button className="payment-submit-main" type="submit" disabled={submitting}>
-              {submitting ? 'Submitting...' : 'Submit Payment'}
+            <button className="payment-submit-main" type="submit" disabled={submitting || proofProcessing}>
+              {proofProcessing ? 'Processing Image...' : submitting ? 'Submitting...' : 'Submit Payment'}
             </button>
           </form>
         </div>

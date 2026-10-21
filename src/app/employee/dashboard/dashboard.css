@@ -556,12 +556,63 @@
 }
 
 .payment-modal {
+  position: relative;
+  z-index: 1;
   width: min(470px, 100%);
   padding: 25px;
   border: 1px solid rgba(177, 76, 255, 0.45);
   border-radius: 16px;
   background: #111014;
   box-shadow: 0 20px 70px rgba(0, 0, 0, 0.65), 0 0 32px rgba(177, 76, 255, 0.18);
+}
+
+.payment-alert-container {
+  z-index: 20000 !important;
+  padding: 20px;
+}
+
+.payment-alert-popup {
+  position: relative;
+  overflow: hidden;
+  width: min(430px, calc(100vw - 40px));
+  padding: 32px 28px 26px;
+  border: 1px solid rgba(177, 76, 255, 0.68) !important;
+  border-radius: 20px !important;
+  background:
+    radial-gradient(ellipse at 50% 0%, rgba(177, 76, 255, 0.16), transparent 62%),
+    linear-gradient(145deg, #17121f 0%, #0b0a0f 100%) !important;
+  box-shadow:
+    0 28px 90px rgba(0, 0, 0, 0.78),
+    0 0 0 1px rgba(177, 76, 255, 0.12),
+    0 0 44px rgba(139, 92, 246, 0.2) !important;
+}
+
+.payment-alert-title {
+  margin-top: 12px !important;
+  color: #fff !important;
+  font-size: 25px !important;
+  font-weight: 750 !important;
+  letter-spacing: -0.5px;
+}
+
+.payment-alert-text {
+  color: #d4cbdc !important;
+  font-size: 15px !important;
+  line-height: 1.65 !important;
+}
+
+.payment-alert-popup .swal2-icon {
+  margin: 4px auto 14px !important;
+}
+
+.payment-alert-confirm {
+  min-width: 92px;
+  padding: 11px 24px !important;
+  border: 1px solid rgba(255, 255, 255, 0.18) !important;
+  border-radius: 10px !important;
+  background: linear-gradient(135deg, #a855f7, #6d28d9) !important;
+  box-shadow: 0 7px 22px rgba(139, 92, 246, 0.32);
+  font-weight: 700 !important;
 }
 
 .payment-modal-header {

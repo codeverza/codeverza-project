@@ -5,6 +5,26 @@ import { NextResponse } from 'next/server';
 const PROJECTS_COLLECTION = 'employeeProjects';
 const EMPLOYEES_COLLECTION = 'employees';
 
+const withPaymentWorkflow = async (projectId, project) => {
+  const paymentsSnapshot = await getDocs(
+    collection(db, PROJECTS_COLLECTION, projectId, 'payments')
+  );
+  const paymentWorkflow = {
+    ...(project.paymentWorkflow || {}),
+    ...Object.fromEntries(paymentsSnapshot.docs.map((paymentDoc) => [paymentDoc.id, paymentDoc.data()]))
+  };
+
+  return {
+    ...project,
+    installments: (project.installments || []).map((installment) => {
+      const workflow = paymentWorkflow[installment.id];
+      return workflow
+        ? { ...installment, status: workflow.status, payment: workflow.payment }
+        : installment;
+    })
+  };
+};
+
 const createProjectFromWonLead = async (leadDoc) => {
   const lead = leadDoc.data();
   const projectValue = Number(lead.wonPrice || lead.expectedValue || 0);
@@ -102,7 +122,7 @@ export async function GET(request) {
 
       return NextResponse.json({
         success: true,
-        project: { id: projectDoc.id, ...projectDoc.data() }
+        project: { id: projectDoc.id, ...await withPaymentWorkflow(projectDoc.id, projectDoc.data()) }
       });
     }
 
@@ -122,10 +142,11 @@ export async function GET(request) {
     }
 
     const querySnapshot = await getDocs(projectsQuery);
-    let projects = querySnapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data()
-    })).sort((first, second) => {
+    let projects = await Promise.all(querySnapshot.docs.map(async (projectDoc) => ({
+      id: projectDoc.id,
+      ...await withPaymentWorkflow(projectDoc.id, projectDoc.data())
+    })));
+    projects.sort((first, second) => {
       const firstDate = first.createdAt?.toMillis?.() || 0;
       const secondDate = second.createdAt?.toMillis?.() || 0;
       return secondDate - firstDate;

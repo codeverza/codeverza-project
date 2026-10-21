@@ -57,6 +57,10 @@ service cloud.firestore {
       allow read, write: if true;
     }
 
+    match /employeeProjects/{projectId}/payments/{installmentId} {
+      allow read, write: if true;
+    }
+
     // Tasks
     match /tasks/{taskId} {
       allow read, write: if true;

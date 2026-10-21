@@ -6,23 +6,57 @@ import {
   getDocs,
   query,
   where,
-  updateDoc,
-  Timestamp
+  setDoc
 } from 'firebase/firestore';
 import { NextResponse } from 'next/server';
 
 const PROJECTS_COLLECTION = 'employeeProjects';
+const MAX_PAYMENT_PROOF_BYTES = 600 * 1024;
 
-const getProject = async (projectId) => {
-  const projectDoc = await getDoc(doc(db, PROJECTS_COLLECTION, projectId));
-  return projectDoc.exists() ? { id: projectDoc.id, ...projectDoc.data() } : null;
+const getProjectWithPayments = async (projectId, project) => {
+  const paymentsSnapshot = await getDocs(
+    collection(db, PROJECTS_COLLECTION, projectId, 'payments')
+  );
+  const paymentWorkflow = {
+    ...(project.paymentWorkflow || {}),
+    ...Object.fromEntries(paymentsSnapshot.docs.map((paymentDoc) => [paymentDoc.id, paymentDoc.data()]))
+  };
+
+  return {
+    id: projectId,
+    ...project,
+    installments: (project.installments || []).map((installment) => {
+      const workflow = paymentWorkflow[installment.id];
+      return workflow
+        ? { ...installment, status: workflow.status, payment: workflow.payment }
+        : installment;
+    })
+  };
 };
 
-const saveInstallments = async (project, installments) => {
-  await updateDoc(doc(db, PROJECTS_COLLECTION, project.id), {
-    installments,
-    updatedAt: Timestamp.now()
-  });
+const getProject = async (projectId, retries = 3) => {
+  for (let i = 0; i < retries; i++) {
+    try {
+      const projectDoc = await getDoc(doc(db, PROJECTS_COLLECTION, projectId));
+      return projectDoc.exists()
+        ? await getProjectWithPayments(projectDoc.id, projectDoc.data())
+        : null;
+    } catch (error) {
+      // If it's an offline error and we have retries left, wait and retry
+      if (error.code === 'unavailable' && i < retries - 1) {
+        await new Promise(resolve => setTimeout(resolve, 1000 * (i + 1))); // Exponential backoff
+        continue;
+      }
+      throw error; // If not offline error or no retries left, throw
+    }
+  }
+};
+
+const savePaymentWorkflow = async (project, installmentId, workflow) => {
+  await setDoc(
+    doc(db, PROJECTS_COLLECTION, project.id, 'payments', installmentId),
+    workflow
+  );
 };
 
 export async function GET(request) {
@@ -41,12 +75,12 @@ export async function GET(request) {
       ? query(collection(db, PROJECTS_COLLECTION), where('assignedEmployees', 'array-contains', employeeId))
       : query(collection(db, PROJECTS_COLLECTION));
     const snapshot = await getDocs(projectsQuery);
-    const payments = snapshot.docs.flatMap((projectDoc) => {
-      const project = projectDoc.data();
-      return (project.installments || [])
+    const payments = (await Promise.all(snapshot.docs.map(async (projectDoc) => {
+      const project = await getProjectWithPayments(projectDoc.id, projectDoc.data());
+      return project.installments
         .filter((installment) => installment.payment)
         .map((installment) => ({ projectId: projectDoc.id, projectName: project.projectName, clientName: project.clientName, installment }));
-    });
+    }))).flat();
 
     return NextResponse.json({ success: true, payments });
   } catch (error) {
@@ -67,6 +101,20 @@ export async function POST(request) {
     if ((method === 'online' || method === 'cheque') && !proof) {
       return NextResponse.json({ success: false, message: 'Payment proof is required for online payment or cheque' }, { status: 400 });
     }
+    if (proof != null && typeof proof !== 'string') {
+      return NextResponse.json({ success: false, message: 'Payment proof must be an image' }, { status: 400 });
+    }
+    const encodedProof = typeof proof === 'string' ? proof.slice(proof.indexOf(',') + 1) : '';
+    const proofBytes = Math.floor(encodedProof.length * 3 / 4);
+    if (proofBytes > MAX_PAYMENT_PROOF_BYTES) {
+      return NextResponse.json({
+        success: false,
+        message: 'Payment proof could not be optimized enough to submit. Please choose a smaller image.'
+      }, { status: 413 });
+    }
+    if ((note != null && typeof note !== 'string') || (note?.length || 0) > 2000) {
+      return NextResponse.json({ success: false, message: 'Payment details must be 2,000 characters or fewer' }, { status: 400 });
+    }
 
     const project = await getProject(projectId);
     if (!project) return NextResponse.json({ success: false, message: 'Project not found' }, { status: 404 });
@@ -84,24 +132,38 @@ export async function POST(request) {
       return NextResponse.json({ success: false, message: 'This installment is already approved' }, { status: 400 });
     }
 
-    installments[installmentIndex] = {
-      ...installments[installmentIndex],
-      status: 'Submitted',
-      payment: {
-        method,
-        amount: parseFloat(amount),
-        proof: proof || null,
-        note: note || '',
-        submittedBy: submittedBy || null,
-        submittedByName: submittedByName || 'Employee',
-        submittedAt: new Date().toISOString(),
-        adminNote: ''
-      }
+    // Create clean payment object without any Date instances or undefined values
+    const paymentData = {
+      method: method || 'cash',
+      amount: parseFloat(amount) || 0,
+      proof: proof || null,
+      note: typeof note === 'string' ? note : '',
+      submittedBy: typeof submittedBy === 'string' ? submittedBy : null,
+      submittedByName: typeof submittedByName === 'string' ? submittedByName : 'Employee',
+      submittedAt: new Date().toISOString(),
+      adminNote: ''
     };
-    await saveInstallments(project, installments);
+
+    const currentInstallment = installments[installmentIndex];
+    const workflow = {
+      status: 'Submitted',
+      payment: paymentData
+    };
+
+    await savePaymentWorkflow(project, currentInstallment.id, workflow);
     return NextResponse.json({ success: true, message: 'Payment submitted for admin review' });
   } catch (error) {
-    return NextResponse.json({ success: false, message: error.message }, { status: 500 });
+    console.error('Payment submission error:', error);
+
+    // Provide user-friendly error messages
+    let errorMessage = error.message;
+    if (error.code === 'unavailable' || errorMessage.includes('offline')) {
+      errorMessage = 'Connection issue. Please check your internet connection and try again.';
+    } else if (errorMessage.includes('permission-denied')) {
+      errorMessage = 'Permission denied. Please contact administrator.';
+    }
+
+    return NextResponse.json({ success: false, message: errorMessage }, { status: 500 });
   }
 }
 
@@ -134,19 +196,39 @@ export async function PUT(request) {
       return NextResponse.json({ success: false, message: 'Invalid payment action' }, { status: 400 });
     }
 
-    installments[installmentIndex] = {
-      ...installment,
-      status: transition.status,
-      payment: {
-        ...installment.payment,
-        adminNote: adminNote || installment.payment.adminNote || '',
-        lastAction: action,
-        reviewedAt: new Date().toISOString()
-      }
+    // Create clean updated installment without Date instances or undefined values
+    const currentPayment = installment.payment;
+    const updatedPayment = {
+      method: currentPayment.method || 'cash',
+      amount: currentPayment.amount || 0,
+      proof: currentPayment.proof || null,
+      note: currentPayment.note || '',
+      submittedBy: currentPayment.submittedBy || null,
+      submittedByName: currentPayment.submittedByName || 'Employee',
+      submittedAt: currentPayment.submittedAt || new Date().toISOString(),
+      adminNote: adminNote || currentPayment.adminNote || '',
+      lastAction: action || '',
+      reviewedAt: new Date().toISOString()
     };
-    await saveInstallments(project, installments);
+
+    const workflow = {
+      status: transition.status,
+      payment: updatedPayment
+    };
+
+    await savePaymentWorkflow(project, installment.id, workflow);
     return NextResponse.json({ success: true, message: `Payment marked as ${transition.status}` });
   } catch (error) {
-    return NextResponse.json({ success: false, message: error.message }, { status: 500 });
+    console.error('Payment update error:', error);
+
+    // Provide user-friendly error messages
+    let errorMessage = error.message;
+    if (error.code === 'unavailable' || errorMessage.includes('offline')) {
+      errorMessage = 'Connection issue. Please check your internet connection and try again.';
+    } else if (errorMessage.includes('permission-denied')) {
+      errorMessage = 'Permission denied. Please contact administrator.';
+    }
+
+    return NextResponse.json({ success: false, message: errorMessage }, { status: 500 });
   }
 }
