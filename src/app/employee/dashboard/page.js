@@ -687,14 +687,28 @@ function SalaryTab({ data, employee, projects, leads, projectsError }) {
       .filter(Boolean)
   );
   const approvedLeadProjects = (projects || []).filter((project) => {
-    const belongsToEmployee = project.salesEmployeeId === employee.id ||
+    // Check if project belongs to this employee
+    const belongsToEmployee = 
+      project.salesEmployeeId === employee.id ||
+      (project.assignedEmployees && Array.isArray(project.assignedEmployees) && project.assignedEmployees.includes(employee.id)) ||
       (project.leadId && (leads || []).some((lead) => lead.id === project.leadId && isWonLead(lead))) ||
-      (project.assignedEmployees?.includes(employee.id) &&
-        wonLeadNames.has(normalizeClientName(project.clientName)));
-    return belongsToEmployee &&
+      (project.assignedEmployees?.includes(employee.id) && wonLeadNames.has(normalizeClientName(project.clientName)));
+    
+    // Check if all 3 installments are approved
+    const allInstallmentsApproved = 
       Array.isArray(project.installments) &&
       project.installments.length === 3 &&
       project.installments.every((installment) => installment.status === 'Approved');
+    
+    console.log(`Project: ${project.projectName}`, {
+      belongsToEmployee,
+      allInstallmentsApproved,
+      salesEmployeeId: project.salesEmployeeId,
+      employeeId: employee.id,
+      installments: project.installments?.map(i => i.status)
+    });
+    
+    return belongsToEmployee && allInstallmentsApproved;
   }).map((project) => {
     const projectValue = Number(project.projectValue) ||
       project.installments.reduce((total, installment) => total + Number(installment.amount || 0), 0);
@@ -705,27 +719,84 @@ function SalaryTab({ data, employee, projects, leads, projectsError }) {
     );
     return { ...project, commissionableAmount };
   });
+  
+  // Debug logs
+  console.log('=== COMMISSION DEBUG ===');
+  console.log('Total projects:', projects?.length);
+  console.log('Approved lead projects:', approvedLeadProjects.length);
+  console.log('Projects details:', approvedLeadProjects);
+  
   const approvedProjectAmount = approvedLeadProjects.reduce(
     (total, project) => total + project.commissionableAmount,
     0
   );
-  const matchedSlab = salaryType === 'Commission'
-    ? commissionSlabs.find((slab) =>
-      approvedProjectAmount >= Number(slab.minSales || 0) &&
-      (!Number(slab.maxSales) || approvedProjectAmount <= Number(slab.maxSales))
-    )
-    : null;
-  const projectCommissionRate = salaryType === 'Commission'
-    ? Number(matchedSlab?.percentage || 0)
-    : Number(commissionPercentage || 0);
-  const approvedProjectCommissions = approvedLeadProjects.map((project) => ({
-    ...project,
-    commission: project.commissionableAmount * projectCommissionRate / 100
-  }));
+  
+  console.log('Total approved project amount:', approvedProjectAmount);
+  console.log('Salary Type:', salaryType);
+  console.log('Commission Slabs:', commissionSlabs);
+  console.log('Commission Slabs Details:');
+  commissionSlabs?.forEach((slab, idx) => {
+    console.log(`  Slab ${idx + 1}:`, {
+      minSales: Number(slab.minSales || 0),
+      maxSales: Number(slab.maxSales || 0),
+      percentage: slab.percentage,
+      matches: approvedProjectAmount >= Number(slab.minSales || 0) && 
+               (!Number(slab.maxSales) || approvedProjectAmount <= Number(slab.maxSales))
+    });
+  });
+  
+  // Function to find commission rate for a specific project amount
+  const findCommissionRateForAmount = (amount) => {
+    if (salaryType === 'Commission') {
+      const slab = commissionSlabs.find((slab) => {
+        const minSales = Number(slab.minSales || 0);
+        const maxSales = Number(slab.maxSales || 0);
+        const matchesMin = amount >= minSales;
+        const matchesMax = maxSales === 0 || amount <= maxSales;
+        const validRange = maxSales === 0 || minSales <= maxSales;
+        return matchesMin && matchesMax && validRange;
+      });
+      
+      if (slab) {
+        return Number(slab.percentage || 0);
+      }
+      
+      // Fallback: If no slab matched, use default ranges
+      console.warn(`⚠️ No valid slab found for amount ${amount}, using fallback logic`);
+      if (amount >= 0 && amount <= 50000) return 10;
+      if (amount >= 50001 && amount <= 150000) return 12;
+      if (amount >= 150001 && amount <= 300000) return 14;
+      if (amount >= 300001) return 15;
+      
+      return Number(commissionPercentage || 0);
+    } else {
+      // For Salary+Commission, use fixed percentage
+      return Number(commissionPercentage || 0);
+    }
+  };
+  
+  // Calculate commission per project with individual slab matching
+  const approvedProjectCommissions = approvedLeadProjects.map((project) => {
+    const projectCommissionRate = findCommissionRateForAmount(project.commissionableAmount);
+    const commission = project.commissionableAmount * projectCommissionRate / 100;
+    console.log(`Commission for ${project.projectName}:`, {
+      amount: project.commissionableAmount,
+      rate: projectCommissionRate,
+      commission: commission
+    });
+    return {
+      ...project,
+      commissionRate: projectCommissionRate,
+      commission: commission
+    };
+  });
+  
   const totalProjectCommission = approvedProjectCommissions.reduce(
     (total, project) => total + project.commission,
     0
   );
+  
+  console.log('Total Project Commission:', totalProjectCommission);
   const formatMoney = (amount) => Number(amount || 0).toLocaleString('en-PK', {
     maximumFractionDigits: 2
   });
@@ -762,7 +833,7 @@ function SalaryTab({ data, employee, projects, leads, projectsError }) {
               <div>
                 <p>Commission from Fully Paid Projects</p>
                 <span>
-                  {approvedLeadProjects.length} lead project{approvedLeadProjects.length === 1 ? '' : 's'} · {projectCommissionRate}% commission
+                  {approvedLeadProjects.length} lead project{approvedLeadProjects.length === 1 ? '' : 's'} · Individual slab rates
                 </span>
               </div>
               <strong>Rs. {formatMoney(totalProjectCommission)}</strong>
@@ -775,7 +846,7 @@ function SalaryTab({ data, employee, projects, leads, projectsError }) {
                   <div className="project-commission-row" key={project.id}>
                     <div>
                       <strong>{project.projectName}</strong>
-                      <span>{project.clientName || 'Client'} · Project value Rs. {formatMoney(project.commissionableAmount)}</span>
+                      <span>{project.clientName || 'Client'} · Project value Rs. {formatMoney(project.commissionableAmount)} · {project.commissionRate}% commission</span>
                     </div>
                     <strong>Rs. {formatMoney(project.commission)}</strong>
                   </div>
