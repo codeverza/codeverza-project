@@ -2939,6 +2939,28 @@ function QuotationsTab({ data, employee, onRefresh }) {
     return new Intl.NumberFormat('en-PK', { style: 'currency', currency: c, minimumFractionDigits: 0 }).format(n);
   };
 
+  // Calculate actual grand total with per-service discounts
+  const calculateGrandTotal = (qt) => {
+    if (!qt.services || qt.services.length === 0) return 0;
+    
+    // Calculate subtotal with per-service discounts
+    const subtotal = qt.services.reduce((sum, svc) => {
+      const discount = svc.discount || 0;
+      const serviceSubtotal = svc.quantity * svc.price;
+      const serviceDiscountAmount = serviceSubtotal * discount / 100;
+      const serviceTotal = serviceSubtotal - serviceDiscountAmount;
+      return sum + serviceTotal;
+    }, 0);
+    
+    // Apply overall discount and tax
+    const overallDiscount = subtotal * (qt.discount || 0) / 100;
+    const taxableAmount = subtotal - overallDiscount;
+    const tax = taxableAmount * (qt.tax || 0) / 100;
+    const grandTotal = subtotal - overallDiscount + tax;
+    
+    return grandTotal;
+  };
+
   const handleDelete = async (qt) => {
     // Only pending and rejected quotations can be deleted by employee
     if (qt.approvalStatus !== 'Pending' && qt.approvalStatus !== 'Rejected') {
@@ -3024,7 +3046,7 @@ function QuotationsTab({ data, employee, onRefresh }) {
                 )}
               </div>
               <div className="emp-qt-card-right">
-                <span className="emp-qt-card-total">{fmtCur(qt.grandTotal, qt.currency)}</span>
+                <span className="emp-qt-card-total">{fmtCur(calculateGrandTotal(qt), qt.currency)}</span>
                 {approvalPill(qt.approvalStatus)}
                 <div className="emp-qt-card-actions">
                   <button className="emp-qt-view-btn" onClick={() => router.push(`/employee/quotations/preview/${qt.id}`)}>

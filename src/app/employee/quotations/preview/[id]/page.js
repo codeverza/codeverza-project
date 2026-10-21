@@ -381,27 +381,55 @@ export default function EmployeeQuotationPreviewPage() {
               <FiEdit /> Edit
             </button>
           )}
-          <button
-            onClick={handlePrint}
-            style={{
+          
+          {/* Print button - Only show for Approved quotations */}
+          {quotation.approvalStatus === 'Approved' && (
+            <button
+              onClick={handlePrint}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                padding: '10px 16px',
+                background: '#b14cff',
+                color: '#fff',
+                border: 'none',
+                borderRadius: '8px',
+                cursor: 'pointer',
+                fontSize: '14px',
+                fontWeight: '500',
+                transition: 'all 0.2s'
+              }}
+              onMouseOver={(e) => e.currentTarget.style.background = '#9333ea'}
+              onMouseOut={(e) => e.currentTarget.style.background = '#b14cff'}
+            >
+              <FiDownload /> Print PDF
+            </button>
+          )}
+          
+          {/* Message for non-approved quotations */}
+          {quotation.approvalStatus !== 'Approved' && (
+            <div style={{
               display: 'flex',
               alignItems: 'center',
               gap: '8px',
               padding: '10px 16px',
-              background: '#b14cff',
-              color: '#fff',
-              border: 'none',
+              background: 'rgba(251, 191, 36, 0.1)',
+              border: '1px solid rgba(251, 191, 36, 0.3)',
               borderRadius: '8px',
-              cursor: 'pointer',
-              fontSize: '14px',
-              fontWeight: '500',
-              transition: 'all 0.2s'
-            }}
-            onMouseOver={(e) => e.currentTarget.style.background = '#9333ea'}
-            onMouseOut={(e) => e.currentTarget.style.background = '#b14cff'}
-          >
-            <FiDownload /> Print PDF
-          </button>
+              color: '#fbbf24',
+              fontSize: '13px',
+              fontWeight: '500'
+            }}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="12" y1="8" x2="12" y2="12"></line>
+                <line x1="12" y1="16" x2="12.01" y2="16"></line>
+              </svg>
+              {quotation.approvalStatus === 'Pending' && 'Print available after admin approval'}
+              {quotation.approvalStatus === 'Rejected' && 'Quotation rejected - cannot print'}
+            </div>
+          )}
         </div>
       </div>
 
@@ -464,12 +492,19 @@ function QuotationPreviewContent({ quotation: qt }) {
   };
   
   const getCurrencyTotals = () => {
-    if (qt.totalsByCurrency) return qt.totalsByCurrency;
-    return (qt.services || []).reduce((t, s) => {
+    // Always recalculate - ignore cached totalsByCurrency
+    const totals = (qt.services || []).reduce((t, s) => {
       const c = s.currency || qt.currency || 'PKR';
-      t[c] = (t[c] || 0) + s.quantity * s.price;
+      const discount = s.discount || 0;
+      const subtotal = s.quantity * s.price;
+      const discountAmount = subtotal * discount / 100;
+      const total = subtotal - discountAmount;
+      console.log(`Service: ${s.name}, Subtotal: ${subtotal}, Discount: ${discount}%, Total: ${total}`);
+      t[c] = (t[c] || 0) + total;
       return t;
     }, {});
+    console.log('Final Currency Totals:', totals);
+    return totals;
   };
 
   // Debug: Check employee email
@@ -533,25 +568,63 @@ function QuotationPreviewContent({ quotation: qt }) {
           <table className="services-table">
             <thead>
               <tr>
-                <th style={{ width: '22%' }}>Service</th>
-                <th style={{ width: '34%' }}>Description</th>
+                <th style={{ width: '20%' }}>Service</th>
+                <th style={{ width: '30%' }}>Description</th>
                 <th style={{ width: '7%', textAlign: 'center' }}>Qty</th>
-                <th style={{ width: '13%', textAlign: 'right' }}>Unit Price</th>
-                <th style={{ width: '10%' }}>Billing</th>
+                <th style={{ width: '12%', textAlign: 'right' }}>Unit Price</th>
+                <th style={{ width: '8%', textAlign: 'center' }}>Disc%</th>
+                <th style={{ width: '9%' }}>Billing</th>
                 <th style={{ width: '14%', textAlign: 'right' }}>Total</th>
               </tr>
             </thead>
             <tbody>
-              {(qt.services || []).map((svc, i) => (
+              {(qt.services || []).map((svc, i) => {
+                const discount = svc.discount || 0;
+                const subtotal = svc.quantity * svc.price;
+                const discountAmount = subtotal * discount / 100;
+                const total = subtotal - discountAmount;
+                
+                return (
                 <tr key={i}>
                   <td><strong>{svc.name}</strong></td>
                   <td>{svc.description ? <span className="service-desc">{svc.description}</span> : '—'}</td>
                   <td className="text-center">{svc.quantity}</td>
                   <td className="text-right">{fmtCur(svc.price, svc.currency || qt.currency)}</td>
+                  <td className="text-center">
+                    {discount > 0 ? (
+                      <span style={{ 
+                        color: '#10b981', 
+                        fontWeight: '600',
+                        fontSize: '12px'
+                      }}>
+                        {discount}%
+                      </span>
+                    ) : (
+                      <span style={{ color: '#999', fontSize: '12px' }}>—</span>
+                    )}
+                  </td>
                   <td style={{ textTransform: 'capitalize', fontSize: '11.5px', color: '#666' }}>{svc.billingCycle}</td>
-                  <td className="text-right">{fmtCur(svc.quantity * svc.price, svc.currency || qt.currency)}</td>
+                  <td className="text-right">
+                    {discount > 0 ? (
+                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '2px' }}>
+                        <span style={{ 
+                          fontSize: '10px', 
+                          color: '#999', 
+                          textDecoration: 'line-through' 
+                        }}>
+                          {fmtCur(subtotal, svc.currency || qt.currency)}
+                        </span>
+                        <span style={{ color: '#10b981', fontWeight: '600' }}>
+                          {fmtCur(total, svc.currency || qt.currency)}
+                        </span>
+                      </div>
+                    ) : (
+                      fmtCur(total, svc.currency || qt.currency)
+                    )}
+                  </td>
                 </tr>
-              ))}
+                );
+              })}
             </tbody>
           </table>
         </div>

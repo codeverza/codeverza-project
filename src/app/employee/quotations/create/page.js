@@ -13,6 +13,7 @@ const defaultService = () => ({
   description: '',
   quantity: 1,
   price: 0,
+  discount: 0, // Per-service discount percentage
   currency: 'PKR',
   billingCycle: 'One-Time',
   total: 0,
@@ -87,8 +88,13 @@ export default function EmployeeCreateQuotationPage() {
   const setService = (idx, field, value) => {
     const services = [...form.services];
     services[idx] = { ...services[idx], [field]: value };
-    if (field === 'quantity' || field === 'price') {
-      services[idx].total = services[idx].quantity * services[idx].price;
+    if (field === 'quantity' || field === 'price' || field === 'discount') {
+      const qty = services[idx].quantity;
+      const price = services[idx].price;
+      const discount = services[idx].discount || 0;
+      const subtotal = qty * price;
+      const discountAmount = subtotal * discount / 100;
+      services[idx].total = subtotal - discountAmount;
     }
     setForm(prev => ({ ...prev, services }));
   };
@@ -105,7 +111,7 @@ export default function EmployeeCreateQuotationPage() {
     setForm(prev => ({ ...prev, services: prev.services.filter((_, i) => i !== idx) }));
   };
 
-  const subtotal = () => form.services.reduce((s, sv) => s + sv.quantity * sv.price, 0);
+  const subtotal = () => form.services.reduce((s, sv) => s + sv.total, 0); // Use sv.total which already has discount applied
   const discountAmt = () => subtotal() * form.discount / 100;
   const taxAmt = () => (subtotal() - discountAmt()) * form.tax / 100;
   const grandTotal = () => subtotal() - discountAmt() + taxAmt();
@@ -143,10 +149,143 @@ export default function EmployeeCreateQuotationPage() {
       if (data.success) {
         try { sessionStorage.removeItem(DRAFT_KEY); } catch {}
         await Swal.fire({
-          icon: 'success',
-          title: 'Quotation Submitted!',
-          html: `<p style="color:#fff">Ref: <strong style="color:#b14cff">${data.data.quotationNumber}</strong></p><p style="color:#aaa;font-size:13px">This can be sent only after admin approval.</p>`,
-          background: '#0d0d0d', color: '#fff', confirmButtonColor: '#b14cff', confirmButtonText: 'View My Quotations',
+          title: '<div style="font-size: 28px; font-weight: 700; background: linear-gradient(135deg, #b14cff 0%, #d946ef 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 8px;">Quotation Submitted!</div>',
+          html: `
+            <div style="text-align: center; padding: 20px 0;">
+              <div style="
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                width: 100px;
+                height: 100px;
+                background: linear-gradient(135deg, rgba(177, 76, 255, 0.1) 0%, rgba(217, 70, 239, 0.1) 100%);
+                border: 3px solid rgba(177, 76, 255, 0.3);
+                border-radius: 50%;
+                margin-bottom: 24px;
+                animation: successPulse 1.5s ease-in-out infinite;
+              ">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#b14cff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                  <polyline points="22 4 12 14.01 9 11.01" style="animation: checkDraw 0.5s ease-in-out 0.3s forwards; stroke-dasharray: 100; stroke-dashoffset: 100;"></polyline>
+                </svg>
+              </div>
+              
+              <div style="
+                background: linear-gradient(135deg, rgba(177, 76, 255, 0.15) 0%, rgba(217, 70, 239, 0.15) 100%);
+                border: 1px solid rgba(177, 76, 255, 0.3);
+                border-radius: 12px;
+                padding: 16px 24px;
+                margin: 20px 0;
+                position: relative;
+                overflow: hidden;
+              ">
+                <div style="
+                  position: absolute;
+                  top: 0;
+                  left: 0;
+                  right: 0;
+                  bottom: 0;
+                  background: linear-gradient(90deg, transparent, rgba(177, 76, 255, 0.1), transparent);
+                  animation: shimmer 2s infinite;
+                "></div>
+                <p style="
+                  color: #888;
+                  font-size: 12px;
+                  text-transform: uppercase;
+                  letter-spacing: 1px;
+                  margin: 0 0 8px 0;
+                  font-weight: 600;
+                ">Reference Number</p>
+                <p style="
+                  color: #fff;
+                  font-size: 20px;
+                  font-weight: 700;
+                  font-family: 'Courier New', monospace;
+                  letter-spacing: 1px;
+                  margin: 0;
+                  background: linear-gradient(135deg, #b14cff 0%, #d946ef 100%);
+                  -webkit-background-clip: text;
+                  -webkit-text-fill-color: transparent;
+                ">${data.data.quotationNumber}</p>
+              </div>
+              
+              <div style="
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 8px;
+                margin-top: 20px;
+                padding: 12px 20px;
+                background: rgba(251, 191, 36, 0.1);
+                border: 1px solid rgba(251, 191, 36, 0.3);
+                border-radius: 8px;
+              ">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fbbf24" stroke-width="2">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <line x1="12" y1="16" x2="12" y2="12"></line>
+                  <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                </svg>
+                <p style="
+                  color: #fbbf24;
+                  font-size: 13px;
+                  margin: 0;
+                  font-weight: 500;
+                ">This quotation requires admin approval before sending</p>
+              </div>
+              
+              <style>
+                @keyframes successPulse {
+                  0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(177, 76, 255, 0.4); }
+                  50% { transform: scale(1.05); box-shadow: 0 0 0 10px rgba(177, 76, 255, 0); }
+                }
+                @keyframes checkDraw {
+                  to { stroke-dashoffset: 0; }
+                }
+                @keyframes shimmer {
+                  0% { transform: translateX(-100%); }
+                  100% { transform: translateX(100%); }
+                }
+              </style>
+            </div>
+          `,
+          background: '#0d0d0d',
+          color: '#fff',
+          confirmButtonColor: '#b14cff',
+          confirmButtonText: '✓ View My Quotations',
+          showCloseButton: false,
+          allowOutsideClick: false,
+          customClass: {
+            popup: 'quotation-success-popup',
+            title: 'quotation-success-title',
+            htmlContainer: 'quotation-success-content',
+            confirmButton: 'quotation-success-button'
+          },
+          didOpen: () => {
+            // Add custom button styling
+            const style = document.createElement('style');
+            style.textContent = `
+              .quotation-success-popup {
+                border-radius: 16px !important;
+                border: 1px solid rgba(177, 76, 255, 0.2) !important;
+                box-shadow: 0 20px 60px rgba(177, 76, 255, 0.3) !important;
+                padding: 30px !important;
+              }
+              .quotation-success-button {
+                border-radius: 8px !important;
+                padding: 12px 32px !important;
+                font-weight: 600 !important;
+                font-size: 15px !important;
+                background: linear-gradient(135deg, #b14cff 0%, #d946ef 100%) !important;
+                border: none !important;
+                transition: all 0.3s ease !important;
+              }
+              .quotation-success-button:hover {
+                transform: translateY(-2px) !important;
+                box-shadow: 0 8px 20px rgba(177, 76, 255, 0.4) !important;
+              }
+            `;
+            document.head.appendChild(style);
+          }
         });
         router.push('/employee/dashboard');
       } else {
@@ -280,6 +419,18 @@ export default function EmployeeCreateQuotationPage() {
                   </div>
                 </div>
                 <div className="emp-qt-field">
+                  <label>Discount (%)</label>
+                  <input 
+                    type="number" 
+                    value={svc.discount || 0} 
+                    min="0" 
+                    max="100" 
+                    onChange={e => setService(idx, 'discount', parseFloat(e.target.value) || 0)}
+                    placeholder="0"
+                    style={{ fontSize: '14px' }}
+                  />
+                </div>
+                <div className="emp-qt-field">
                   <label>Billing Cycle</label>
                   <select value={svc.billingCycle} onChange={e => setService(idx, 'billingCycle', e.target.value)}>
                     {BILLING_CYCLES.map(c => <option key={c} value={c}>{c}</option>)}
@@ -287,7 +438,20 @@ export default function EmployeeCreateQuotationPage() {
                 </div>
                 <div className="emp-qt-field emp-qt-total-display">
                   <label>Line Total</label>
-                  <p className="emp-qt-line-total">{fmtCur(svc.quantity * svc.price, svc.currency || form.currency)}</p>
+                  <p className="emp-qt-line-total">
+                    {svc.discount > 0 ? (
+                      <span style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                        <span style={{ fontSize: '12px', color: '#888', textDecoration: 'line-through' }}>
+                          {fmtCur(svc.quantity * svc.price, svc.currency || form.currency)}
+                        </span>
+                        <span style={{ color: '#10b981', fontWeight: '600' }}>
+                          {fmtCur(svc.total, svc.currency || form.currency)}
+                        </span>
+                      </span>
+                    ) : (
+                      fmtCur(svc.total, svc.currency || form.currency)
+                    )}
+                  </p>
                 </div>
               </div>
             </div>

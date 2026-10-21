@@ -54,6 +54,27 @@ export default function EmployeeQuotationApprovalPage() {
     setFiltered(list);
   };
 
+  // Calculate grand total with per-service discounts
+  const calculateGrandTotal = (qt) => {
+    if (!qt.services || qt.services.length === 0) return 0;
+    
+    // Calculate subtotal with per-service discounts
+    const subtotal = qt.services.reduce((sum, svc) => {
+      const discount = svc.discount || 0;
+      const serviceSubtotal = svc.quantity * svc.price;
+      const serviceDiscountAmount = serviceSubtotal * discount / 100;
+      return sum + (serviceSubtotal - serviceDiscountAmount);
+    }, 0);
+    
+    // Apply overall discount
+    const overallDiscount = subtotal * (qt.discount || 0) / 100;
+    
+    // Apply tax
+    const tax = (subtotal - overallDiscount) * (qt.tax || 0) / 100;
+    
+    return subtotal - overallDiscount + tax;
+  };
+
   /* ── Approve ── */
   const handleApprove = async (qt) => {
     const result = await Swal.fire({
@@ -278,7 +299,7 @@ export default function EmployeeQuotationApprovalPage() {
                       {qt.clientCompany && <span className="eq-client-co">{qt.clientCompany}</span>}
                     </div>
                   </td>
-                  <td className="eq-amount">{fmtCur(qt.grandTotal, qt.currency)}</td>
+                  <td className="eq-amount">{fmtCur(calculateGrandTotal(qt), qt.currency)}</td>
                   <td className="eq-date">{fmtDate(qt.createdAt)}</td>
                   <td>{approvalPill(qt.approvalStatus)}</td>
                   <td>
@@ -383,10 +404,14 @@ function QuotationPreviewModal({ quotation: qt, onClose, onApprove, onReject, ac
     return new Intl.NumberFormat('en-PK', { style: 'currency', currency: c, minimumFractionDigits: 2 }).format(n);
   };
   const getCurrencyTotals = () => {
-    if (qt.totalsByCurrency) return qt.totalsByCurrency;
+    // Always recalculate - ignore cached totalsByCurrency
     return (qt.services || []).reduce((t, s) => {
       const c = s.currency || qt.currency || 'PKR';
-      t[c] = (t[c] || 0) + s.quantity * s.price;
+      const discount = s.discount || 0;
+      const subtotal = s.quantity * s.price;
+      const discountAmount = subtotal * discount / 100;
+      const total = subtotal - discountAmount;
+      t[c] = (t[c] || 0) + total;
       return t;
     }, {});
   };
@@ -486,25 +511,63 @@ function QuotationPreviewModal({ quotation: qt, onClose, onApprove, onReject, ac
                 <table className="services-table">
                   <thead>
                     <tr>
-                      <th style={{ width: '22%' }}>Service</th>
-                      <th style={{ width: '34%' }}>Description</th>
+                      <th style={{ width: '20%' }}>Service</th>
+                      <th style={{ width: '30%' }}>Description</th>
                       <th style={{ width: '7%', textAlign: 'center' }}>Qty</th>
-                      <th style={{ width: '13%', textAlign: 'right' }}>Unit Price</th>
-                      <th style={{ width: '10%' }}>Billing</th>
+                      <th style={{ width: '12%', textAlign: 'right' }}>Unit Price</th>
+                      <th style={{ width: '8%', textAlign: 'center' }}>Disc%</th>
+                      <th style={{ width: '9%' }}>Billing</th>
                       <th style={{ width: '14%', textAlign: 'right' }}>Total</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {(qt.services || []).map((svc, i) => (
+                    {(qt.services || []).map((svc, i) => {
+                      const discount = svc.discount || 0;
+                      const subtotal = svc.quantity * svc.price;
+                      const discountAmount = subtotal * discount / 100;
+                      const total = subtotal - discountAmount;
+                      
+                      return (
                       <tr key={i}>
                         <td><strong>{svc.name}</strong></td>
                         <td>{svc.description ? <span className="service-desc">{svc.description}</span> : '—'}</td>
                         <td className="text-center">{svc.quantity}</td>
                         <td className="text-right">{fmtCur(svc.price, svc.currency || qt.currency)}</td>
+                        <td className="text-center">
+                          {discount > 0 ? (
+                            <span style={{ 
+                              color: '#10b981', 
+                              fontWeight: '600',
+                              fontSize: '12px'
+                            }}>
+                              {discount}%
+                            </span>
+                          ) : (
+                            <span style={{ color: '#999', fontSize: '12px' }}>—</span>
+                          )}
+                        </td>
                         <td style={{ textTransform: 'capitalize', fontSize: '11.5px', color: '#666' }}>{svc.billingCycle}</td>
-                        <td className="text-right">{fmtCur(svc.quantity * svc.price, svc.currency || qt.currency)}</td>
+                        <td className="text-right">
+                          {discount > 0 ? (
+                            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '2px' }}>
+                              <span style={{ 
+                                fontSize: '10px', 
+                                color: '#999', 
+                                textDecoration: 'line-through' 
+                              }}>
+                                {fmtCur(subtotal, svc.currency || qt.currency)}
+                              </span>
+                              <span style={{ color: '#10b981', fontWeight: '600' }}>
+                                {fmtCur(total, svc.currency || qt.currency)}
+                              </span>
+                            </div>
+                          ) : (
+                            fmtCur(total, svc.currency || qt.currency)
+                          )}
+                        </td>
                       </tr>
-                    ))}
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>

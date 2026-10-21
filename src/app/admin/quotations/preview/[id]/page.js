@@ -75,10 +75,14 @@ export default function QuotationPreviewPage() {
   };
 
   const getCurrencyTotals = () => {
-    if (quotation?.totalsByCurrency) return quotation.totalsByCurrency;
+    // Always recalculate - ignore cached totalsByCurrency
     return (quotation?.services || []).reduce((totals, service) => {
       const currency = service.currency || quotation?.currency || 'PKR';
-      totals[currency] = (totals[currency] || 0) + (service.quantity * service.price);
+      const discount = service.discount || 0;
+      const subtotal = service.quantity * service.price;
+      const discountAmount = subtotal * discount / 100;
+      const total = subtotal - discountAmount;
+      totals[currency] = (totals[currency] || 0) + total;
       return totals;
     }, {});
   };
@@ -1071,16 +1075,23 @@ export default function QuotationPreviewPage() {
             <table className="services-table">
               <thead>
                 <tr>
-                  <th style={{ width: '22%' }}>Service</th>
-                  <th style={{ width: '34%' }}>Description</th>
+                  <th style={{ width: '20%' }}>Service</th>
+                  <th style={{ width: '30%' }}>Description</th>
                   <th style={{ width: '7%', textAlign: 'center' }}>Qty</th>
-                  <th style={{ width: '13%', textAlign: 'right' }}>Unit Price</th>
-                  <th style={{ width: '10%' }}>Billing</th>
+                  <th style={{ width: '12%', textAlign: 'right' }}>Unit Price</th>
+                  <th style={{ width: '8%', textAlign: 'center' }}>Disc%</th>
+                  <th style={{ width: '9%' }}>Billing</th>
                   <th style={{ width: '14%', textAlign: 'right' }}>Total</th>
                 </tr>
               </thead>
               <tbody>
-                {quotation.services.map((service, index) => (
+                {quotation.services.map((service, index) => {
+                  const discount = service.discount || 0;
+                  const subtotal = service.quantity * service.price;
+                  const discountAmount = subtotal * discount / 100;
+                  const total = subtotal - discountAmount;
+                  
+                  return (
                   <tr key={index}>
                     <td><strong>{service.name}</strong></td>
                     <td>
@@ -1090,14 +1101,43 @@ export default function QuotationPreviewPage() {
                     </td>
                     <td className="text-center">{service.quantity}</td>
                     <td className="text-right">{formatCurrency(service.price, service.currency || quotation.currency)}</td>
+                    <td className="text-center">
+                      {discount > 0 ? (
+                        <span style={{ 
+                          color: '#10b981', 
+                          fontWeight: '600',
+                          fontSize: '12px'
+                        }}>
+                          {discount}%
+                        </span>
+                      ) : (
+                        <span style={{ color: '#999', fontSize: '12px' }}>—</span>
+                      )}
+                    </td>
                     <td style={{ textTransform: 'capitalize', fontSize: '11.5px', color: '#666' }}>
                       {service.billingCycle}
                     </td>
                     <td className="text-right">
-                      {formatCurrency(service.quantity * service.price, service.currency || quotation.currency)}
+                      {discount > 0 ? (
+                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '2px' }}>
+                          <span style={{ 
+                            fontSize: '10px', 
+                            color: '#999', 
+                            textDecoration: 'line-through' 
+                          }}>
+                            {formatCurrency(subtotal, service.currency || quotation.currency)}
+                          </span>
+                          <span style={{ color: '#10b981', fontWeight: '600' }}>
+                            {formatCurrency(total, service.currency || quotation.currency)}
+                          </span>
+                        </div>
+                      ) : (
+                        formatCurrency(total, service.currency || quotation.currency)
+                      )}
                     </td>
                   </tr>
-                ))}
+                  );
+                })}
               </tbody>
             </table>
           </div>

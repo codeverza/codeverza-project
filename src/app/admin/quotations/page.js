@@ -182,6 +182,28 @@ export default function QuotationsPage() {
     }).format(amount);
   };
 
+  // Calculate actual grand total with per-service discounts
+  const calculateGrandTotal = (qt) => {
+    if (!qt.services || qt.services.length === 0) return 0;
+    
+    // Calculate subtotal with per-service discounts
+    const subtotal = qt.services.reduce((sum, svc) => {
+      const discount = svc.discount || 0;
+      const serviceSubtotal = svc.quantity * svc.price;
+      const serviceDiscountAmount = serviceSubtotal * discount / 100;
+      const serviceTotal = serviceSubtotal - serviceDiscountAmount;
+      return sum + serviceTotal;
+    }, 0);
+    
+    // Apply overall discount and tax
+    const overallDiscount = subtotal * (qt.discount || 0) / 100;
+    const taxableAmount = subtotal - overallDiscount;
+    const tax = taxableAmount * (qt.tax || 0) / 100;
+    const grandTotal = subtotal - overallDiscount + tax;
+    
+    return grandTotal;
+  };
+
   if (loading) {
     return null; // Global loader will handle this
   }
@@ -348,7 +370,7 @@ export default function QuotationsPage() {
                   <td>{formatDate(quotation.issueDate)}</td>
                   <td>{formatDate(quotation.validityDate)}</td>
                   <td>
-                    <strong>{formatCurrency(quotation.grandTotal, quotation.currency)}</strong>
+                    <strong>{formatCurrency(calculateGrandTotal(quotation), quotation.currency)}</strong>
                   </td>
                   <td>{getStatusBadge(quotation.status)}</td>
                   <td>

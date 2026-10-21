@@ -12,6 +12,7 @@ const defaultService = () => ({
   description: '',
   quantity: 1,
   price: 0,
+  discount: 0, // Per-service discount percentage
   currency: 'PKR',
   billingCycle: 'One-Time',
   total: 0,
@@ -100,7 +101,8 @@ export default function EmployeeEditQuotationPage() {
         currency: qt.currency || 'PKR',
         services: qt.services?.length ? qt.services.map(s => ({
           ...s,
-          total: s.quantity * s.price
+          discount: s.discount || 0, // Add discount field if it doesn't exist
+          total: s.total || (s.quantity * s.price * (1 - (s.discount || 0) / 100))
         })) : [defaultService()],
         discount: qt.discount || 0,
         tax: qt.tax || 0,
@@ -132,8 +134,13 @@ export default function EmployeeEditQuotationPage() {
   const setService = (idx, field, value) => {
     const services = [...form.services];
     services[idx] = { ...services[idx], [field]: value };
-    if (field === 'quantity' || field === 'price') {
-      services[idx].total = services[idx].quantity * services[idx].price;
+    if (field === 'quantity' || field === 'price' || field === 'discount') {
+      const qty = services[idx].quantity;
+      const price = services[idx].price;
+      const discount = services[idx].discount || 0;
+      const subtotal = qty * price;
+      const discountAmount = subtotal * discount / 100;
+      services[idx].total = subtotal - discountAmount;
     }
     setForm(prev => ({ ...prev, services }));
   };
@@ -159,7 +166,7 @@ export default function EmployeeEditQuotationPage() {
     setForm(prev => ({ ...prev, services: prev.services.filter((_, i) => i !== idx) }));
   };
 
-  const subtotal = () => form.services.reduce((s, sv) => s + sv.quantity * sv.price, 0);
+  const subtotal = () => form.services.reduce((s, sv) => s + sv.total, 0); // Use sv.total which already has discount applied
   const discountAmt = () => subtotal() * form.discount / 100;
   const taxAmt = () => (subtotal() - discountAmt()) * form.tax / 100;
   const grandTotal = () => subtotal() - discountAmt() + taxAmt();
@@ -223,13 +230,138 @@ export default function EmployeeEditQuotationPage() {
 
       if (data.success) {
         await Swal.fire({
-          icon: 'success',
-          title: 'Quotation Updated!',
-          html: `<p style="color:#fff">Ref: <strong style="color:#b14cff">${quotation.quotationNumber}</strong></p><p style="color:#aaa;font-size:13px">Changes saved successfully. The admin will now review the updated quotation.</p>`,
+          title: '<div style="font-size: 28px; font-weight: 700; background: linear-gradient(135deg, #10b981 0%, #059669 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 8px;">Quotation Updated!</div>',
+          html: `
+            <div style="text-align: center; padding: 20px 0;">
+              <div style="
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                width: 100px;
+                height: 100px;
+                background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(5, 150, 105, 0.1) 100%);
+                border: 3px solid rgba(16, 185, 129, 0.3);
+                border-radius: 50%;
+                margin-bottom: 24px;
+                animation: updatePulse 1.5s ease-in-out infinite;
+              ">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2.5">
+                  <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/>
+                  <animateTransform attributeName="transform" type="rotate" from="0 12 12" to="360 12 12" dur="2s" repeatCount="indefinite"/>
+                </svg>
+              </div>
+              
+              <div style="
+                background: linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(5, 150, 105, 0.15) 100%);
+                border: 1px solid rgba(16, 185, 129, 0.3);
+                border-radius: 12px;
+                padding: 16px 24px;
+                margin: 20px 0;
+                position: relative;
+                overflow: hidden;
+              ">
+                <div style="
+                  position: absolute;
+                  top: 0;
+                  left: 0;
+                  right: 0;
+                  bottom: 0;
+                  background: linear-gradient(90deg, transparent, rgba(16, 185, 129, 0.1), transparent);
+                  animation: shimmer 2s infinite;
+                "></div>
+                <p style="
+                  color: #888;
+                  font-size: 12px;
+                  text-transform: uppercase;
+                  letter-spacing: 1px;
+                  margin: 0 0 8px 0;
+                  font-weight: 600;
+                ">Reference Number</p>
+                <p style="
+                  color: #fff;
+                  font-size: 20px;
+                  font-weight: 700;
+                  font-family: 'Courier New', monospace;
+                  letter-spacing: 1px;
+                  margin: 0;
+                  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+                  -webkit-background-clip: text;
+                  -webkit-text-fill-color: transparent;
+                ">${quotation.quotationNumber}</p>
+              </div>
+              
+              <div style="
+                display: flex;
+                align-items: flex-start;
+                gap: 12px;
+                margin-top: 20px;
+                padding: 14px 18px;
+                background: rgba(59, 130, 246, 0.1);
+                border: 1px solid rgba(59, 130, 246, 0.3);
+                border-radius: 8px;
+                text-align: left;
+              ">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2" style="flex-shrink: 0; margin-top: 2px;">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <line x1="12" y1="16" x2="12" y2="12"></line>
+                  <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                </svg>
+                <p style="
+                  color: #93c5fd;
+                  font-size: 13px;
+                  margin: 0;
+                  font-weight: 500;
+                  line-height: 1.6;
+                ">Changes saved successfully. The admin will now review the updated quotation before sending.</p>
+              </div>
+              
+              <style>
+                @keyframes updatePulse {
+                  0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); }
+                  50% { transform: scale(1.05); box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); }
+                }
+                @keyframes shimmer {
+                  0% { transform: translateX(-100%); }
+                  100% { transform: translateX(100%); }
+                }
+              </style>
+            </div>
+          `,
           background: '#0d0d0d', 
           color: '#fff', 
-          confirmButtonColor: '#b14cff', 
-          confirmButtonText: 'Back to Dashboard',
+          confirmButtonColor: '#10b981', 
+          confirmButtonText: '✓ Back to Dashboard',
+          showCloseButton: false,
+          allowOutsideClick: false,
+          customClass: {
+            popup: 'quotation-update-popup',
+            confirmButton: 'quotation-update-button'
+          },
+          didOpen: () => {
+            const style = document.createElement('style');
+            style.textContent = `
+              .quotation-update-popup {
+                border-radius: 16px !important;
+                border: 1px solid rgba(16, 185, 129, 0.2) !important;
+                box-shadow: 0 20px 60px rgba(16, 185, 129, 0.3) !important;
+                padding: 30px !important;
+              }
+              .quotation-update-button {
+                border-radius: 8px !important;
+                padding: 12px 32px !important;
+                font-weight: 600 !important;
+                font-size: 15px !important;
+                background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
+                border: none !important;
+                transition: all 0.3s ease !important;
+              }
+              .quotation-update-button:hover {
+                transform: translateY(-2px) !important;
+                box-shadow: 0 8px 20px rgba(16, 185, 129, 0.4) !important;
+              }
+            `;
+            document.head.appendChild(style);
+          }
         });
         router.push('/employee/dashboard');
       } else {
@@ -468,6 +600,18 @@ export default function EmployeeEditQuotationPage() {
                   </div>
                 </div>
                 <div className="emp-qt-field">
+                  <label>Discount (%)</label>
+                  <input 
+                    type="number" 
+                    value={svc.discount || 0} 
+                    min="0" 
+                    max="100" 
+                    onChange={e => setService(idx, 'discount', parseFloat(e.target.value) || 0)}
+                    placeholder="0"
+                    style={{ fontSize: '14px' }}
+                  />
+                </div>
+                <div className="emp-qt-field">
                   <label>Billing Cycle</label>
                   <select 
                     value={svc.billingCycle} 
@@ -481,7 +625,18 @@ export default function EmployeeEditQuotationPage() {
                 <div className="emp-qt-field emp-qt-total-display">
                   <label>Line Total</label>
                   <p className="emp-qt-line-total">
-                    {fmtCur(svc.quantity * svc.price, svc.currency || form.currency)}
+                    {svc.discount > 0 ? (
+                      <span style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                        <span style={{ fontSize: '12px', color: '#888', textDecoration: 'line-through' }}>
+                          {fmtCur(svc.quantity * svc.price, svc.currency || form.currency)}
+                        </span>
+                        <span style={{ color: '#10b981', fontWeight: '600' }}>
+                          {fmtCur(svc.total, svc.currency || form.currency)}
+                        </span>
+                      </span>
+                    ) : (
+                      fmtCur(svc.total, svc.currency || form.currency)
+                    )}
                   </p>
                 </div>
               </div>
