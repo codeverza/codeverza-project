@@ -159,12 +159,7 @@ function newsletterWelcomeHTML(email) {
                         style="background:linear-gradient(45deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888);border-radius:8px;padding:5px;display:block;" alt="Instagram"/>
                     </a>
                   </td>
-                  <td style="padding:0 6px;">
-                    <a href="https://github.com/codeverza02" title="GitHub">
-                      <img src="https://cdn.jsdelivr.net/npm/simple-icons@v11/icons/github.svg" width="28" height="28"
-                        style="background:#333;border-radius:8px;padding:5px;display:block;" alt="GitHub"/>
-                    </a>
-                  </td>
+                 
                 </tr>
               </table>
               <p style="margin:0 0 6px;font-size:13px;color:#fff;">

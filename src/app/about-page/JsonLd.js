@@ -28,7 +28,7 @@ export default function JsonLd() {
     sameAs: [
       'https://www.facebook.com/codeverza',
       'https://www.instagram.com/codeverza',
-      'https://www.linkedin.com/company/codeverza',
+      'https://www.linkedin.com/in/code-verza-37a429446/',
       'https://twitter.com/codeverza',
     ],
     contactPoint: {

@@ -89,7 +89,7 @@ function replyEmailHTML({ userName, userMessage, replyMessage }) {
               <table cellpadding="0" cellspacing="0" style="margin:0 auto 14px;">
                 <tr>
                   <td style="padding:0 6px;"><a href="https://wa.me/923251507557"><img src="https://cdn.jsdelivr.net/npm/simple-icons@v11/icons/whatsapp.svg" width="24" height="24" style="background:#25d366;border-radius:6px;padding:4px;display:block;" alt="WhatsApp"/></a></td>
-                  <td style="padding:0 6px;"><a href="https://linkedin.com/company/codeverza"><img src="https://cdn.jsdelivr.net/npm/simple-icons@v11/icons/linkedin.svg" width="24" height="24" style="background:#0077b5;border-radius:6px;padding:4px;display:block;" alt="LinkedIn"/></a></td>
+                  <td style="padding:0 6px;"><a href="https://www.linkedin.com/in/code-verza-37a429446/"><img src="https://cdn.jsdelivr.net/npm/simple-icons@v11/icons/linkedin.svg" width="24" height="24" style="background:#0077b5;border-radius:6px;padding:4px;display:block;" alt="LinkedIn"/></a></td>
                   <td style="padding:0 6px;"><a href="https://instagram.com/codeverza"><img src="https://cdn.jsdelivr.net/npm/simple-icons@v11/icons/instagram.svg" width="24" height="24" style="background:#e535ab;border-radius:6px;padding:4px;display:block;" alt="Instagram"/></a></td>
                 </tr>
               </table>

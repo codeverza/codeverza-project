@@ -70,8 +70,7 @@ const contactCards = [
 
 const socials = [
   { icon: <FaWhatsapp size={20} />, label: 'WhatsApp', href: 'https://wa.me/923251507557',                    color: '#25d366' },
-  { icon: <FaLinkedin size={20} />, label: 'LinkedIn', href: '#',        color: '#0077b5' },
-  { icon: <FaGithub size={20} />,   label: 'GitHub',   href: '',                  color: '#fff'    },
+  { icon: <FaLinkedin size={20} />, label: 'LinkedIn', href: 'https://www.linkedin.com/in/code-verza-37a429446/',        color: '#0077b5' },
   { icon: <FaInstagram size={20} />,label: 'Instagram', href: 'https://www.instagram.com/codeverza?igsh=Z2NkOW84ejE1cXQ3',              color: '#e535ab' },
   { icon: <FaFacebook size={20} />,label: 'Facebook', href: 'https://www.facebook.com/share/19AgBVfZht/',              color: '#1877F2' },
 ];

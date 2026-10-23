@@ -37,8 +37,8 @@ const links = {
 };
 
 const socials = [
-  { icon: <FaGithub size={18} />,   href: 'https://github.com/codeverza02',                label: 'GitHub'   },
-  { icon: <FaLinkedin size={18} />, href: 'https://www.linkedin.com/feed/',       label: 'LinkedIn' },
+  // { icon: <FaGithub size={18} />,   href: 'https://github.com/codeverza02',                label: 'GitHub'   },
+  { icon: <FaLinkedin size={18} />, href: 'https://www.linkedin.com/in/code-verza-37a429446/',       label: 'LinkedIn' },
   // { icon: <FaTwitter size={18} />,  href: '#',                label: 'Twitter'  },
   { icon: <FaInstagram size={18} />,href: 'https://www.instagram.com/codeverza?igsh=Z2NkOW84ejE1cXQ3',              label: 'Instagram'},
   { icon: <FaFacebook size={18} />,href: 'https://www.facebook.com/share/19AgBVfZht/',  label: 'Facebook'},

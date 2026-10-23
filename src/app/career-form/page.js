@@ -369,7 +369,7 @@ export default function CareerFormPage() {
                   <input
                     type="url" name="linkedin" value={form.linkedin}
                     onChange={handleChange}
-                    placeholder="https://linkedin.com/in/your-profile"
+                    placeholder="https://www.linkedin.com/in/code-verza-37a429446/"
                     className="cf-input"
                     autoComplete="off"
                   />

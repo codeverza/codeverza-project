@@ -32,8 +32,8 @@ export default function HomeJsonLd() {
     ],
     sameAs: [
       'https://www.instagram.com/codeverza',
-      'https://www.linkedin.com/company/codeverza',
-      'https://github.com/codeverza02',
+      'https://www.linkedin.com/in/code-verza-37a429446/',
+      // 'https://github.com/codeverza02',
       'https://wa.me/923251507557',
     ],
     contactPoint: {

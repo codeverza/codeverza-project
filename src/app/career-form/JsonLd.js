@@ -89,8 +89,7 @@ export default function JsonLd() {
       availableLanguage: ['English', 'Urdu'],
     },
     sameAs: [
-      'https://linkedin.com/company/codeverza',
-      'https://github.com/codeverza',
+      'https://www.linkedin.com/in/code-verza-37a429446/',
       'https://instagram.com/codeverza',
     ],
   };
